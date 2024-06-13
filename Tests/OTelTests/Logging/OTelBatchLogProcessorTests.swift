@@ -23,7 +23,7 @@ final class OTelBatchLogProcessorTests: XCTestCase {
         let exporter = OTelInMemoryLogRecordExporter()
         let batchProcessor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: OTelBatchLogEntryProcessorConfiguration(
+            configuration: OTelBatchLogRecordProcessorConfiguration(
                 environment: .detected(),
                 maximumQueueSize: 5,
                 scheduleDelay: .seconds(60) // Should never trigger
@@ -59,7 +59,7 @@ final class OTelBatchLogProcessorTests: XCTestCase {
         let exporter = OTelInMemoryLogRecordExporter()
         let batchProcessor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: OTelBatchLogEntryProcessorConfiguration(
+            configuration: OTelBatchLogRecordProcessorConfiguration(
                 environment: .detected(),
                 maximumQueueSize: 100,
                 scheduleDelay: .milliseconds(10)
@@ -97,7 +97,7 @@ final class OTelBatchLogProcessorTests: XCTestCase {
         let exporter = OTelInMemoryLogRecordExporter()
         let batchProcessor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: OTelBatchLogEntryProcessorConfiguration(
+            configuration: OTelBatchLogRecordProcessorConfiguration(
                 environment: .detected(),
                 maximumQueueSize: 5,
                 scheduleDelay: .seconds(60) // Should never trigger
@@ -132,7 +132,7 @@ final class OTelBatchLogProcessorTests: XCTestCase {
         let exporter = OTelSlowLogRecordExporter(delay: .milliseconds(50))
         let batchProcessor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: OTelBatchLogEntryProcessorConfiguration(
+            configuration: OTelBatchLogRecordProcessorConfiguration(
                 environment: .detected(),
                 maximumQueueSize: 5,
                 scheduleDelay: .seconds(60), // Should never trigger

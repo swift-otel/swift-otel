@@ -19,7 +19,7 @@ import XCTest
 final class OTelLogHandlerTests: XCTestCase {
     private let resource = OTelResource(attributes: ["service.name": "log_handler_tests"])
 
-    func test_log_withoutMetadata_forwardsLogEntryToProcessor() {
+    func test_log_withoutMetadata_forwardsLogRecordToProcessor() {
         let processor = OTelInMemoryLogRecordProcessor()
         let logger = Logger(label: #function) { _ in
             OTelLogHandler(

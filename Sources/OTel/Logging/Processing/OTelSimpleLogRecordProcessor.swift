@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 @_spi(Logging)
-public struct OTelSimpleLogEntryProcessor<Exporter: OTelLogRecordExporter>: OTelLogRecordProcessor {
+public struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTelLogRecordProcessor {
     private let exporter: Exporter
     private let stream: AsyncStream<OTelLogRecord>
     private let continuation: AsyncStream<OTelLogRecord>.Continuation
@@ -22,7 +22,7 @@ public struct OTelSimpleLogEntryProcessor<Exporter: OTelLogRecordExporter>: OTel
         (stream, continuation) = AsyncStream.makeStream()
     }
 
-    public func run() async throws {
+    @Sendable public func run() async throws {
         for try await record in stream.cancelOnGracefulShutdown() {
             do {
                 try await exporter.export([record])

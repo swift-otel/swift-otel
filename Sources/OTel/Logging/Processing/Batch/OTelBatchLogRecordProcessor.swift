@@ -26,12 +26,12 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
     CustomStringConvertible
 where Clock.Duration == Duration
 {
-    public nonisolated let description = "OTelBatchLogEntryProcessor"
+    public nonisolated let description = "OTelBatchLogRecordProcessor"
 
     internal /* for testing */ private(set) var buffer: Deque<OTelLogRecord>
 
     private let exporter: Exporter
-    private let configuration: OTelBatchLogEntryProcessorConfiguration
+    private let configuration: OTelBatchLogRecordProcessorConfiguration
     private let clock: Clock
     private let logStream: AsyncStream<OTelLogRecord>
     private let logContinuation: AsyncStream<OTelLogRecord>.Continuation
@@ -39,7 +39,7 @@ where Clock.Duration == Duration
     private let explicitTick: AsyncStream<Void>.Continuation
 
     @_spi(Testing)
-    public init(exporter: Exporter, configuration: OTelBatchLogEntryProcessorConfiguration, clock: Clock) {
+    public init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, clock: Clock) {
         self.exporter = exporter
         self.configuration = configuration
         self.clock = clock
@@ -151,7 +151,7 @@ extension OTelBatchLogRecordProcessor where Clock == ContinuousClock {
     /// - Parameters:
     ///   - exporter: The log exporter to receive batched logs to export.
     ///   - configuration: Further configuration parameters to tweak the batching behavior.
-    public init(exporter: Exporter, configuration: OTelBatchLogEntryProcessorConfiguration) {
+    public init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration) {
         self.init(exporter: exporter, configuration: configuration, clock: .continuous)
     }
 }
