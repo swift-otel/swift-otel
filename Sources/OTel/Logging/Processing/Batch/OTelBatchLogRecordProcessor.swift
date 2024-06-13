@@ -61,25 +61,29 @@ where Clock.Duration == Duration
         }
     }
 
-    public func run() async throws {
+    @Sendable public func run() async throws {
         let timerSequence = AsyncTimerSequence(interval: configuration.scheduleDelay, clock: clock).map { _ in }
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
 
-        await withThrowingTaskGroup(of: Void.self) { taskGroup in
-            taskGroup.addTask {
-                for await log in self.logStream {
-                    await self._onLog(log)
+        await withTaskCancellationOrGracefulShutdownHandler {
+            await withThrowingTaskGroup(of: Void.self) { taskGroup in
+                taskGroup.addTask {
+                    for await log in self.logStream {
+                        await self._onLog(log)
+                    }
                 }
-            }
 
-            taskGroup.addTask {
-                for try await _ in mergedSequence where !(await self.buffer.isEmpty) {
-                    await self.tick()
+                taskGroup.addTask {
+                    for try await _ in mergedSequence where !(await self.buffer.isEmpty) {
+                        await self.tick()
+                    }
                 }
-            }
 
-            try? await taskGroup.next()
-            taskGroup.cancelAll()
+                try? await taskGroup.next()
+                taskGroup.cancelAll()
+            }
+        } onCancelOrGracefulShutdown: {
+            self.logContinuation.finish()
         }
 
         try? await forceFlush()
