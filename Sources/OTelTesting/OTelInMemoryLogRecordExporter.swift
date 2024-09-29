@@ -27,10 +27,10 @@ package final class OTelInMemoryLogRecordExporter: OTelLogRecordExporter {
     }
 
     package func forceFlush() async throws {
-        // NO-OP
+        continuation.yield()
     }
 
     package func shutdown() async {
-        // NO-OP
+        continuation.finish()
     }
 }
