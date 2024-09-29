@@ -16,7 +16,7 @@
 import OTelTesting
 import XCTest
 
-final class OTelBatchLogProcessorTests: XCTestCase {
+final class OTelBatchLogRecordProcessorTests: XCTestCase {
     private let resource = OTelResource(attributes: ["service.name": "log_batch_processor_tests"])
 
     func testBatchLogProcessorAccumulatesUntilQueueSize() async throws {
@@ -30,10 +30,11 @@ final class OTelBatchLogProcessorTests: XCTestCase {
             )
         )
 
-        try await withThrowingTaskGroup(of: Void.self) { taskGroup in
+        await withThrowingTaskGroup(of: Void.self) { taskGroup in
             taskGroup.addTask(operation: batchProcessor.run)
 
             let logHandler = OTelLogHandler(processor: batchProcessor, logLevel: .debug, resource: resource)
+            var exportIterator = exporter.didExportBatch.makeAsyncIterator()
             let logger = Logger(label: "Test", logHandler)
 
             for i in 1...4 {
@@ -42,13 +43,13 @@ final class OTelBatchLogProcessorTests: XCTestCase {
 
             // Records are emitted asynchronously, so checking this without delay
             // is not representative
-            try await Task.sleep(for: .milliseconds(1))
+            await exportIterator.next()
             XCTAssertEqual(exporter.records, [])
 
             logger.info("5")
 
             // Records are emitted asynchronously, so let's wait for that to happen
-            try await Task.sleep(for: .milliseconds(1))
+            await exportIterator.next()
             XCTAssertEqual(exporter.records.count, 5)
 
             taskGroup.cancelAll()

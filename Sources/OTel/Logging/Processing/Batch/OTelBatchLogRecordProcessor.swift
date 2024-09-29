@@ -61,7 +61,7 @@ where Clock.Duration == Duration
         }
     }
 
-    @Sendable public func run() async throws {
+    public func run() async throws {
         let timerSequence = AsyncTimerSequence(interval: configuration.scheduleDelay, clock: clock).map { _ in }
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
 

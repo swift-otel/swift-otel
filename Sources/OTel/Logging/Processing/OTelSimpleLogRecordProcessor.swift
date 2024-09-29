@@ -22,7 +22,7 @@ public struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTe
         (stream, continuation) = AsyncStream.makeStream()
     }
 
-    @Sendable public func run() async throws {
+    public func run() async throws {
         for try await record in stream.cancelOnGracefulShutdown() {
             do {
                 try await exporter.export([record])
