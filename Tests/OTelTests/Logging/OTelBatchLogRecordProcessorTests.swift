@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 @testable import Logging
-@_spi(Logging) import OTel
+@_spi(Logging) @_spi(Testing) import OTel
 import OTelTesting
 import XCTest
 
@@ -41,9 +41,8 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 logger.info("\(i)")
             }
 
-            // Records are emitted asynchronously, so checking this without delay
+            // TODO: Records are emitted asynchronously, so checking this without delay
             // is not representative
-            await exportIterator.next()
             XCTAssertEqual(exporter.records, [])
 
             logger.info("5")
@@ -58,17 +57,21 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
 
     func testBatchLogProcessorEmitsEarlyAfterDelay() async throws {
         let exporter = OTelInMemoryLogRecordExporter()
+        let clock = TestClock()
+        var sleeps = clock.sleepCalls.makeAsyncIterator()
         let batchProcessor = OTelBatchLogRecordProcessor(
             exporter: exporter,
             configuration: OTelBatchLogRecordProcessorConfiguration(
                 environment: .detected(),
                 maximumQueueSize: 100,
                 scheduleDelay: .milliseconds(10)
-            )
+            ),
+            clock: clock
         )
 
-        try await withThrowingTaskGroup(of: Void.self) { taskGroup in
+        await withThrowingTaskGroup(of: Void.self) { taskGroup in
             taskGroup.addTask(operation: batchProcessor.run)
+            var iterator = exporter.didExportBatch.makeAsyncIterator()
 
             let logHandler = OTelLogHandler(
                 processor: batchProcessor,
@@ -81,13 +84,16 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 logger.info("\(i)")
             }
 
-            // Records are emitted asynchronously, so checking this without delay
+            // TODO: Records are emitted asynchronously, so checking this without delay
             // is not representative
-            try await Task.sleep(for: .milliseconds(1))
-            XCTAssertEqual(exporter.records, [])
+            XCTAssertEqual(exporter.records.count, 0)
+
+            await sleeps.next()
+            clock.advance(by: .milliseconds(10))
+            await sleeps.next()
 
             // Records should update after delay
-            try await Task.sleep(for: .milliseconds(11))
+            await iterator.next()
             XCTAssertEqual(exporter.records.count, 4)
 
             taskGroup.cancelAll()
@@ -96,13 +102,16 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
 
     func testBatchLogProcessorForceFlushEmitsEarly() async throws {
         let exporter = OTelInMemoryLogRecordExporter()
+        let clock = TestClock()
+        var sleeps = clock.sleepCalls.makeAsyncIterator()
         let batchProcessor = OTelBatchLogRecordProcessor(
             exporter: exporter,
             configuration: OTelBatchLogRecordProcessorConfiguration(
                 environment: .detected(),
                 maximumQueueSize: 5,
                 scheduleDelay: .seconds(60) // Should never trigger
-            )
+            ),
+            clock: clock
         )
 
         try await withThrowingTaskGroup(of: Void.self) { taskGroup in
@@ -119,8 +128,11 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 logger.info("\(i)")
             }
 
-            try await Task.sleep(for: .milliseconds(1))
-            XCTAssertEqual(exporter.records, [])
+            await sleeps.next()
+
+            // TODO: Records are emitted asynchronously, so checking this without delay
+            // is not representative
+            XCTAssertEqual(exporter.records.count, 0)
 
             try await batchProcessor.forceFlush()
             XCTAssertEqual(exporter.records.count, 4)
@@ -156,9 +168,6 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             }
 
             try await batchProcessor.forceFlush()
-
-            // Receiving Cancellation can take a small while
-            try await Task.sleep(for: .milliseconds(1))
 
             XCTAssertEqual(exporter.records, [])
             XCTAssertEqual(exporter.cancelCount, 1)
