@@ -14,21 +14,23 @@
 import NIOConcurrencyHelpers
 @_spi(Logging) import OTel
 
-package final class OTelSlowLogRecordExporter: OTelLogRecordExporter {
+package final class OTelSlowLogRecordExporter<Clock: _Concurrency.Clock<Duration>>: OTelLogRecordExporter {
     private let _records = NIOLockedValueBox([OTelLogRecord]())
     package var records: [OTelLogRecord] { _records.withLockedValue { $0 } }
 
     private let _cancelCount = NIOLockedValueBox(0)
     package var cancelCount: Int { _cancelCount.withLockedValue { $0 } }
     let delay: Duration
+    let clock: Clock
 
-    package init(delay: Duration) {
+    package init(delay: Duration, clock: Clock) {
         self.delay = delay
+        self.clock = clock
     }
 
     package func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
         do {
-            try await Task.sleep(for: delay)
+            try await Task.sleep(for: delay, clock: clock)
             _records.withLockedValue { $0.append(contentsOf: batch) }
         } catch is CancellationError {
             _cancelCount.withLockedValue { $0 += 1 }

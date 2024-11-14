@@ -142,7 +142,9 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
     }
 
     func testBatchLogProcessorCancelsSlowExports() async throws {
-        let exporter = OTelSlowLogRecordExporter(delay: .milliseconds(50))
+        let clock = TestClock()
+        var sleeps = clock.sleepCalls.makeAsyncIterator()
+        let exporter = OTelSlowLogRecordExporter(delay: .milliseconds(50), clock: clock)
         let batchProcessor = OTelBatchLogRecordProcessor(
             exporter: exporter,
             configuration: OTelBatchLogRecordProcessorConfiguration(
@@ -150,10 +152,11 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 maximumQueueSize: 5,
                 scheduleDelay: .seconds(60), // Should never trigger
                 exportTimeout: .milliseconds(10)
-            )
+            ),
+            clock: clock
         )
 
-        try await withThrowingTaskGroup(of: Void.self) { taskGroup in
+        await withThrowingTaskGroup(of: Void.self) { taskGroup in
             taskGroup.addTask(operation: batchProcessor.run)
 
             let logHandler = OTelLogHandler(
@@ -167,7 +170,14 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 logger.info("\(i)")
             }
 
-            try await batchProcessor.forceFlush()
+            await withThrowingTaskGroup(of: Void.self) { taskGroup in
+                taskGroup.addTask {
+                    try await batchProcessor.forceFlush()
+                }
+
+                await sleeps.next()
+                clock.advance(by: .milliseconds(10))
+            }
 
             XCTAssertEqual(exporter.records, [])
             XCTAssertEqual(exporter.cancelCount, 1)
