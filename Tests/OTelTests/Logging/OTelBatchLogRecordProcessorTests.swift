@@ -156,7 +156,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             clock: clock
         )
 
-        await withThrowingTaskGroup(of: Void.self) { taskGroup in
+        try await withThrowingTaskGroup(of: Void.self) { taskGroup in
             taskGroup.addTask(operation: batchProcessor.run)
 
             let logHandler = OTelLogHandler(
@@ -170,13 +170,18 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 logger.info("\(i)")
             }
 
-            await withThrowingTaskGroup(of: Void.self) { taskGroup in
+            try await withThrowingTaskGroup(of: Void.self) { taskGroup in
                 taskGroup.addTask {
                     try await batchProcessor.forceFlush()
                 }
 
+                // `scheduleDelay` + `OTelSlowLogRecordExporter` + `exportTimeout`
                 await sleeps.next()
+                await sleeps.next()
+                await sleeps.next()
+
                 clock.advance(by: .milliseconds(10))
+                try await taskGroup.waitForAll()
             }
 
             XCTAssertEqual(exporter.records, [])

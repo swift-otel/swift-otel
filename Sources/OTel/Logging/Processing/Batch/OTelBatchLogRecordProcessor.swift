@@ -109,8 +109,13 @@ where Clock.Duration == Duration
                     throw CancellationError()
                 }
 
-                try? await group.next()
-                group.cancelAll()
+                do {
+                    // Don't cancel unless it's an error
+                    // A single export shouldn't cancel the other exports
+                    try await group.next()
+                } catch {
+                    group.cancelAll()
+                }
             }
         }
 
