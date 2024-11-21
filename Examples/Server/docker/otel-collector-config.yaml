@@ -5,8 +5,8 @@ receivers:
         endpoint: "otel-collector:4317"
 
 exporters:
-  debug:  # Data sources: traces, metrics, logs
-    verbosity: detailed
+  logging:
+    loglevel: debug
 
   prometheus:  # Data sources: metrics
     endpoint: "otel-collector:7070"
@@ -16,14 +16,23 @@ exporters:
     tls:
       insecure: true
 
+processors:
+  batch:
+
 service:
   pipelines:
     metrics:
       receivers: [otlp]
       # processors: [batch]
-      exporters: [prometheus, debug]
+      exporters: [prometheus]
+
     traces:
       receivers: [otlp]
-      exporters: [otlp/jaeger, debug]
+      exporters: [otlp/jaeger]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging]
 
 # yaml-language-server: $schema=https://raw.githubusercontent.com/srikanthccv/otelcol-jsonschema/main/schema.json

@@ -14,20 +14,14 @@
 import Hummingbird
 import Logging
 import Metrics
-import OTel
-import OTLPGRPC
+@_spi(Logging) import OTel
+@_spi(Logging) import OTLPGRPC
+import ServiceLifecycle
 import Tracing
 
 @main
 enum ServerMiddlewareExample {
     static func main() async throws {
-        // Bootstrap the logging backend with the OTel metadata provider which includes span IDs in logging messages.
-        LoggingSystem.bootstrap { label in
-            var handler = StreamLogHandler.standardError(label: label, metadataProvider: .otel)
-            handler.logLevel = .trace
-            return handler
-        }
-
         // Configure OTel resource detection to automatically apply helpful attributes to events.
         let environment = OTelEnvironment.detected()
         let resourceDetection = OTelResourceDetection(detectors: [
@@ -51,29 +45,48 @@ enum ServerMiddlewareExample {
         )
         MetricsSystem.bootstrap(OTLPMetricsFactory(registry: registry))
 
+        // Bootstrap the logging backend with the OTel metadata provider which includes span IDs in logging messages.
+        let logExporter = try OTLPGRPCLogEntryExporter(
+            configuration: .init(environment: environment)
+        )
+
+        let logProcessor = OTelBatchLogRecordProcessor(
+            exporter: logExporter,
+            configuration: OTelBatchLogEntryProcessorConfiguration(environment: environment)
+        )
+
+        let logger = OTelLogHandler(processor: logProcessor, logLevel: .debug, resource: resource)
+        LoggingSystem.bootstrap { label in
+            return logger
+        }
+
         // Bootstrap the tracing backend to export traces periodically in OTLP/gRPC.
-        let exporter = try OTLPGRPCSpanExporter(configuration: .init(environment: environment))
-        let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(environment: environment))
+        let traceExporter = try OTLPGRPCSpanExporter(configuration: .init(environment: environment))
+        let traceProcessor = OTelBatchSpanProcessor(exporter: traceExporter, configuration: .init(environment: environment))
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
             sampler: OTelConstantSampler(isOn: true),
             propagator: OTelW3CPropagator(),
-            processor: processor,
+            processor: traceProcessor,
             environment: environment,
             resource: resource
         )
         InstrumentationSystem.bootstrap(tracer)
 
         // Create an HTTP server with instrumentation middleware and a simple /hello endpoint, on 127.0.0.1:8080.
-        let router = HBRouter()
-        router.middlewares.add(HBTracingMiddleware())
-        router.middlewares.add(HBMetricsMiddleware())
-        router.middlewares.add(HBLogRequestsMiddleware(.info))
-        router.get("hello") { _, _ in "hello" }
-        var app = HBApplication(router: router)
+        let router = Router()
+        router.middlewares.add(TracingMiddleware())
+        router.middlewares.add(MetricsMiddleware())
+        router.middlewares.add(LogRequestsMiddleware(.info))
+        router.get("hello") { _, context in
+            context.logger.info("Someone visited me, at last!")
+            return "hello"
+        }
+        var app = Application(router: router)
+        app.logger.logLevel = .debug
 
-        // Add the tracer lifecycle service to the HTTP server service group and start the application.
-        app.addServices(metrics, tracer)
+        // Add the logger, metrics and tracer lifecycle services to the HTTP server service group and start the application.
+        app.addServices(logProcessor, metrics, tracer)
         try await app.runService()
     }
 }
