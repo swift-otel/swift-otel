@@ -85,9 +85,10 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             }
 
             // Records are emitted asynchronously, so checking this without a real delay
-            // is not representative
+            // is not representative.
+            // You also can't suspend until a log has reached the processor - which
+            // makes this test otherwise infeasible
             try await Task.sleep(for: .milliseconds(100))
-
             XCTAssertEqual(exporter.records.count, 0)
 
             await sleeps.next()
@@ -105,7 +106,6 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
     func testBatchLogProcessorForceFlushEmitsEarly() async throws {
         let exporter = OTelInMemoryLogRecordExporter()
         let batchProcessorClock = TestClock()
-        var sleeps = batchProcessorClock.sleepCalls.makeAsyncIterator()
         let batchProcessor = OTelBatchLogRecordProcessor(
             exporter: exporter,
             configuration: OTelBatchLogRecordProcessorConfiguration(
@@ -130,11 +130,8 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 logger.info("\(i)")
             }
 
-            // Records are emitted asynchronously, so checking this without delay
-            // is not representative
-            try await Task.sleep(for: .milliseconds(100))
-
             // Nothing should be emitted
+            // TODO: Records are emitted asynchronously, so this check checking is not representative
             XCTAssertEqual(exporter.records.count, 0)
 
             try await batchProcessor.forceFlush()
