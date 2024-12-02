@@ -12,22 +12,60 @@
 //===----------------------------------------------------------------------===//
 
 @testable import Logging
+import NIO
 @testable import OTel
 import OTLPCore
-import OTLPGRPC
+@testable import OTLPGRPC
 import XCTest
 
 final class OTLPGRPCMetricExporterTests: XCTestCase {
+    private var requestLogger: Logger!
+    private var backgroundActivityLogger: Logger!
+
     override func setUp() async throws {
         LoggingSystem.bootstrapInternal(logLevel: .trace)
+        requestLogger = Logger(label: "requestLogger")
+        backgroundActivityLogger = Logger(label: "backgroundActivityLogger")
     }
 
-    func test_export_whenConnected_sendsExportRequestToCollector() async throws {
+    func test_export_whenConnected_withInsecureConnection_sendsExportRequestToCollector() async throws {
         let collector = OTLPGRPCMockCollector()
 
-        try await collector.withServer { endpoint in
+        try await collector.withInsecureServer { endpoint in
             let configuration = try OTLPGRPCMetricExporterConfiguration(environment: [:], endpoint: endpoint)
-            let exporter = OTLPGRPCMetricExporter(configuration: configuration)
+            let exporter = OTLPGRPCMetricExporter(
+                configuration: configuration,
+                requestLogger: requestLogger,
+                backgroundActivityLogger: backgroundActivityLogger
+            )
+
+            let metrics = OTelResourceMetrics(scopeMetrics: [])
+            try await exporter.export([metrics])
+
+            await exporter.shutdown()
+        }
+
+        XCTAssertEqual(collector.metricsProvider.requests.count, 1)
+        let request = try XCTUnwrap(collector.metricsProvider.requests.first)
+
+        XCTAssertEqual(
+            request.headers.first(name: "user-agent"),
+            "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)"
+        )
+    }
+
+    func test_export_whenConnected_withSecureConnection_sendsExportRequestToCollector() async throws {
+        let collector = OTLPGRPCMockCollector()
+
+        try await collector.withSecureServer { endpoint, trustRoots in
+            let configuration = try OTLPGRPCMetricExporterConfiguration(environment: [:], endpoint: endpoint)
+            let exporter = OTLPGRPCMetricExporter(
+                configuration: configuration,
+                group: MultiThreadedEventLoopGroup.singleton,
+                requestLogger: requestLogger,
+                backgroundActivityLogger: backgroundActivityLogger,
+                trustRoots: trustRoots
+            )
 
             let metrics = OTelResourceMetrics(scopeMetrics: [])
             try await exporter.export([metrics])
@@ -74,7 +112,7 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
             ]
         )
 
-        try await collector.withServer { endpoint in
+        try await collector.withInsecureServer { endpoint in
             let configuration = try OTLPGRPCMetricExporterConfiguration(
                 environment: [:],
                 endpoint: endpoint,
@@ -83,7 +121,11 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
                     "key2": "84",
                 ]
             )
-            let exporter = OTLPGRPCMetricExporter(configuration: configuration)
+            let exporter = OTLPGRPCMetricExporter(
+                configuration: configuration,
+                requestLogger: requestLogger,
+                backgroundActivityLogger: backgroundActivityLogger
+            )
 
             try await exporter.export([resourceMetricsToExport])
 
@@ -120,9 +162,13 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
         let collector = OTLPGRPCMockCollector()
         let errorCaught = expectation(description: "Caught expected error")
         do {
-            try await collector.withServer { endpoint in
+            try await collector.withInsecureServer { endpoint in
                 let configuration = try OTLPGRPCMetricExporterConfiguration(environment: [:], endpoint: endpoint)
-                let exporter = OTLPGRPCMetricExporter(configuration: configuration)
+                let exporter = OTLPGRPCMetricExporter(
+                    configuration: configuration,
+                    requestLogger: requestLogger,
+                    backgroundActivityLogger: backgroundActivityLogger
+                )
                 await exporter.shutdown()
 
                 let metrics = OTelResourceMetrics(scopeMetrics: [])

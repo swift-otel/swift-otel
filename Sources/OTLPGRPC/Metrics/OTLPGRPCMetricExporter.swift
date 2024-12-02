@@ -26,29 +26,52 @@ public final class OTLPGRPCMetricExporter: OTelMetricExporter {
     private let client: Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient
     private let logger = Logger(label: String(describing: OTLPGRPCMetricExporter.self))
 
-    public init(
+    public convenience init(
         configuration: OTLPGRPCMetricExporterConfiguration,
         group: any EventLoopGroup = MultiThreadedEventLoopGroup.singleton,
         requestLogger: Logger = ._otelDisabled,
         backgroundActivityLogger: Logger = ._otelDisabled
     ) {
-        self.configuration = configuration
-
-        var connectionConfiguration = ClientConnection.Configuration.default(
-            target: .host(configuration.endpoint.host, port: configuration.endpoint.port),
-            eventLoopGroup: group
+        self.init(
+            configuration: configuration,
+            group: group,
+            requestLogger: requestLogger,
+            backgroundActivityLogger: backgroundActivityLogger,
+            trustRoots: .default
         )
+    }
+
+    init(
+        configuration: OTLPGRPCMetricExporterConfiguration,
+        group: any EventLoopGroup,
+        requestLogger: Logger,
+        backgroundActivityLogger: Logger,
+        trustRoots: NIOSSLTrustRoots
+    ) {
+        self.configuration = configuration
 
         if configuration.endpoint.isInsecure {
             logger.debug("Using insecure connection.", metadata: [
                 "host": "\(configuration.endpoint.host)",
                 "port": "\(configuration.endpoint.port)",
             ])
+            connection = ClientConnection.insecure(group: group)
+                .withBackgroundActivityLogger(backgroundActivityLogger)
+                .connect(host: configuration.endpoint.host, port: configuration.endpoint.port)
+        } else {
+            logger.debug("Using secure connection.", metadata: [
+                "host": "\(configuration.endpoint.host)",
+                "port": "\(configuration.endpoint.port)",
+            ])
+            connection = ClientConnection
+                .usingPlatformAppropriateTLS(for: group)
+                .withTLS(trustRoots: trustRoots)
+                .withBackgroundActivityLogger(backgroundActivityLogger)
+                // TODO: Support OTEL_EXPORTER_OTLP_CERTIFICATE
+                // TODO: Support OTEL_EXPORTER_OTLP_CLIENT_KEY
+                // TODO: Support OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE
+                .connect(host: configuration.endpoint.host, port: configuration.endpoint.port)
         }
-
-        // TODO: Support OTEL_EXPORTER_OTLP_CERTIFICATE
-        // TODO: Support OTEL_EXPORTER_OTLP_CLIENT_KEY
-        // TODO: Support OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE
 
         var headers = configuration.headers
         if !headers.isEmpty {
@@ -57,9 +80,6 @@ public final class OTLPGRPCMetricExporter: OTelMetricExporter {
             ])
         }
         headers.replaceOrAdd(name: "user-agent", value: "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)")
-
-        connectionConfiguration.backgroundActivityLogger = backgroundActivityLogger
-        connection = ClientConnection(configuration: connectionConfiguration)
 
         client = Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient(
             channel: connection,
