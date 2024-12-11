@@ -9,7 +9,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "swift-otel", path: "../.."),
-        .package(url: "https://github.com/hummingbird-project/hummingbird", exact: "2.0.0-alpha.1"),
+        .package(url: "https://github.com/hummingbird-project/hummingbird", exact: "2.0.0-beta.6"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.0"),
         .package(url: "https://github.com/apple/swift-metrics.git", from: "2.4.1"),
         .package(url: "https://github.com/apple/swift-distributed-tracing.git", from: "1.0.0"),
