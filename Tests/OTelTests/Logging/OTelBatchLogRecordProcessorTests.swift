@@ -34,7 +34,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             taskGroup.addTask(operation: batchProcessor.run)
 
             let logHandler = OTelLogHandler(processor: batchProcessor, logLevel: .debug, resource: resource)
-            var exportIterator = exporter.didExportBatch.makeAsyncIterator()
+            var recordIterator = exporter.didRecordBatch.makeAsyncIterator()
             let logger = Logger(label: "Test", logHandler)
 
             for i in 1...4 {
@@ -48,7 +48,11 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             logger.info("5")
 
             // Records are emitted asynchronously, so let's wait for that to happen
-            await exportIterator.next()
+            let records = await recordIterator.next()
+            guard records == 5 else {
+                XCTFail("Expected to record 5 entities, recorded \(records ?? 0)")
+                return
+            }
             XCTAssertEqual(exporter.records.count, 5)
 
             taskGroup.cancelAll()
@@ -71,7 +75,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
 
         try await withThrowingTaskGroup(of: Void.self) { taskGroup in
             taskGroup.addTask(operation: batchProcessor.run)
-            var iterator = exporter.didExportBatch.makeAsyncIterator()
+            var iterator = exporter.didRecordBatch.makeAsyncIterator()
 
             let logHandler = OTelLogHandler(
                 processor: batchProcessor,
@@ -96,7 +100,11 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             await sleeps.next()
 
             // Records should update after delay
-            await iterator.next()
+            let records = await iterator.next()
+            guard records == 4 else {
+                XCTFail("Expected to record 4 entities, recorded \(records ?? 0)")
+                return
+            }
             XCTAssertEqual(exporter.records.count, 4)
 
             taskGroup.cancelAll()
@@ -129,6 +137,9 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             for i in 1...4 {
                 logger.info("\(i)")
             }
+
+            // Without this, the Logger intermittendly hasn't reported the logs to the processor
+            try await Task.sleep(for: .milliseconds(100))
 
             // Nothing should be emitted
             // TODO: Records are emitted asynchronously, so this check checking is not representative

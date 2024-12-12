@@ -16,21 +16,23 @@ import NIOConcurrencyHelpers
 
 package final class OTelInMemoryLogRecordExporter: OTelLogRecordExporter {
     private let _records = NIOLockedValueBox([OTelLogRecord]())
-    package let (didExportBatch, continuation) = AsyncStream<Void>.makeStream()
+    package let (didExportBatch, exportContinuation) = AsyncStream<Void>.makeStream()
+    package let (didRecordBatch, recordContinuation) = AsyncStream<Int>.makeStream()
     package var records: [OTelLogRecord] { _records.withLockedValue { $0 } }
 
     package init() {}
 
     package func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
         _records.withLockedValue { $0.append(contentsOf: batch) }
-        continuation.yield()
+        recordContinuation.yield(batch.count)
     }
 
     package func forceFlush() async throws {
-        continuation.yield()
+        exportContinuation.yield()
     }
 
     package func shutdown() async {
-        continuation.finish()
+        recordContinuation.finish()
+        exportContinuation.finish()
     }
 }
