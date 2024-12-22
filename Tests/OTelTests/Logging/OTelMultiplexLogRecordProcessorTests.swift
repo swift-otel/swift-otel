@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift OTel open source project
 //
-// Copyright (c) 2024 Moritz Lang and the Swift OTel project authors
+// Copyright (c) 2024 the Swift OTel project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -16,7 +16,7 @@
 import OTelTesting
 import XCTest
 
-final class OTelMultiplexLogProcessorTests: XCTestCase {
+final class OTelMultiplexLogRecordProcessorTests: XCTestCase {
     private let resource = OTelResource(attributes: ["service.name": "log_simple_processor_tests"])
 
     func testSimpleLogProcessorEmitsIndividualEntries() async throws {
@@ -28,7 +28,7 @@ final class OTelMultiplexLogProcessorTests: XCTestCase {
 
         let processor = OTelMultiplexLogRecordProcessor(processors: [
             simpleProcessor1,
-            simpleProcessor2
+            simpleProcessor2,
         ])
 
         try await withThrowingTaskGroup(of: Void.self) { taskGroup in
@@ -38,7 +38,7 @@ final class OTelMultiplexLogProcessorTests: XCTestCase {
             let logHandler = OTelLogHandler(processor: processor, logLevel: .debug, resource: resource)
             let logger = Logger(label: "Test", logHandler)
 
-            for i in 1...4 {
+            for i in 1 ... 4 {
                 logger.info("\(i)")
 
                 // Records are emitted asynchronously, so checking this without delay

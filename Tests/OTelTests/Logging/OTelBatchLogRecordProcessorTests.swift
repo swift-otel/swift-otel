@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift OTel open source project
 //
-// Copyright (c) 2024 Moritz Lang and the Swift OTel project authors
+// Copyright (c) 2024 the Swift OTel project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -37,7 +37,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             var recordIterator = exporter.didRecordBatch.makeAsyncIterator()
             let logger = Logger(label: "Test", logHandler)
 
-            for i in 1...4 {
+            for i in 1 ... 4 {
                 logger.info("\(i)")
             }
 
@@ -84,7 +84,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             )
             let logger = Logger(label: "Test", logHandler)
 
-            for i in 1...4 {
+            for i in 1 ... 4 {
                 logger.info("\(i)")
             }
 
@@ -134,7 +134,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             )
             let logger = Logger(label: "Test", logHandler)
 
-            for i in 1...4 {
+            for i in 1 ... 4 {
                 logger.info("\(i)")
             }
 
@@ -174,7 +174,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         )
         let logger = Logger(label: "Test", logHandler)
 
-        for i in 1...5 {
+        for i in 1 ... 5 {
             logger.info("\(i)")
         }
 

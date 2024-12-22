@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift OTel open source project
 //
-// Copyright (c) 2024 Moritz Lang and the Swift OTel project authors
+// Copyright (c) 2024 the Swift OTel project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -24,7 +24,7 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
     OTelLogRecordProcessor,
     Service,
     CustomStringConvertible
-where Clock.Duration == Duration
+    where Clock.Duration == Duration
 {
     public nonisolated let description = "OTelBatchLogRecordProcessor"
 
@@ -49,15 +49,15 @@ where Clock.Duration == Duration
         (logStream, logContinuation) = AsyncStream.makeStream()
     }
 
-    nonisolated public func onEmit(_ record: inout OTelLogRecord) {
+    public nonisolated func onEmit(_ record: inout OTelLogRecord) {
         logContinuation.yield(record)
     }
 
     private func _onLog(_ log: OTelLogRecord) {
         buffer.append(log)
 
-        if self.buffer.count == self.configuration.maximumQueueSize {
-            self.explicitTick.yield()
+        if buffer.count == configuration.maximumQueueSize {
+            explicitTick.yield()
         }
     }
 
@@ -74,7 +74,7 @@ where Clock.Duration == Duration
                 }
 
                 taskGroup.addTask {
-                    for try await _ in mergedSequence where !(await self.buffer.isEmpty) {
+                    for try await _ in mergedSequence where await !(self.buffer.isEmpty) {
                         await self.tick()
                     }
                 }

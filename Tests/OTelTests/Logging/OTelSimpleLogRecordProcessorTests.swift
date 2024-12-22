@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift OTel open source project
 //
-// Copyright (c) 2024 Moritz Lang and the Swift OTel project authors
+// Copyright (c) 2024 the Swift OTel project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -16,7 +16,7 @@
 import OTelTesting
 import XCTest
 
-final class OTelSimpleLogProcessorTests: XCTestCase {
+final class OTelSimpleLogRecordProcessorTests: XCTestCase {
     private let resource = OTelResource(attributes: ["service.name": "log_simple_processor_tests"])
 
     func testSimpleLogProcessorEmitsIndividualEntries() async throws {
@@ -30,7 +30,7 @@ final class OTelSimpleLogProcessorTests: XCTestCase {
             let logHandler = OTelLogHandler(processor: simpleProcessor, logLevel: .debug, resource: resource)
             let logger = Logger(label: "Test", logHandler)
 
-            for i in 1...4 {
+            for i in 1 ... 4 {
                 logger.info("\(i)")
 
                 let recorded = await iterator.next()
