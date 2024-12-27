@@ -23,7 +23,7 @@ final class OTelSimpleLogRecordProcessorTests: XCTestCase {
         let exporter = OTelInMemoryLogRecordExporter()
         let simpleProcessor = OTelSimpleLogRecordProcessor(exporter: exporter)
 
-        await withThrowingTaskGroup(of: Void.self) { taskGroup in
+        try await withThrowingTaskGroup(of: Void.self) { taskGroup in
             taskGroup.addTask(operation: simpleProcessor.run)
 
             var iterator = exporter.didRecordBatch.makeAsyncIterator()
@@ -46,7 +46,7 @@ final class OTelSimpleLogRecordProcessorTests: XCTestCase {
             let numberOfForceFlushes = await exporter.numberOfForceFlushes
             XCTAssertEqual(numberOfForceFlushes, 1)
 
-            try await exporter.shutdown()
+            await exporter.shutdown()
             let numberOfShutdowns = await exporter.numberOfShutdowns
             XCTAssertEqual(numberOfShutdowns, 1)
 
