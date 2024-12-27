@@ -13,7 +13,7 @@
 
 @testable import Logging
 @_spi(Logging) import OTel
-import OTelTesting
+@_spi(Logging) import OTelTesting
 import XCTest
 
 final class OTelLogHandlerTests: XCTestCase {

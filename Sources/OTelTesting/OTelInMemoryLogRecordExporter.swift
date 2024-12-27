@@ -14,25 +14,25 @@
 import NIOConcurrencyHelpers
 @_spi(Logging) import OTel
 
-package final class OTelInMemoryLogRecordExporter: OTelLogRecordExporter {
-    private let _records = NIOLockedValueBox([OTelLogRecord]())
-    package let (didExportBatch, exportContinuation) = AsyncStream<Void>.makeStream()
-    package let (didRecordBatch, recordContinuation) = AsyncStream<Int>.makeStream()
-    package var records: [OTelLogRecord] { _records.withLockedValue { $0 } }
+@_spi(Logging)
+public actor OTelInMemoryLogRecordExporter: OTelLogRecordExporter {
+    public private(set) var exportedBatches = [[OTelLogRecord]]()
+    public private(set) var numberOfShutdowns = 0
+    public private(set) var numberOfForceFlushes = 0
+    public nonisolated let (didRecordBatch, recordContinuation) = AsyncStream<Int>.makeStream()
 
-    package init() {}
+    public init() {}
 
-    package func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
-        _records.withLockedValue { $0.append(contentsOf: batch) }
+    public func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
+        exportedBatches.append(Array(batch))
         recordContinuation.yield(batch.count)
     }
 
-    package func forceFlush() async throws {
-        exportContinuation.yield()
+    public func forceFlush() async throws {
+        numberOfForceFlushes += 1
     }
 
-    package func shutdown() async {
-        recordContinuation.finish()
-        exportContinuation.finish()
+    public func shutdown() async {
+        numberOfShutdowns += 1
     }
 }
