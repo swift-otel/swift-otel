@@ -34,10 +34,10 @@ public struct OTelBatchLogRecordProcessorConfiguration: Sendable {
     ///
     /// - Parameters:
     ///   - environment: The environment variables.
-    ///   - maximumQueueSize: A maximum queue size used even if `OTEL_BSP_MAX_QUEUE_SIZE` is set. Defaults to `2048` if both are `nil`.
-    ///   - scheduleDelay: A schedule delay used even if `OTEL_BSP_SCHEDULE_DELAY` is set. Defaults to `5` seconds if both are `nil`.
-    ///   - maximumExportBatchSize: A maximum export batch size used even if `OTEL_BSP_MAX_EXPORT_BATCH_SIZE` is set. Defaults to `512` if both are `nil`.
-    ///   - exportTimeout: An export timeout used even if `OTEL_BSP_EXPORT_TIMEOUT` is set. Defaults to `30` seconds if both are `nil`.
+    ///   - maximumQueueSize: A maximum queue size used even if `OTEL_BLRP_MAX_QUEUE_SIZE` is set. Defaults to `2048` if both are `nil`.
+    ///   - scheduleDelay: A schedule delay used even if `OTEL_BLRP_SCHEDULE_DELAY` is set. Defaults to `5` seconds if both are `nil`.
+    ///   - maximumExportBatchSize: A maximum export batch size used even if `OTEL_BLRP_MAX_EXPORT_BATCH_SIZE` is set. Defaults to `512` if both are `nil`.
+    ///   - exportTimeout: An export timeout used even if `OTEL_BLRP_EXPORT_TIMEOUT` is set. Defaults to `30` seconds if both are `nil`.
     public init(
         environment: OTelEnvironment,
         maximumQueueSize: UInt? = nil,
@@ -47,14 +47,14 @@ public struct OTelBatchLogRecordProcessorConfiguration: Sendable {
     ) {
         self.maximumQueueSize = environment.requiredValue(
             programmaticOverride: maximumQueueSize,
-            key: "OTEL_BSP_MAX_QUEUE_SIZE",
+            key: "OTEL_BLRP_MAX_QUEUE_SIZE",
             defaultValue: 2048,
             transformValue: UInt.init
         )
 
         self.scheduleDelay = environment.requiredValue(
             programmaticOverride: scheduleDelay,
-            key: "OTEL_BSP_SCHEDULE_DELAY",
+            key: "OTEL_BLRP_SCHEDULE_DELAY",
             defaultValue: .seconds(5),
             transformValue: {
                 guard let milliseconds = UInt($0) else { return nil }
@@ -64,14 +64,14 @@ public struct OTelBatchLogRecordProcessorConfiguration: Sendable {
 
         self.maximumExportBatchSize = environment.requiredValue(
             programmaticOverride: maximumExportBatchSize,
-            key: "OTEL_BSP_MAX_EXPORT_BATCH_SIZE",
+            key: "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE",
             defaultValue: 512,
             transformValue: UInt.init
         )
 
         self.exportTimeout = environment.requiredValue(
             programmaticOverride: exportTimeout,
-            key: "OTEL_BSP_EXPORT_TIMEOUT",
+            key: "OTEL_BLRP_EXPORT_TIMEOUT",
             defaultValue: .seconds(30),
             transformValue: {
                 guard let milliseconds = UInt($0) else { return nil }
