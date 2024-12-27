@@ -31,10 +31,3 @@ public protocol OTelLogRecordExporter: Sendable {
     /// are expected to fail.
     func shutdown() async
 }
-
-/// An error indicating that a given exporter has already been shut down while receiving an additional batch of logs to export.
-@_spi(Logging)
-public struct OTelLogRecordExporterAlreadyShutDownError: Error {
-    /// Initialize the error.
-    public init() {}
-}
