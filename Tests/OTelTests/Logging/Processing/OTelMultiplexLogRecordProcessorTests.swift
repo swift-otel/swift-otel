@@ -14,8 +14,8 @@
 @testable import Logging
 @_spi(Logging) import OTel
 @_spi(Logging) import OTelTesting
-import XCTest
 import ServiceLifecycle
+import XCTest
 
 final class OTelMultiplexLogRecordProcessorTests: XCTestCase {
     private let resource = OTelResource(attributes: ["service.name": "log_simple_processor_tests"])
