@@ -33,6 +33,7 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
     private let exporter: Exporter
     private let configuration: OTelBatchLogRecordProcessorConfiguration
     private let clock: Clock
+    private let logger = Logger(label: "OTelBatchLogRecordProcessor")
     private let logStream: AsyncStream<OTelLogRecord>
     private let logContinuation: AsyncStream<OTelLogRecord>.Continuation
     private let explicitTickStream: AsyncStream<Void>
@@ -141,7 +142,10 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
         } catch is CancellationError {
             // No-op
         } catch {
-            // TODO: Should we emit this error somewhere?
+            logger.error("Failed to export log batch.", metadata: [
+                "error": "\(String(describing: type(of: error)))",
+                "error_description": "\(error)",
+            ])
         }
     }
 }
