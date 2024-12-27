@@ -99,7 +99,7 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
         if !buffer.isEmpty {
             buffer.removeAll()
 
-            await withThrowingTaskGroup(of: Void.self) { group in
+            try await withThrowingTaskGroup(of: Void.self) { group in
                 for batch in batches {
                     group.addTask { await self.export(batch) }
                 }
@@ -109,14 +109,10 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
                     throw CancellationError()
                 }
 
-                do {
-                    // Don't cancel unless it's an error
-                    // A single export shouldn't cancel the other exports
-                    try await group.next()
-                    group.cancelAll()
-                } catch {
-                    group.cancelAll()
-                }
+                defer { group.cancelAll() }
+                // Don't cancel unless it's an error
+                // A single export shouldn't cancel the other exports
+                try await group.next()
             }
         }
 

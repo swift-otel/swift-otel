@@ -42,6 +42,14 @@ final class OTelSimpleLogRecordProcessorTests: XCTestCase {
                 XCTAssertEqual(count, i)
             }
 
+            try await exporter.forceFlush()
+            let numberOfForceFlushes = await exporter.numberOfForceFlushes
+            XCTAssertEqual(numberOfForceFlushes, 1)
+
+            try await exporter.shutdown()
+            let numberOfShutdowns = await exporter.numberOfShutdowns
+            XCTAssertEqual(numberOfShutdowns, 1)
+
             taskGroup.cancelAll()
         }
     }

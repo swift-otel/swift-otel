@@ -11,9 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_spi(Logging) import OTel
-import Logging
 import Foundation
+import Logging
+@_spi(Logging) import OTel
 
 @_spi(Logging)
 extension OTelLogRecord {
@@ -34,4 +34,4 @@ extension OTelLogRecord {
             spanContext: spanContext
         )
     }
-} 
+}
