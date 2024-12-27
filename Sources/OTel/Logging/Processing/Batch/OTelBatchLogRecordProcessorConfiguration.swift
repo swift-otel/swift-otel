@@ -35,7 +35,7 @@ public struct OTelBatchLogRecordProcessorConfiguration: Sendable {
     /// - Parameters:
     ///   - environment: The environment variables.
     ///   - maximumQueueSize: A maximum queue size used even if `OTEL_BLRP_MAX_QUEUE_SIZE` is set. Defaults to `2048` if both are `nil`.
-    ///   - scheduleDelay: A schedule delay used even if `OTEL_BLRP_SCHEDULE_DELAY` is set. Defaults to `5` seconds if both are `nil`.
+    ///   - scheduleDelay: A schedule delay used even if `OTEL_BLRP_SCHEDULE_DELAY` is set. Defaults to `1` second if both are `nil`.
     ///   - maximumExportBatchSize: A maximum export batch size used even if `OTEL_BLRP_MAX_EXPORT_BATCH_SIZE` is set. Defaults to `512` if both are `nil`.
     ///   - exportTimeout: An export timeout used even if `OTEL_BLRP_EXPORT_TIMEOUT` is set. Defaults to `30` seconds if both are `nil`.
     public init(
