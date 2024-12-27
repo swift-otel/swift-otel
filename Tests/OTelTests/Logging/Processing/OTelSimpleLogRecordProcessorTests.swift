@@ -13,7 +13,7 @@
 
 @testable import Logging
 @_spi(Logging) import OTel
-import OTelTesting
+@_spi(Logging) import OTelTesting
 import XCTest
 
 final class OTelSimpleLogRecordProcessorTests: XCTestCase {
@@ -35,7 +35,11 @@ final class OTelSimpleLogRecordProcessorTests: XCTestCase {
 
                 let recorded = await iterator.next()
                 XCTAssertEqual(recorded, 1)
-                XCTAssertEqual(exporter.records.count, i)
+
+                let count = await exporter.exportedBatches.reduce(into: 0) { count, batch in
+                    count += batch.count
+                }
+                XCTAssertEqual(count, i)
             }
 
             taskGroup.cancelAll()

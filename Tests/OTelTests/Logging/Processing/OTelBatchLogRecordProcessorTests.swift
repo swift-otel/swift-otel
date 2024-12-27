@@ -13,7 +13,7 @@
 
 @testable import Logging
 @_spi(Logging) @_spi(Testing) import OTel
-import OTelTesting
+@_spi(Logging) import OTelTesting
 import XCTest
 
 final class OTelBatchLogRecordProcessorTests: XCTestCase {
@@ -43,7 +43,8 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
 
             // TODO: Records are emitted asynchronously, so checking this without delay
             // is not representative
-            XCTAssertEqual(exporter.records, [])
+            var batchCount = await exporter.exportedBatches.count
+            XCTAssertEqual(batchCount, 0)
 
             logger.info("5")
 
@@ -53,7 +54,11 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 XCTFail("Expected to record 5 entities, recorded \(records ?? 0)")
                 return
             }
-            XCTAssertEqual(exporter.records.count, 5)
+
+            batchCount = await exporter.exportedBatches.count
+            XCTAssertEqual(batchCount, 1)
+            let batch = await exporter.exportedBatches.first
+            XCTAssertEqual(batch?.count, 5)
 
             taskGroup.cancelAll()
         }
@@ -93,7 +98,8 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             // You also can't suspend until a log has reached the processor - which
             // makes this test otherwise infeasible
             try await Task.sleep(for: .milliseconds(100))
-            XCTAssertEqual(exporter.records.count, 0)
+            var batchCount = await exporter.exportedBatches.count
+            XCTAssertEqual(batchCount, 0)
 
             await sleeps.next()
             clock.advance(by: .milliseconds(10))
@@ -105,7 +111,11 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 XCTFail("Expected to record 4 entities, recorded \(records ?? 0)")
                 return
             }
-            XCTAssertEqual(exporter.records.count, 4)
+
+            batchCount = await exporter.exportedBatches.count
+            XCTAssertEqual(batchCount, 1)
+            let batch = await exporter.exportedBatches.first
+            XCTAssertEqual(batch?.count, 4)
 
             taskGroup.cancelAll()
         }
@@ -143,10 +153,15 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
 
             // Nothing should be emitted
             // TODO: Records are emitted asynchronously, so this check checking is not representative
-            XCTAssertEqual(exporter.records.count, 0)
+            var batchCount = await exporter.exportedBatches.count
+            XCTAssertEqual(batchCount, 0)
 
             try await batchProcessor.forceFlush()
-            XCTAssertEqual(exporter.records.count, 4)
+            batchCount = await exporter.exportedBatches.count
+            XCTAssertEqual(batchCount, 1)
+
+            let batch = await exporter.exportedBatches.first
+            XCTAssertEqual(batch?.count, 4)
 
             taskGroup.cancelAll()
         }
