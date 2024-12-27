@@ -55,7 +55,7 @@ public struct OTelBatchLogRecordProcessorConfiguration: Sendable {
         self.scheduleDelay = environment.requiredValue(
             programmaticOverride: scheduleDelay,
             key: "OTEL_BLRP_SCHEDULE_DELAY",
-            defaultValue: .seconds(5),
+            defaultValue: .seconds(1),
             transformValue: {
                 guard let milliseconds = UInt($0) else { return nil }
                 return Duration.milliseconds(milliseconds)
