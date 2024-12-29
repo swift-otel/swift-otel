@@ -288,6 +288,49 @@ final class OTelTracerTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["test"])
     }
 
+    func test_spanIdentifiedByServiceContext_withoutSpanContext_returnsSpan() {
+        let tracer = OTelTracer(
+            idGenerator: OTelRandomIDGenerator(),
+            sampler: OTelConstantSampler(isOn: true),
+            propagator: OTelW3CPropagator(),
+            processor: OTelNoOpSpanProcessor(),
+            environment: [:],
+            resource: OTelResource()
+        )
+
+        XCTAssertNil(tracer.recordingSpan(identifiedBy: .topLevel))
+    }
+
+    func test_spanIdentifiedByServiceContext_withSpanContext_identifyingRecordingSpan_returnsSpan() async {
+        let tracer = OTelTracer(
+            idGenerator: OTelRandomIDGenerator(),
+            sampler: OTelConstantSampler(isOn: true),
+            propagator: OTelW3CPropagator(),
+            processor: OTelNoOpSpanProcessor(),
+            environment: [:],
+            resource: OTelResource()
+        )
+
+        let span = tracer.startSpan("test")
+        XCTAssertIdentical(span, tracer.recordingSpan(identifiedBy: span.context))
+    }
+
+    func test_spanIdentifiedByServiceContext_withSpanContext_identifyingEndedSpan_returnsNil() async {
+        let tracer = OTelTracer(
+            idGenerator: OTelRandomIDGenerator(),
+            sampler: OTelConstantSampler(isOn: true),
+            propagator: OTelW3CPropagator(),
+            processor: OTelNoOpSpanProcessor(),
+            environment: [:],
+            resource: OTelResource()
+        )
+
+        let span = tracer.startSpan("test")
+        span.end()
+
+        XCTAssertNil(tracer.recordingSpan(identifiedBy: span.context))
+    }
+
     // MARK: - Instrument
 
     func test_inject_withSpanContext_callsPropagator() {

@@ -11,7 +11,7 @@ let package = Package(
         .library(name: "OTLPGRPC", targets: ["OTLPGRPC"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-distributed-tracing.git", from: "1.1.0"),
+        .package(url: "https://github.com/slashmo/swift-distributed-tracing.git", branch: "feature/current_span"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.0"),
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-async-algorithms.git", from: "1.0.0"),

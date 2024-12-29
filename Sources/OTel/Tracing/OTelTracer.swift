@@ -36,6 +36,7 @@ public final class OTelTracer<
 
     private let eventStream: AsyncStream<Event>
     private let eventStreamContinuation: AsyncStream<Event>.Continuation
+    private let recordingSpans = NIOLockedValueBox([OTelSpanContext: OTelSpan]())
 
     @_spi(Testing)
     public init(
@@ -179,7 +180,7 @@ extension OTelTracer: Tracer {
                 return .noOp(NoOpTracer.NoOpSpan(context: childContext))
             }
 
-            return .recording(
+            let recordingSpan = OTelSpan.recording(
                 operationName: operationName,
                 kind: kind,
                 context: childContext,
@@ -188,8 +189,11 @@ extension OTelTracer: Tracer {
                 startTimeNanosecondsSinceEpoch: instant().nanosecondsSinceEpoch,
                 onEnd: { [weak self] span, endTimeNanosecondsSinceEpoch in
                     self?.process(span, endedAt: endTimeNanosecondsSinceEpoch)
+                    self?.recordingSpans.withLockedValue { $0[spanContext] = nil }
                 }
             )
+            recordingSpans.withLockedValue { $0[spanContext] = recordingSpan }
+            return recordingSpan
         }()
 
         eventStreamContinuation.yield(.spanStarted(span, parentContext: parentContext))
@@ -216,6 +220,12 @@ extension OTelTracer: Tracer {
             links: span.links
         )
         eventStreamContinuation.yield(.spanEnded(finishedSpan))
+    }
+
+    public func recordingSpan(identifiedBy context: ServiceContext) -> OTelSpan? {
+        guard let spanContext = context.spanContext else { return nil }
+        guard let recordingSpan = recordingSpans.withLockedValue({ $0[spanContext] }) else { return nil }
+        return recordingSpan
     }
 }
 
