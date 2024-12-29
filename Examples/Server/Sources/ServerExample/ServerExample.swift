@@ -65,12 +65,12 @@ enum ServerMiddlewareExample {
         InstrumentationSystem.bootstrap(tracer)
 
         // Create an HTTP server with instrumentation middleware and a simple /hello endpoint, on 127.0.0.1:8080.
-        let router = HBRouter()
-        router.middlewares.add(HBTracingMiddleware())
-        router.middlewares.add(HBMetricsMiddleware())
-        router.middlewares.add(HBLogRequestsMiddleware(.info))
+        let router = Router()
+        router.middlewares.add(TracingMiddleware())
+        router.middlewares.add(MetricsMiddleware())
+        router.middlewares.add(LogRequestsMiddleware(.info))
         router.get("hello") { _, _ in "hello" }
-        var app = HBApplication(router: router)
+        var app = Application(router: router)
 
         // Add the tracer lifecycle service to the HTTP server service group and start the application.
         app.addServices(metrics, tracer)
