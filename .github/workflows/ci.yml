@@ -3,7 +3,7 @@ on: [push, pull_request]
 jobs:
   soundness:
     name: Soundness Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -19,7 +19,7 @@ jobs:
 
   unit-test:
     name: Unit Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       fail-fast: false
@@ -72,7 +72,7 @@ jobs:
 
   compile-counter-example:
     name: Compile Counter Example
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: ./Examples/Counter
