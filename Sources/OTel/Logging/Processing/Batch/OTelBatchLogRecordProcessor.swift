@@ -141,12 +141,7 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
             try await exporter.export(batch)
         } catch is CancellationError {
             // No-op
-        } catch {
-            logger.error("Failed to export log batch.", metadata: [
-                "error": "\(String(describing: type(of: error)))",
-                "error_description": "\(error)",
-            ])
-        }
+        } catch { }
     }
 }
 
