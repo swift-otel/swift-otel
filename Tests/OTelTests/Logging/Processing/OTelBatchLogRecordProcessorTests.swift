@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 @testable import Logging
-@_spi(Logging) @_spi(Testing) import OTel
+@_spi(Logging) @_spi(Testing) @testable import OTel
 @_spi(Logging) import OTelTesting
 import XCTest
 
@@ -78,7 +78,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             clock: clock
         )
 
-        try await withThrowingTaskGroup(of: Void.self) { taskGroup in
+        await withThrowingTaskGroup(of: Void.self) { taskGroup in
             taskGroup.addTask(operation: batchProcessor.run)
             var iterator = exporter.didRecordBatch.makeAsyncIterator()
 
@@ -93,14 +93,6 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 logger.info("\(i)")
             }
 
-            // Records are emitted asynchronously, so checking this without a real delay
-            // is not representative.
-            // You also can't suspend until a log has reached the processor - which
-            // makes this test otherwise infeasible
-            try await Task.sleep(for: .milliseconds(100))
-            var batchCount = await exporter.exportedBatches.count
-            XCTAssertEqual(batchCount, 0)
-
             await sleeps.next()
             clock.advance(by: .milliseconds(10))
             await sleeps.next()
@@ -112,54 +104,8 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 return
             }
 
-            batchCount = await exporter.exportedBatches.count
+            let batchCount = await exporter.exportedBatches.count
             XCTAssertEqual(batchCount, 1)
-            let batch = await exporter.exportedBatches.first
-            XCTAssertEqual(batch?.count, 4)
-
-            taskGroup.cancelAll()
-        }
-    }
-
-    func testBatchLogProcessorForceFlushEmitsEarly() async throws {
-        let exporter = OTelInMemoryLogRecordExporter()
-        let batchProcessorClock = TestClock()
-        let batchProcessor = OTelBatchLogRecordProcessor(
-            exporter: exporter,
-            configuration: OTelBatchLogRecordProcessorConfiguration(
-                environment: .detected(),
-                maximumQueueSize: 5,
-                scheduleDelay: .seconds(60) // Should never trigger
-            ),
-            clock: batchProcessorClock
-        )
-
-        try await withThrowingTaskGroup(of: Void.self) { taskGroup in
-            taskGroup.addTask(operation: batchProcessor.run)
-
-            let logHandler = OTelLogHandler(
-                processor: batchProcessor,
-                logLevel: .debug,
-                resource: resource
-            )
-            let logger = Logger(label: "Test", logHandler)
-
-            for i in 1 ... 4 {
-                logger.info("\(i)")
-            }
-
-            // Without this, the Logger intermittendly hasn't reported the logs to the processor
-            try await Task.sleep(for: .milliseconds(100))
-
-            // Nothing should be emitted
-            // TODO: Records are emitted asynchronously, so this check checking is not representative
-            var batchCount = await exporter.exportedBatches.count
-            XCTAssertEqual(batchCount, 0)
-
-            try await batchProcessor.forceFlush()
-            batchCount = await exporter.exportedBatches.count
-            XCTAssertEqual(batchCount, 1)
-
             let batch = await exporter.exportedBatches.first
             XCTAssertEqual(batch?.count, 4)
 

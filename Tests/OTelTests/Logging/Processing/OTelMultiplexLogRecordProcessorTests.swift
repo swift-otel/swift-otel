@@ -35,21 +35,19 @@ final class OTelMultiplexLogRecordProcessorTests: XCTestCase {
         try await withThrowingTaskGroup(of: Void.self) { taskGroup in
             taskGroup.addTask(operation: processor.run)
 
-            let logHandler = OTelLogHandler(processor: processor, logLevel: .debug, resource: resource)
-            let logger = Logger(label: "Test", logHandler)
+            for _ in 1 ... 4 {
+                var record = OTelLogRecord.stub()
+                processor.onEmit(&record)
 
-            for i in 1 ... 4 {
-                logger.info("\(i)")
+                try await processor.forceFlush()
 
-                // Records are emitted asynchronously, so checking this without delay
-                // is not representative
-                try await Task.sleep(for: .milliseconds(100))
+                var exporter1Iterator = exporter1.didRecordBatch.makeAsyncIterator()
+                let exporter1BatchSize = await exporter1Iterator.next()
+                XCTAssertEqual(exporter1BatchSize, 1)
 
-                var batchCount = await exporter1.exportedBatches.count
-                XCTAssertEqual(batchCount, i)
-
-                batchCount = await exporter2.exportedBatches.count
-                XCTAssertEqual(batchCount, i)
+                var exporter2Iterator = exporter2.didRecordBatch.makeAsyncIterator()
+                let exporter2BatchSize = await exporter2Iterator.next()
+                XCTAssertEqual(exporter2BatchSize, 1)
             }
 
             taskGroup.cancelAll()
