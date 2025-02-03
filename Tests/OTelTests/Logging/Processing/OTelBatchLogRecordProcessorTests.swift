@@ -59,12 +59,10 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
 
     func test_onEmit_whenReachingMaximumQueueSize_triggersExplicitExportOfNextBatch() async throws {
         let exporter = OTelStreamingLogRecordExporter()
-        let clock = TestClock()
         let maximumQueueSize = UInt(2)
         let processor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], maximumQueueSize: maximumQueueSize),
-            clock: clock
+            configuration: .init(environment: [:], maximumQueueSize: maximumQueueSize)
         )
 
         let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
@@ -74,11 +72,6 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
 
             var record1 = OTelLogRecord.stub(body: "1")
             processor.onEmit(&record1)
-
-            // await first sleep for "tick"
-            var sleeps = clock.sleepCalls.makeAsyncIterator()
-            await sleeps.next()
-            // do not advance past "tick" but emit one more record to reach max queue size
 
             var record2 = OTelLogRecord.stub(body: "2")
             processor.onEmit(&record2)
