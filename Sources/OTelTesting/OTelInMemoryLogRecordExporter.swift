@@ -19,13 +19,25 @@ public actor OTelInMemoryLogRecordExporter: OTelLogRecordExporter {
     public private(set) var exportedBatches = [[OTelLogRecord]]()
     public private(set) var numberOfShutdowns = 0
     public private(set) var numberOfForceFlushes = 0
-    public nonisolated let (didRecordBatch, recordContinuation) = AsyncStream<Int>.makeStream()
+    public private(set) var numberOfExportCancellations = 0
 
-    public init() {}
+    private let exportDelay: Duration
+
+    public init(exportDelay: Duration = .zero) {
+        self.exportDelay = exportDelay
+    }
 
     public func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
+        if exportDelay != .zero {
+            do {
+                try await Task.sleep(for: exportDelay)
+            } catch let error as CancellationError {
+                numberOfExportCancellations += 1
+                throw error
+            }
+        }
+
         exportedBatches.append(Array(batch))
-        recordContinuation.yield(batch.count)
     }
 
     public func forceFlush() async throws {

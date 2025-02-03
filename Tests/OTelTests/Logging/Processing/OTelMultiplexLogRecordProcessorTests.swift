@@ -19,10 +19,10 @@ import XCTest
 
 final class OTelMultiplexLogRecordProcessorTests: XCTestCase {
     func test_emit_emitsToAllProcessors() async throws {
-        let exporter1 = OTelInMemoryLogRecordExporter()
+        let exporter1 = OTelStreamingLogRecordExporter()
         let simpleProcessor1 = OTelSimpleLogRecordProcessor(exporter: exporter1)
 
-        let exporter2 = OTelInMemoryLogRecordExporter()
+        let exporter2 = OTelStreamingLogRecordExporter()
         let simpleProcessor2 = OTelSimpleLogRecordProcessor(exporter: exporter2)
 
         let processor = OTelMultiplexLogRecordProcessor(processors: [
@@ -33,20 +33,18 @@ final class OTelMultiplexLogRecordProcessorTests: XCTestCase {
         try await withThrowingTaskGroup(of: Void.self) { taskGroup in
             taskGroup.addTask(operation: processor.run)
 
-            for _ in 1 ... 4 {
-                var record = OTelLogRecord.stub()
-                processor.onEmit(&record)
+            var record = OTelLogRecord.stub(body: "test")
+            processor.onEmit(&record)
 
-                try await processor.forceFlush()
+            try await processor.forceFlush()
 
-                var exporter1Iterator = exporter1.didRecordBatch.makeAsyncIterator()
-                let exporter1BatchSize = await exporter1Iterator.next()
-                XCTAssertEqual(exporter1BatchSize, 1)
+            var exporter1Iterator = await exporter1.batches.makeAsyncIterator()
+            let exporter1Batch = await exporter1Iterator.next()
+            XCTAssertEqual(try XCTUnwrap(exporter1Batch).map(\.body), ["test"])
 
-                var exporter2Iterator = exporter2.didRecordBatch.makeAsyncIterator()
-                let exporter2BatchSize = await exporter2Iterator.next()
-                XCTAssertEqual(exporter2BatchSize, 1)
-            }
+            var exporter2Iterator = await exporter2.batches.makeAsyncIterator()
+            let exporter2Batch = await exporter2Iterator.next()
+            XCTAssertEqual(try XCTUnwrap(exporter2Batch).map(\.body), ["test"])
 
             taskGroup.cancelAll()
         }

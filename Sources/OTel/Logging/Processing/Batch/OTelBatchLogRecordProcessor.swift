@@ -87,8 +87,10 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
             self.logContinuation.finish()
         }
 
+        logger.debug("Shutting down.")
         try? await forceFlush()
         await exporter.shutdown()
+        logger.debug("Shut down.")
     }
 
     public func forceFlush() async throws {
@@ -137,11 +139,7 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
     }
 
     private func export(_ batch: some Collection<OTelLogRecord> & Sendable) async {
-        do {
-            try await exporter.export(batch)
-        } catch is CancellationError {
-            // No-op
-        } catch {}
+        try? await exporter.export(batch)
     }
 }
 
