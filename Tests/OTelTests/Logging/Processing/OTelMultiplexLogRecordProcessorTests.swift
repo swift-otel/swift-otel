@@ -59,10 +59,10 @@ final class OTelMultiplexLogRecordProcessorTests: XCTestCase {
 
         try await processor.forceFlush()
 
-        let processor1ForceFlushCount = await processor1.numberOfForceFlushes
+        let processor1ForceFlushCount = processor1.numberOfForceFlushes
         XCTAssertEqual(processor1ForceFlushCount, 1)
 
-        let processor2ForceFlushCount = await processor2.numberOfForceFlushes
+        let processor2ForceFlushCount = processor2.numberOfForceFlushes
         XCTAssertEqual(processor2ForceFlushCount, 1)
     }
 
@@ -85,10 +85,10 @@ final class OTelMultiplexLogRecordProcessorTests: XCTestCase {
         await serviceGroup.triggerGracefulShutdown()
         await fulfillment(of: [finishExpectation], timeout: 0.1)
 
-        let processor1ShutdownCount = await processor1.numberOfShutdowns
+        let processor1ShutdownCount = processor1.numberOfShutdowns
         XCTAssertEqual(processor1ShutdownCount, 1)
 
-        let processor2ShutdownCount = await processor2.numberOfShutdowns
+        let processor2ShutdownCount = processor2.numberOfShutdowns
         XCTAssertEqual(processor2ShutdownCount, 1)
     }
 }
