@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+@_spi(Logging) import OTel
+
 @_spi(Logging)
 public struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTelLogRecordProcessor {
     private let exporter: Exporter

@@ -18,8 +18,6 @@ import ServiceLifecycle
 import XCTest
 
 final class OTelMultiplexLogRecordProcessorTests: XCTestCase {
-    private let resource = OTelResource(attributes: ["service.name": "log_simple_processor_tests"])
-
     func test_emit_emitsToAllProcessors() async throws {
         let exporter1 = OTelInMemoryLogRecordExporter()
         let simpleProcessor1 = OTelSimpleLogRecordProcessor(exporter: exporter1)
