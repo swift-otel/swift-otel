@@ -141,7 +141,7 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
             try await exporter.export(batch)
         } catch is CancellationError {
             // No-op
-        } catch { }
+        } catch {}
     }
 }
 
