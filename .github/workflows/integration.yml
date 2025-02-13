@@ -20,7 +20,8 @@ jobs:
 
       - name: Install OTel Collector
         run: |
-          gh release download -p 'otelcol_*linux_amd64.tar.gz' -R open-telemetry/opentelemetry-collector-releases
+          latest_tag=$(gh release list -R open-telemetry/opentelemetry-collector-releases --json tagName --jq '.[].tagName' | grep -m 1 '^v')
+          gh release download -p 'otelcol_*linux_amd64.tar.gz' -R open-telemetry/opentelemetry-collector-releases $latest_tag
           tar -xvf "$(ls otelcol_*_linux_amd64.tar.gz | tail -1)"
           mv otelcol /usr/local/bin
         env:
