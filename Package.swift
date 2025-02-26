@@ -5,7 +5,7 @@ let sharedSwiftSettings: [SwiftSetting] = [.enableExperimentalFeature("StrictCon
 
 let package = Package(
     name: "swift-otel",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS(.v13), .iOS(.v16)],
     products: [
         .library(name: "OTel", targets: ["OTel"]),
         .library(name: "OTLPGRPC", targets: ["OTLPGRPC"]),
