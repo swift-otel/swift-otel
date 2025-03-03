@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@v4.2.2
 
       - name: Cache Swift PM
-        uses: actions/cache@v4.2.1
+        uses: actions/cache@v4.2.2
         with:
           path: .build
           key: ${{ runner.os }}-${{ matrix.swift }}-ci-spm-${{ hashFiles('Package.swift') }}
