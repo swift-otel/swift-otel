@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Install Swift
-        uses: vapor/swiftly-action@v0.1.4
+        uses: vapor/swiftly-action@v0.2.0
         with:
           toolchain: ${{ matrix.swift }}
         env:
