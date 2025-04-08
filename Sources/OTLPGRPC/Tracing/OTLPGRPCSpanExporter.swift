@@ -25,8 +25,8 @@ import Tracing
 /// A span exporter emitting span batches to an OTel collector via gRPC.
 public final class OTLPGRPCSpanExporter: OTelSpanExporter {
     private let configuration: OTLPGRPCSpanExporterConfiguration
-    private let client: Opentelemetry_Proto_Collector_Trace_V1_TraceService.Client
-    private let grpcClient: GRPCClient
+    private let client: Opentelemetry_Proto_Collector_Trace_V1_TraceService.Client<HTTP2ClientTransport.Posix>
+    private let grpcClient: GRPCClient<HTTP2ClientTransport.Posix>
     private let grpcClientTask: Task<Void, any Error>
     private let logger = Logger(label: String(describing: OTLPGRPCSpanExporter.self))
 
@@ -82,7 +82,7 @@ public final class OTLPGRPCSpanExporter: OTelSpanExporter {
             ])
         }
 
-        let transport: any ClientTransport
+        let transport: HTTP2ClientTransport.Posix
         do {
             transport = try HTTP2ClientTransport.Posix(
                 target: .ipv6(host: configuration.endpoint.host, port: configuration.endpoint.port),
@@ -101,7 +101,7 @@ public final class OTLPGRPCSpanExporter: OTelSpanExporter {
             wrapping: GRPCClient(transport: transport)
         )
         grpcClientTask = Task {
-            try await grpcClient.run()
+            try await grpcClient.runConnections()
         }
     }
 

@@ -23,8 +23,8 @@ import OTLPCore
 /// Exports metrics to an OTel collector using OTLP/gRPC.
 public final class OTLPGRPCMetricExporter: OTelMetricExporter {
     private let configuration: OTLPGRPCMetricExporterConfiguration
-    private let client: Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Client
-    private let grpcClient: GRPCClient
+    private let client: Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Client<HTTP2ClientTransport.Posix>
+    private let grpcClient: GRPCClient<HTTP2ClientTransport.Posix>
     private let grpcClientTask: Task<Void, any Error>
     private let logger = Logger(label: String(describing: OTLPGRPCMetricExporter.self))
 
@@ -75,7 +75,7 @@ public final class OTLPGRPCMetricExporter: OTelMetricExporter {
         }
         headers.replaceOrAdd(name: "user-agent", value: "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)")
 
-        let transport: any ClientTransport
+        let transport: HTTP2ClientTransport.Posix
         do {
             transport = try HTTP2ClientTransport.Posix(
                 target: .dns(host: configuration.endpoint.host, port: configuration.endpoint.port),
@@ -92,7 +92,7 @@ public final class OTLPGRPCMetricExporter: OTelMetricExporter {
             wrapping: GRPCClient(transport: transport)
         )
         grpcClientTask = Task {
-            try await grpcClient.run()
+            try await grpcClient.runConnections()
         }
     }
 

@@ -165,7 +165,7 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService {
 
 // Default implementation of 'registerMethods(with:)'.
 extension Opentelemetry_Proto_Collector_Trace_V1_TraceService.StreamingServiceProtocol {
-    internal func registerMethods(with router: inout GRPCCore.RPCRouter) {
+    internal func registerMethods<Transport>(with router: inout GRPCCore.RPCRouter<Transport>) where Transport: GRPCCore.ServerTransport {
         router.registerHandler(
             forMethod: Opentelemetry_Proto_Collector_Trace_V1_TraceService.Method.Export.descriptor,
             deserializer: GRPCProtobuf.ProtobufDeserializer<Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest>(),

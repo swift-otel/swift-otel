@@ -106,14 +106,14 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService {
     /// > Service that can be used to push metrics between one Application
     /// > instrumented with OpenTelemetry and a collector, or between a collector and a
     /// > central collector.
-    internal struct Client: ClientProtocol {
-        private let client: GRPCCore.GRPCClient
+    internal struct Client<Transport>: ClientProtocol where Transport: GRPCCore.ClientTransport {
+        private let client: GRPCCore.GRPCClient<Transport>
 
         /// Creates a new client wrapping the provided `GRPCCore.GRPCClient`.
         ///
         /// - Parameters:
         ///   - client: A `GRPCCore.GRPCClient` providing a communication channel to the service.
-        internal init(wrapping client: GRPCCore.GRPCClient) {
+        internal init(wrapping client: GRPCCore.GRPCClient<Transport>) {
             self.client = client
         }
 

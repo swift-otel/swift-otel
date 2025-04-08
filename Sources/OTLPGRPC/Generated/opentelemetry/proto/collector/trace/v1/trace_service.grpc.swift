@@ -106,14 +106,14 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService {
     /// > Service that can be used to push spans between one Application instrumented with
     /// > OpenTelemetry and a collector, or between a collector and a central collector (in this
     /// > case spans are sent/received to/from multiple Applications).
-    internal struct Client: ClientProtocol {
-        private let client: GRPCCore.GRPCClient
+    internal struct Client<Transport>: ClientProtocol where Transport: GRPCCore.ClientTransport {
+        private let client: GRPCCore.GRPCClient<Transport>
 
         /// Creates a new client wrapping the provided `GRPCCore.GRPCClient`.
         ///
         /// - Parameters:
         ///   - client: A `GRPCCore.GRPCClient` providing a communication channel to the service.
-        internal init(wrapping client: GRPCCore.GRPCClient) {
+        internal init(wrapping client: GRPCCore.GRPCClient<Transport>) {
             self.client = client
         }
 
