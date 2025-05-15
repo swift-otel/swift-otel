@@ -81,10 +81,12 @@ OTLP_GRPC_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/collector/logs/v1/logs_ser
 OTLP_GRPC_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/collector/metrics/v1/metrics_service.proto
 OTLP_GRPC_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/collector/trace/v1/trace_service.proto
 
-OTLP_CORE_SWIFTS = $(patsubst  $(PROTO_ROOT)/%.proto,$(OTLP_CORE_SWIFT_ROOT)/%.pb.swift,$(OTLP_CORE_PROTOS))
+OTLP_CORE_SWIFTS += $(subst $(PROTO_ROOT),$(OTLP_CORE_SWIFT_ROOT),$(OTLP_CORE_PROTOS:.proto=.pb.swift))
 
-OTLP_CLIENT_GRPC_SWIFTS = $(subst $(PROTO_ROOT),$(OTLP_CLIENT_GRPC_SWIFT_ROOT),$(OTLP_GRPC_PROTOS:.proto=.pb.swift) $(OTLP_GRPC_PROTOS:.proto=.grpc.swift))
-OTLP_SERVER_GRPC_SWIFTS = $(subst $(PROTO_ROOT),$(OTLP_SERVER_GRPC_SWIFT_ROOT),$(OTLP_GRPC_PROTOS:.proto=.pb.swift) $(OTLP_GRPC_PROTOS:.proto=.grpc.swift))
+OTLP_CLIENT_GRPC_SWIFTS += $(subst $(PROTO_ROOT),$(OTLP_CLIENT_GRPC_SWIFT_ROOT),$(OTLP_GRPC_PROTOS:.proto=.pb.swift))
+OTLP_CLIENT_GRPC_SWIFTS += $(subst $(PROTO_ROOT),$(OTLP_CLIENT_GRPC_SWIFT_ROOT),$(OTLP_GRPC_PROTOS:.proto=.grpc.swift))
+OTLP_SERVER_GRPC_SWIFTS += $(subst $(PROTO_ROOT),$(OTLP_SERVER_GRPC_SWIFT_ROOT),$(OTLP_GRPC_PROTOS:.proto=.pb.swift))
+OTLP_SERVER_GRPC_SWIFTS += $(subst $(PROTO_ROOT),$(OTLP_SERVER_GRPC_SWIFT_ROOT),$(OTLP_GRPC_PROTOS:.proto=.grpc.swift))
 
 $(OTLP_CORE_SWIFTS): $(OTLP_CORE_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_SWIFT)
 	@mkdir -pv $(OTLP_CORE_SWIFT_ROOT)
