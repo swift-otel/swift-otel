@@ -47,3 +47,22 @@ extension Opentelemetry_Proto_Trace_V1_Span {
         links = finishedSpan.links.compactMap(Opentelemetry_Proto_Trace_V1_Span.Link.init)
     }
 }
+
+extension Opentelemetry_Proto_Trace_V1_ResourceSpans {
+    package init(_ finishedSpans: some Collection<OTelFinishedSpan>) {
+        if let resource = finishedSpans.first?.resource {
+            self.resource = .init(resource)
+        }
+
+        // TODO: This can be factored out somewhere since its used everywhere.
+        let scope = Opentelemetry_Proto_Common_V1_InstrumentationScope.with {
+            $0.name = "swift-otel"
+            $0.version = OTelLibrary.version
+        }
+
+        self.scopeSpans = [Opentelemetry_Proto_Trace_V1_ScopeSpans.with {
+            $0.scope = scope
+            $0.spans = finishedSpans.map(Opentelemetry_Proto_Trace_V1_Span.init)
+        }]
+    }
+}

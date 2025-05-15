@@ -101,26 +101,9 @@ package final class OTLPGRPCSpanExporter: OTelSpanExporter {
             logger.error("Attempted to export batch while already being shut down.")
             throw OTelSpanExporterAlreadyShutDownError()
         }
-        guard let firstSpanResource = batch.first?.resource else { return }
 
         let request = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest.with { request in
-            request.resourceSpans = [
-                .with { resourceSpans in
-                    resourceSpans.resource = .with { resource in
-                        resource.attributes = .init(firstSpanResource.attributes)
-                    }
-
-                    resourceSpans.scopeSpans = [
-                        .with { scopeSpans in
-                            scopeSpans.scope = .with { scope in
-                                scope.name = "swift-otel"
-                                scope.version = OTelLibrary.version
-                            }
-                            scopeSpans.spans = batch.map(Opentelemetry_Proto_Trace_V1_Span.init)
-                        },
-                    ]
-                },
-            ]
+            request.resourceSpans = [Opentelemetry_Proto_Trace_V1_ResourceSpans(batch)]
         }
 
         _ = try await client.export(request)
