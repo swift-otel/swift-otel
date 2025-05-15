@@ -121,6 +121,20 @@ delete-generated-code:  # Delete all pb.swift and .grpc.swift files.
 	@read -p "Delete all *.pb.swift and *.grpc.swift files in Sources/? [y/N]" ans && [ $${ans:-N} = y ]
 	find Sources -name *.pb.swift -delete -o -name *.grpc.swift -delete
 
+.PHONY: dump
+dump:  # Dump internal variables for debugging the Makefile.
+	@$(foreach v, \
+		PROTO_ROOT \
+		PROTO_MODULEMAP \
+		OTLP_CORE_SWIFT_ROOT \
+		OTLP_CLIENT_GRPC_SWIFT_ROOT \
+		OTLP_SERVER_GRPC_SWIFT_ROOT \
+		OTLP_CORE_PROTOS \
+		OTLP_CORE_SWIFTS \
+		OTLP_CLIENT_GRPC_SWIFTS \
+		OTLP_SERVER_GRPC_SWIFTS \
+	,echo $(v) = $($v);)
+
 # Xcode workspace with examples
 # -----------------------------------------------------------------------------
 WORKSPACE = swift-otel-workspace.xcworkspace
