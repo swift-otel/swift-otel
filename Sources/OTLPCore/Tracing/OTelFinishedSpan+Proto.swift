@@ -54,15 +54,16 @@ extension Opentelemetry_Proto_Trace_V1_ResourceSpans {
             self.resource = .init(resource)
         }
 
-        // TODO: This can be factored out somewhere since its used everywhere.
-        let scope = Opentelemetry_Proto_Common_V1_InstrumentationScope.with {
-            $0.name = "swift-otel"
-            $0.version = OTelLibrary.version
-        }
-
         self.scopeSpans = [Opentelemetry_Proto_Trace_V1_ScopeSpans.with {
-            $0.scope = scope
+            $0.scope = .swiftOTelScope
             $0.spans = finishedSpans.map(Opentelemetry_Proto_Trace_V1_Span.init)
         }]
+    }
+}
+
+extension Opentelemetry_Proto_Common_V1_InstrumentationScope {
+    fileprivate static let swiftOTelScope = Opentelemetry_Proto_Common_V1_InstrumentationScope.with {
+        $0.name = "swift-otel"
+        $0.version = OTelLibrary.version
     }
 }
