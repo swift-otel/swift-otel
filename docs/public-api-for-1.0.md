@@ -1,0 +1,507 @@
+# Proposal: Revised public API to support 1.0 roadmap
+
+## Introduction
+
+Swift OTel provides an OTLP backend for the Swift observability packages (Swift Log, Swift Metrics, and Swift
+Distributed Tracing). This is an important package for the server ecosystem and so we would like to converge on a stable
+1.0 release.
+
+As part of the 1.0 release we would like to revise the public API to simplify adoption and maintenance. In discussing
+the proposed API, we must also consider the other features that are planned for the 1.0 release:
+
+- Support for OTLP Logging backend.
+
+- Update existing GRPC exporter to use Swift GRPC v2.
+
+- Add support for an OTLP/HTTP exporter.
+
+- Better support spec-defined configuration, including (m)TLS.
+
+- Reduced ceremony for bootstrapping the Swift observability backends.
+
+The remaining part of this proposal focuses on the proposed API changes.
+
+## Existing API
+
+The below code is the current, most concise way to bootstrap the observability backends.
+        
+```swift
+// Bootstrap the logging backend with the OTel metadata provider which includes span IDs in logging messages.
+LoggingSystem.bootstrap { label in
+    var handler = StreamLogHandler.standardError(label: label, metadataProvider: .otel)
+    handler.logLevel = .trace
+    return handler
+}
+
+// Configure OTel resource detection to automatically apply helpful attributes to events.
+let environment = OTelEnvironment.detected()
+let resourceDetection = OTelResourceDetection(detectors: [
+    OTelProcessResourceDetector(),
+    OTelEnvironmentResourceDetector(environment: environment),
+    .manual(OTelResource(attributes: ["service.name": "example_server"])),
+])
+let resource = await resourceDetection.resource(environment: environment, logLevel: .trace)
+
+// Bootstrap the metrics backend to export metrics periodically in OTLP/gRPC.
+let registry = OTelMetricRegistry()
+let metricsExporter = try OTLPGRPCMetricExporter(configuration: .init(environment: environment))
+let metrics = OTelPeriodicExportingMetricsReader(
+    resource: resource,
+    producer: registry,
+    exporter: metricsExporter,
+    configuration: .init(
+        environment: environment,
+        exportInterval: .seconds(5) // NOTE: This is overridden for the example; the default is 60 seconds.
+    )
+)
+MetricsSystem.bootstrap(OTLPMetricsFactory(registry: registry))
+
+// Bootstrap the tracing backend to export traces periodically in OTLP/gRPC.
+let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(environment: environment))
+let exporter = try OTLPGRPCSpanExporter(configuration: .init(environment: environment))
+let tracer = OTelTracer(
+    idGenerator: OTelRandomIDGenerator(),
+    sampler: OTelConstantSampler(isOn: true),
+    propagator: OTelW3CPropagator(),
+    processor: processor,
+    environment: environment,
+    resource: resource
+)
+InstrumentationSystem.bootstrap(tracer)
+
+// Add the observability services to a service group with the adopter service(s) and run.
+let serviceGroup = ServiceGroup(services: [metrics, tracer, server], logger: .init(label: "ServiceGroup"))
+try await serviceGroup.run()
+```
+
+> Note: The above snippet only uses a logging metadata provider. When Swift OTel is extended with an OTLP logging
+>       backend it would likely require a similarly verbose bootstrap with the current API design.
+
+The current API has a number of usability drawbacks.
+
+1. Adopters must discover and construct several objects, and chain them together, even if they just want the default
+   behavior.
+  
+    Even if overloads were added to streamline the common case, because each of these objects is configured using its
+    own initializer parameters, as soon as an adopter wishes to configure anything, they would need to revert to
+    constructing and chaining the objects together.
+
+2. A number of important configuration options are missing, including support for mTLS.
+
+    Again, because each of these objects is configured using its own initializer parameters, adding support for new
+    configuration options presents an API evolution challenge.
+
+3. Adopters need to handle types with a public `run` method and/or conform to `Service`, but only a subset of these
+   should be run by the adopter (others are run internally as part of the hierarchy).
+
+4. Adopters using Swift Service Lifecycle are encouraged to run the background tasks in a specific order (usually logs,
+   metrics, and traces), which adopters must discover from documentation and remember to do correctly.
+
+5. There is asymmetry in which types provide the background tasks adopters must run: for tracing, adopters run the same
+   type that is passed to `InstrumentationSystem.bootstrap()`; for metrics, adopters run a different type an intermediate
+   type, that is not passed to `MetricsSystem.bootstrap()`.
+
+6. The existing API surface is also very broad, with an emphasis on extensibility. In addition to the many types that
+   must be public (see (1)), all the abstractions are also public, and many types are generic over many of these
+   abstractions. This presents discoverability challenges for adopters and evolution challenges for maintainers.
+
+## Goals for the API
+
+Partly informed by the above drawbacks, these are the proposed goals for the revised public API:
+
+1. Adopters can bootstrap all observability backends with sensible defaults, with ~zero ceremony.
+
+2. Adopters can configure and/or disable observability on a per-signal basis, in code.
+
+   a. Adopters can configure supported features, according to the OTel spec, including:
+      (i) Enabling (m)TLS for their exporters; and (ii) choosing between gRPC and HTTP exporters.
+
+   b. Operators can configure and/or disable observability on a per-signal
+      basis, using the environment variables defined in the OTel spec.
+
+3. Adopters can compose the observability backends with other backends (e.g. multiplexing).
+
+   Note: This does NOT mandate that the concrete types should public.
+
+4. APIs should be Easy to Use and Hard to Misuse (EUHM). Some concrete examples of things to address in the current API:
+
+    a. The public API surface should be as small as possible to achieve its goals, which will (i) improve
+       discoverability; and (ii) reduce ambiguity.
+    
+    b. APIs should remove footguns; e.g. if an API returns something that can be passed to bootstrap, it should NOT have
+       already been bootstrapped.
+
+    c. Return types of APIs should only conform to `Service` and/or have a public `run()` method if the adopter is
+       expected to run them.
+
+    d. Furthermore, opaque return types could be used to provide an even clearer guide of what the user should do with
+       the return type.
+   
+    e. If multiple background tasks are needed with a specific run order, they should be consolidated into a single
+       return type that conforms to `Service` and/or has a public `run()` method, which takes care of the order.
+
+5. The public API surface should be as minimal as possible to achieve the goals above.
+   
+    This will likely result in a reduced public API surface.
+
+6. Adopters should be able to opt-out of exporter-specific package dependencies at compile-time (e.g. gRPC), using
+   package traits.
+
+## Proposed API
+
+### Example: Bootstrap observability backends with ~zero ceremony
+
+```swift
+let server = MockService(name: "AdopterServer")
+
+// Bootstrap observability backends and get a single, opaque service, to run.
+let observability = try OTel.bootstrap()
+
+// Add observability service(s) to a service group with adopter service(s).
+let serviceGroup = ServiceGroup(services: [observability, server], logger: .init(label: "ServiceGroup"))
+
+// Run service group.
+try await serviceGroup.run()
+```
+
+### Example: Configure observability backends
+
+> Note: Some of the values used here are the defaults, but are explicitly set for the purpose of illustrating the API.
+
+```swift
+let server = MockService(name: "AdopterServer")
+
+// Start with defaults.
+var otelConfig = OTel.Configuration.default
+// Configure traces with specific OTLP/gRPC endpoint, with mTLS, compression, and custom timeout.
+otelConfig.traces.exporter = .otlp  // (default, setting for illustrative purposes)
+otelConfig.traces.otlpExporter.endpoint = "https://otel-collector.example.com:4317"
+otelConfig.traces.otlpExporter.protocol = .grpc
+otelConfig.traces.otlpExporter.compression = .gzip
+otelConfig.traces.otlpExporter.certificateFilePath = "/path/to/cert"
+otelConfig.traces.otlpExporter.clientCertificateFilePath = "/path/to/cert"
+otelConfig.traces.otlpExporter.clientKeyFilePath = "/path/to/key"
+otelConfig.traces.otlpExporter.timeout = .seconds(3)
+// Configure metrics with localhost OTLP/HTTP endpoint, without TLS, uncompressed, and different timeout.
+otelConfig.metrics.otlpExporter.endpoint = "http://localhost:4318"
+otelConfig.metrics.otlpExporter.protocol = .httpProtobuf
+otelConfig.metrics.otlpExporter.compression = .none
+otelConfig.metrics.otlpExporter.timeout = .seconds(5)
+// Disable logs entirely.
+otelConfig.logs.enabled = false
+
+// Bootstrap observability backends and still get a single, opaque service, to run.
+let observability = try OTel.bootstrap(configuration: otelConfig)
+
+// Add observability service(s) to a service group with adopter service(s).
+let serviceGroup = ServiceGroup(services: [observability, server], logger: .init(label: "ServiceGroup"))
+
+// Run service group.
+try await serviceGroup.run()
+```
+
+`OTel.bootstrap` can apply additional configuration from the environment variables defined in the OTel spec. This
+behavior is controlled by a second, boolean parameter, which defaults to true.
+
+```swift
+let observability = try OTel.bootstrap(configuration: otelConfig, detectEnvironmentOverrides: true)
+```
+
+### Example: Compose observability backends
+
+```swift
+let server = MockService(name: "AdopterServer")
+
+// Create backends that have _not_ been bootstrapped.
+let logging = try OTel.makeLoggingBackend(configuration: .default)
+let metrics = try OTel.makeMetricsBackend(configuration: .default)
+let tracing = try OTel.makeTracingBackend(configuration: .default)
+
+// Compose backends as needed and bootstrap the observability subsystems manually.
+LoggingSystem.bootstrap({ label in MultiplexLogHandler([logging.factory(label), SwiftLogNoOpLogHandler(label)]) })
+MetricsSystem.bootstrap(MultiplexMetricsHandler(factories: [metrics.factory, NOOPMetricsHandler.instance]))
+InstrumentationSystem.bootstrap(MultiplexInstrument([tracing.factory, NoOpTracer()]))
+
+// Add observability service(s) to a service group with adopter service(s).
+let serviceGroup = ServiceGroup(
+    services: [logging.service, metrics.service, tracing.service, server],
+    logger: .init(label: "ServiceGroup")
+)
+
+// Run service group
+try await serviceGroup.run()
+```
+
+## Detailed design
+
+### Bootstrap
+
+The primary API is a single, static `OTel.bootstrap()` function, which uses an opaque return type that conforms to
+`Service`, regardless of which observability signals are enabled.
+
+```swift
+extension OTel {
+    public static func bootstrap(
+        configuration: Configuration = .default,
+        detectEnvironmentOverrides: Bool = true
+    ) throws -> some Service
+}
+```
+
+### Make backends
+
+```swift
+extension OTel {
+    public typealias LogsFactory = (@Sendable (String) -> any Logging.LogHandler)
+    public typealias MetricsFactory = CoreMetrics.MetricsFactory
+    public typealias TracesFactory = Tracing.Instrument
+
+    public static func makeLoggingBackend(
+        configuration: OTel.Configuration = .default,
+        detectEnvironmentOverrides: Bool = true
+    ) throws -> (factory: LogsFactory, service: some Service)
+
+    public static func makeMetricsBackend(
+        configuration: OTel.Configuration = .default,
+        detectEnvironmentOverrides: Bool = true
+    ) throws -> (factory: any MetricsFactory, service: some Service)
+
+    public static func makeTracingBackend(
+        configuration: OTel.Configuration = .default,
+        detectEnvironmentOverrides: Bool = true
+    ) throws -> (factory: any TracesFactory, service: some Service)
+}
+```
+
+### Configuration
+
+Even though this proposed API is reducing visibility of the chain of types required for observability, the behavior of
+those types should still be configurable. In fact, this proposal includes widening the configurable behavior compared to
+the current API.
+
+The OTel SDK specification defines which components should be configurable in code, and how configuration can be
+specified with environment variables, including the hierarchy of per-signal and general configuration[^1].
+
+The `bootstrap`, `makeLoggingBackend`, `makeMetricsBackend`, and `makeTracingBackend` APIs all take a configuration
+parameter.  This allows for top-level configuration, without the adopter needing to discover, construct, and configure
+the implementation types that drive the backend.
+
+The configuration is a nested value-type, rooted at `OTel.Configuration`, following the structure and defaults from the
+OTel spec as closely as practical for the subset of features supported by Swift OTel.
+
+To support API evolution, the configuration follows a default-and-mutate pattern and uses _enum-like_ structs for values
+that would naturally be expressed with enums.
+
+As discussed in the OTel specification, unknown or unsupported configuration values (e.g. from environment variables)
+will be logged as a diagnostic and the default will be used.
+
+The below snippet is a representative example of the _shape_ of `OTel.Configuration` and the earlier sections of this
+document illustrate its use.
+
+```swift
+extension OTel {
+    public struct Configuration: Sendable {
+        public var serviceName: String
+        public var resourceAttributes: [(String, String)]
+        public var logLevel: LogLevel
+        public var propagators: [Propagator]
+        public var traces: TracesConfiguration
+        public var metrics: MetricsConfiguration
+        public var logs: LogsConfiguration
+
+        public static let `default`: Self
+    }
+}
+
+extension OTel.Configuration {
+    public struct LogLevel: Sendable {
+        public static let error: Self
+        public static let warning: Self
+        public static let info: Self
+        public static let debug: Self
+    }
+}
+
+extension OTel.Configuration {
+    public struct Propagator: Sendable {
+        public static let traceContext: Self
+        public static let baggage: Self
+        public static let b3: Self
+        public static let b3Multi: Self
+        public static let jaeger: Self
+        public static let xray: Self
+        public static let otTrace: Self
+        public static let none: Self
+    }
+}
+
+extension OTel.Configuration {
+    public struct TracesConfiguration: Sendable {
+        public var enabled: Bool
+        public var batchSpanProcessor: BatchSpanProcessorConfiguration
+        public var exporter: ExporterSelection
+        public var otlpExporter: OTLPExporterConfiguration
+
+        public static let `default`: Self
+    }
+
+    public struct MetricsConfiguration: Sendable {
+        public var enabled: Bool
+        public var exportInterval: Duration
+        public var exportTimeout: Duration
+        public var exporter: ExporterSelection
+        public var otlpExporter: OTLPExporterConfiguration
+
+        public static let `default`: Self
+    }
+
+    public struct LogsConfiguration: Sendable {
+        public var enabled: Bool
+        public var exporter: ExporterSelection
+        public var otlpExporter: OTLPExporterConfiguration
+
+        public static let `default`: Self
+    }
+}
+
+extension OTel.Configuration.TracesConfiguration {
+    public struct BatchSpanProcessorConfiguration: Sendable {
+        public var scheduleDelay: Duration
+        public var exportTimeout: Duration
+        public var maxQueueSize: Int
+        public var maxExportBatchSize: Int
+
+        public static let `default`: Self
+    }
+}
+
+extension OTel.Configuration.TracesConfiguration {
+    public struct ExporterSelection: Sendable {
+        public static let otlp: Self
+        public static let jaeger: Self
+        public static let zipkin: Self
+        public static let console: Self
+    }
+}
+
+extension OTel.Configuration.MetricsConfiguration {
+    public struct ExporterSelection: Sendable {
+        public static let otlp: Self
+        public static let prometheus: Self
+        public static let console: Self
+    }
+}
+
+extension OTel.Configuration.LogsConfiguration {
+    public struct ExporterSelection: Sendable {
+        public static let otlp: Self
+        public static let console: Self
+    }
+}
+
+extension OTel.Configuration {
+    public struct OTLPExporterConfiguration: Sendable {
+        public var endpoint: String
+        public var insecure: Bool
+        public var certificateFilePath: String?
+        public var clientKeyFilePath: String?
+        public var clientCertificateFilePath: String?
+        public var headers: [(String, String)]
+        public var compression: Compression
+        public var timeout: Duration
+        public var `protocol`: `Protocol`
+
+        public static let `default`: Self
+    }
+}
+
+extension OTel.Configuration.OTLPExporterConfiguration {
+    public struct Compression: Sendable {
+        public static let none: Self
+        public static let gzip: Self
+    }
+
+    public struct `Protocol`: Equatable, Sendable {
+        public static let grpc: Self
+        public static let httpProtobuf: Self
+        public static let httpJSON: Self
+    }
+}
+```
+
+### Reducing visibility of all other existing API
+
+The existing API has biased toward a large public API. This includes all the concrete types that need chaining together
+to construct a functional OTLP backend for each signal, but also a wide API surface for extensibility.
+
+For example, the `OTelTracer` is generic over five abstractions: `OTelIDGenerator`, `OTelSampler`, `OTelPropagator`,
+`OTelSpanProcessor`, and `Clock`, with public concrete types (sometimes several) for each.
+
+Similarly, there is a public abstraction for populating attributes, `OTelResourceDetector`, with several public
+implementations and helper types: `OTelResource`, `OTelResourceDetection`, `OTelEnvironment`,
+`OTelProcessResourceDetector`, `OTelManualResourceDetector`, and `OTelEnvironmentResourceDetector`.
+
+The primary goal of Swift OTel is to provide OTLP backends for the Swift observability APIs and, where appropriate,
+support configuring the behavior according to the OTel specification.
+
+Therefore, we propose to make all the existing API not expressly discussed in the above bootstrap, backends, and
+configuration sections, internal.
+
+Reducing the API surface to just that which is required to meet these goals paves an easier path for a 1.0 release, and
+does not rule out expanding it the future to support deeper customization.
+
+Where extensibility is required, adopters should compose the opaque backends with their own logic. As a concrete
+example, if an adopter wishes to pre-sample traces in a way that is not supported in the OTel specification, they should
+construct their own wrapper type that conforms to `Tracing.Instrument`, which wraps the backend returned by
+`OTel.makeTracingBackend`.
+
+### Package structure and traits
+
+Swift OTel will provide a single library product, `OTel`, with the public API discussed above.
+
+Any other existing library products will become internal targets. Concretely, the majority of the existing `OTel`
+library product will move to an internal `OTelCore` target; and `OTLPGRPC` will be made an internal detail.
+
+Support for OTLP/gRPC and OTLP/HTTP will be gated behind package traits: `OTLPGRPC` and `OTLPHTTP`, respectively, which
+will both be enabled by default. This allows adopters to only include the dependencies for a single exporter.
+
+Swift OTel might opt to make the corresponding configuration values only reachable in code with the trait enabled, e.g.:
+
+```swift
+var config = OTel.Configuration.default
+config.traces.otlp.protocol = .grpc  // compiler error: Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.
+```
+
+Attempting to use these configuration values using their corresponding environment variable values will result in a
+runtime error, e.g.:
+
+```swift
+// Assuming OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=grpc, then...
+OTel.bootstrap()  // runtime error: Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.
+```
+
+### Logging within Swift OTel
+
+There has been some historic confusion related to logging within the Swift OTel library itself, which stems from:
+
+1. Swift Log's process-wide, one-shot bootstrap mechanism for logging; and
+2. Swift OTel providing an OTLP logging backend.
+
+At first glance this presents a chicken-and-egg problem: Do Swift OTel's own logs go to OTLP? What about pre-bootstrap
+logging? Where do errors about exporting logs, get logged? Or the handling of unsupported configuration values?
+
+These concerns are addressed by the OTel spec, which states that such "self-diagnostics" can be handled with any
+language-specific conventions and/or callbacks[^2].
+
+Swift OTel will handle this by having it's own `Logger`, which it will construct without the bootstrapped logging
+backend and will log such diagnostics to standard error.
+
+Future implementations may support customizing the internal logger used by the SDK.
+
+[^1]: Configuration in the OTel specification:
+    - https://opentelemetry.io/docs/languages/sdk-configuration/general/
+    - https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/
+    - https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
+    - https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
+
+[^2]: https://opentelemetry.io/docs/specs/otel/error-handling/#self-diagnostics
