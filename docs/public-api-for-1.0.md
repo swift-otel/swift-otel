@@ -244,24 +244,21 @@ extension OTel {
 
 ```swift
 extension OTel {
-    public typealias LogsFactory = (@Sendable (String) -> any Logging.LogHandler)
-    public typealias MetricsFactory = CoreMetrics.MetricsFactory
-    public typealias TracesFactory = Tracing.Instrument
-
     public static func makeLoggingBackend(
         configuration: OTel.Configuration = .default,
         detectEnvironmentOverrides: Bool = true
-    ) throws -> (factory: LogsFactory, service: some Service)
+    ) throws -> (factory: @Sendable (String) -> any Logging.LogHandler, service: some
+    Service)
 
     public static func makeMetricsBackend(
         configuration: OTel.Configuration = .default,
         detectEnvironmentOverrides: Bool = true
-    ) throws -> (factory: any MetricsFactory, service: some Service)
+    ) throws -> (factory: any CoreMetrics.MetricsFactory, service: some Service)
 
     public static func makeTracingBackend(
         configuration: OTel.Configuration = .default,
         detectEnvironmentOverrides: Bool = true
-    ) throws -> (factory: any TracesFactory, service: some Service)
+    ) throws -> (factory: any Tracing.Instrument, service: some Service)
 }
 ```
 
