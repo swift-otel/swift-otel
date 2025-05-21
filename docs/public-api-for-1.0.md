@@ -152,15 +152,12 @@ Partly informed by the above drawbacks, these are the proposed goals for the rev
 ### Example: Bootstrap observability backends with ~zero ceremony
 
 ```swift
-let server = MockService(name: "AdopterServer")
-
 // Bootstrap observability backends and get a single, opaque service, to run.
 let observability = try OTel.bootstrap()
 
-// Add observability service(s) to a service group with adopter service(s).
+// Run observability service(s) in a service group with adopter service(s).
+let server = MockService(name: "AdopterServer")
 let serviceGroup = ServiceGroup(services: [observability, server], logger: .init(label: "ServiceGroup"))
-
-// Run service group.
 try await serviceGroup.run()
 ```
 
@@ -169,12 +166,10 @@ try await serviceGroup.run()
 > Note: Some of the values used here are the defaults, but are explicitly set for the purpose of illustrating the API.
 
 ```swift
-let server = MockService(name: "AdopterServer")
-
 // Start with defaults.
 var otelConfig = OTel.Configuration.default
 // Configure traces with specific OTLP/gRPC endpoint, with mTLS, compression, and custom timeout.
-otelConfig.traces.exporter = .otlp  // (default, setting for illustrative purposes)
+otelConfig.traces.exporter = .otlp
 otelConfig.traces.otlpExporter.endpoint = "https://otel-collector.example.com:4317"
 otelConfig.traces.otlpExporter.protocol = .grpc
 otelConfig.traces.otlpExporter.compression = .gzip
@@ -183,6 +178,7 @@ otelConfig.traces.otlpExporter.clientCertificateFilePath = "/path/to/cert"
 otelConfig.traces.otlpExporter.clientKeyFilePath = "/path/to/key"
 otelConfig.traces.otlpExporter.timeout = .seconds(3)
 // Configure metrics with localhost OTLP/HTTP endpoint, without TLS, uncompressed, and different timeout.
+otelConfig.metrics.exporter = .otlp
 otelConfig.metrics.otlpExporter.endpoint = "http://localhost:4318"
 otelConfig.metrics.otlpExporter.protocol = .httpProtobuf
 otelConfig.metrics.otlpExporter.compression = .none
@@ -193,10 +189,9 @@ otelConfig.logs.enabled = false
 // Bootstrap observability backends and still get a single, opaque service, to run.
 let observability = try OTel.bootstrap(configuration: otelConfig)
 
-// Add observability service(s) to a service group with adopter service(s).
+// Run observability service(s) in a service group with adopter service(s).
+let server = MockService(name: "AdopterServer")
 let serviceGroup = ServiceGroup(services: [observability, server], logger: .init(label: "ServiceGroup"))
-
-// Run service group.
 try await serviceGroup.run()
 ```
 
@@ -210,8 +205,6 @@ let observability = try OTel.bootstrap(configuration: otelConfig, detectEnvironm
 ### Example: Compose observability backends
 
 ```swift
-let server = MockService(name: "AdopterServer")
-
 // Create backends that have _not_ been bootstrapped.
 let logging = try OTel.makeLoggingBackend(configuration: .default)
 let metrics = try OTel.makeMetricsBackend(configuration: .default)
@@ -222,13 +215,12 @@ LoggingSystem.bootstrap({ label in MultiplexLogHandler([logging.factory(label), 
 MetricsSystem.bootstrap(MultiplexMetricsHandler(factories: [metrics.factory, NOOPMetricsHandler.instance]))
 InstrumentationSystem.bootstrap(MultiplexInstrument([tracing.factory, NoOpTracer()]))
 
-// Add observability service(s) to a service group with adopter service(s).
+// Run observability service(s) in a service group with adopter service(s).
+let server = MockService(name: "AdopterServer")
 let serviceGroup = ServiceGroup(
     services: [logging.service, metrics.service, tracing.service, server],
     logger: .init(label: "ServiceGroup")
 )
-
-// Run service group
 try await serviceGroup.run()
 ```
 
