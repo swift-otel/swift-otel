@@ -11,7 +11,7 @@ the proposed API, we must also consider the other features that are planned for 
 
 - Support for OTLP Logging backend.
 
-- Update existing GRPC exporter to use Swift GRPC v2.
+- Update existing gRPC exporter to use gRPC Swift v2.
 
 - Add support for an OTLP/HTTP exporter.
 
