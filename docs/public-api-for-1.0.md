@@ -487,6 +487,60 @@ backend and will log such diagnostics to standard error.
 
 Future implementations may support customizing the internal logger used by the SDK.
 
+## Alternatives considered
+
+### Enums with associated values in configuration
+
+An alternative approach for exporter configuration would be to use enum associated values for exporter-specific
+configuration:
+
+```swift
+// Alternative approach with associated values
+public enum ExporterSelection {
+    case otlp(OTLPExporterConfiguration)
+    case console
+}
+```
+
+This proposal does not do this for the following reasons:
+
+-  Ergonomic configuration: When starting with defaults and making incremental changes, associated values
+   require switching on a configuration field, extracting the associated value, modifying its nested configuration, and
+   then replacing the enum value. The proposed API supports updating just the desired nested properties.
+
+- Runtime composition: The proposed configuration API is designed to compose with environment variable
+   overrides set by operators, where OTLP configuration should be applied _if_ the OTLP exporter is selected, regardless
+   of whether that selection was made.
+
+- Specification guidance: The chosen structure mirrors the configuration hierarchy defined in the OTel spec.
+
+## Future directions
+
+### Resource detection
+
+The pre-1.0 API included some support for automatic "resource detection" to automatically populate some resource
+attributes with e.g. process information, environment details, and service name. The proposed 1.0 API intentionally
+omits built-in resource detection for several reasons:
+
+- Limited stable specification: Most resource detection semantics in the OTel spec are not yet marked as stable, with
+  only `service.name` being both required and stable.
+
+- Specification guidance: The OTel spec states that custom resource detectors "MUST be implemented as packages separate
+  from the SDK."
+
+Resource attributes can still be manually configured with the proposed API via `OTel.Configuration.serviceName` and
+`OTel.Configuration.resourceAttributes`, both in-code and via environment variables, which aligns with the OTel spec.
+
+This does not preclude extending the API in the future to support some automatic resource detection, which would likely
+be built on the configuration API, to maintain the simple bootstrap APIs:
+
+```swift
+// Future API possibility
+var config = OTel.Configuration.default
+await config.applyingResourceAttributes(from: someDetector)
+let observability = try OTel.bootstrap(configuration: config)
+```
+
 [^1]: Configuration in the OTel specification:
     - https://opentelemetry.io/docs/languages/sdk-configuration/general/
     - https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/
