@@ -19,6 +19,9 @@ the proposed API, we must also consider the other features that are planned for 
 
 - Reduced ceremony for bootstrapping the Swift observability backends.
 
+Note that this package is not focused on providing a full "OTel SDK", and so the API is focussed only on bootstrapping
+the Swift observability backends with OTLP exporters.
+
 The remaining part of this proposal focuses on the proposed API changes.
 
 ## Existing API
