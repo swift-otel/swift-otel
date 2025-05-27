@@ -44,7 +44,7 @@ let resourceDetection = OTelResourceDetection(detectors: [
     OTelEnvironmentResourceDetector(environment: environment),
 ])
 
-let resource = await resourceDetection.resource(environment: environment, logger: logger)
+let resource = await resourceDetection.resource(environment: environment, logLevel: .trace)
 
 // ... pass the resource to other Swift OTel components
 ```
