@@ -517,6 +517,17 @@ This proposal does not do this for the following reasons:
 
 - Specification guidance: The chosen structure mirrors the configuration hierarchy defined in the OTel spec.
 
+### Reducing the set of default enabled package traits
+
+This proposal uses traits to guard the provision of both the HTTP and gRPC exporters. This allows adopters to reduce
+their build times if they want to explicitly remove support for one of the exporters.
+
+Disabling the `OTLPGRPC` trait by default was considered but was rejected in favour of:
+
+- Ease of use, out of the box.
+
+- Support for runtime configuration by operators without manual steps on by the developer.
+
 ## Future directions
 
 ### Resource detection
