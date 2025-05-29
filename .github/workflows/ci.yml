@@ -3,7 +3,7 @@ on: [push, pull_request]
 jobs:
   soundness:
     name: Soundness Check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -19,12 +19,12 @@ jobs:
 
   unit-test:
     name: Unit Test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
       matrix:
-        swift: [5.9, latest]
+        swift: ["6.0", "latest"]
 
     steps:
       - name: Install Swift
@@ -37,21 +37,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
-      - name: Cache Swift PM
-        uses: actions/cache@v4.2.3
-        with:
-          path: .build
-          key: ${{ runner.os }}-${{ matrix.swift }}-ci-spm-${{ hashFiles('Package.swift') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.swift }}-ci-spm-
-
       - name: Resolve Swift dependencies
         run: swift package resolve
 
       - name: Run Unit Tests
-        run: swift test --parallel --enable-code-coverage
+        run: swift test --enable-code-coverage
 
       - name: Merge code coverage
-        if: matrix.swift == '5.9'
+        if: matrix.swift == 'latest'
         run: |
           llvm-cov export -format "lcov" \
             .build/debug/swift-otelPackageTests.xctest \
@@ -62,7 +55,7 @@ jobs:
           > info.lcov
 
       - name: Upload code coverage report to Codecov
-        if: matrix.swift == '5.9'
+        if: matrix.swift == 'latest'
         uses: codecov/codecov-action@v5.4.0
         with:
           files: ./info.lcov
@@ -72,7 +65,7 @@ jobs:
 
   compile-counter-example:
     name: Compile Counter Example
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./Examples/Counter

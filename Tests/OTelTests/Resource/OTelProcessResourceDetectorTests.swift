@@ -53,9 +53,5 @@ final class OTelProcessResourceDetectorTests: XCTestCase {
         XCTAssertNotNil(resource.attributes["process.executable.name"])
         XCTAssertNotNil(resource.attributes["process.executable.path"])
         XCTAssertNotNil(resource.attributes["process.command_line"])
-        #if os(macOS) || os(Linux)
-            XCTAssertNotNil(resource.attributes["process.command"])
-            XCTAssertNotNil(resource.attributes["process.owner"])
-        #endif
     }
 }

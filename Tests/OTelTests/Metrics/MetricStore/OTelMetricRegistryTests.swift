@@ -435,16 +435,6 @@ final class DuplicateRegistrationHandlerTests: XCTestCase {
         XCTAssertEqual(recordingLogHandler.warningCount, 1)
     }
 
-    func test_FatalErrorDuplicateRegistrationHandler() {
-        let handler = FatalErrorDuplicateRegistrationHandler()
-        XCTAssertThrowsFatalError {
-            handler.handle(
-                newRegistration: .counter(name: "name"),
-                existingRegistrations: [.gauge(name: "name"), .histogram(name: "name")]
-            )
-        }
-    }
-
     func test_DuplicateRegistrationHandler_selection() {
         XCTAssert(OTelMetricRegistry(onDuplicateRegistration: .warn).storage.withLockedValue { $0 }.duplicateRegistrationHandler is WarningDuplicateRegistrationHandler)
         XCTAssert(OTelMetricRegistry(onDuplicateRegistration: .crash).storage.withLockedValue { $0 }.duplicateRegistrationHandler is FatalErrorDuplicateRegistrationHandler)

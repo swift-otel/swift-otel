@@ -3,12 +3,12 @@ on: [push, pull_request]
 jobs:
   integration_test:
     name: Integration Tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
       matrix:
-        swift: ["5.9", "5.10", "latest"]
+        swift: ["6.0", "latest"]
 
     steps:
       - name: Install Swift

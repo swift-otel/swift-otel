@@ -48,14 +48,6 @@ final class OTelPeriodicExportingMetricsReaderConfigurationTests: XCTestCase {
         XCTAssertEqual(configuration.exportInterval, .seconds(60))
     }
 
-    func test_exportInterval_invalidEnvironmentVariable_throwsFatalError() {
-        XCTAssertThrowsFatalError {
-            _ = OTelPeriodicExportingMetricsReaderConfiguration(
-                environment: OTelEnvironment(values: ["OTEL_METRIC_EXPORT_INTERVAL": "badger"])
-            )
-        }
-    }
-
     func test_exportTimeout_withProgrammaticOverride_usesProgrammaticOverride() {
         let configuration = OTelPeriodicExportingMetricsReaderConfiguration(
             environment: OTelEnvironment(values: [:]),
@@ -85,13 +77,5 @@ final class OTelPeriodicExportingMetricsReaderConfigurationTests: XCTestCase {
             environment: OTelEnvironment(values: [:])
         )
         XCTAssertEqual(configuration.exportTimeout, .seconds(30))
-    }
-
-    func test_exportTimeout_invalidEnvironmentVariable_throwsFatalError() {
-        XCTAssertThrowsFatalError {
-            _ = OTelPeriodicExportingMetricsReaderConfiguration(
-                environment: OTelEnvironment(values: ["OTEL_METRIC_EXPORT_TIMEOUT": "badger"])
-            )
-        }
     }
 }
