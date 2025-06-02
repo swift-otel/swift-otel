@@ -245,6 +245,13 @@ extension OTel {
 
 ### Make backends
 
+For more advanced use cases, we offer APIs for constructing the backends to compose with other types in the Swift
+observability ecosystem. These APIs all have a similar shape and return a tuple of two things:
+
+- The factory: a value that could be passed directly to the observability subsystem bootstrap, e.g.
+  `LoggingSystem.bootstrap(_:)`; and
+- The service: a type that performs the background work required for the operation of the backend.
+
 ```swift
 extension OTel {
     public static func makeLoggingBackend(
