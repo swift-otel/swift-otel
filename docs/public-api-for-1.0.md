@@ -1,5 +1,9 @@
 # Proposal: Revised public API to support 1.0 roadmap
 
+- Author: [Si Beaumont](https://github.com/simonjbeaumont)
+- Discussion: [Swift Forums](https://forums.swift.org/t/swift-otel-proposed-revised-api-for-1-0-release/80214/)
+- Status: Accepted
+
 ## Introduction
 
 Swift OTel provides an OTLP backend for the Swift observability packages (Swift Log, Swift Metrics, and Swift
