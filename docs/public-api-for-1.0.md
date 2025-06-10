@@ -202,12 +202,7 @@ let serviceGroup = ServiceGroup(services: [observability, server], logger: .init
 try await serviceGroup.run()
 ```
 
-`OTel.bootstrap` can apply additional configuration from the environment variables defined in the OTel spec. This
-behavior is controlled by a second, boolean parameter, which defaults to true.
-
-```swift
-let observability = try OTel.bootstrap(configuration: otelConfig, detectEnvironmentOverrides: true)
-```
+NOTE: `OTel.bootstrap` will apply additional configuration from the environment variables defined in the OTel spec.
 
 ### Example: Compose observability backends
 
@@ -241,8 +236,7 @@ The primary API is a single, static `OTel.bootstrap()` function, which uses an o
 ```swift
 extension OTel {
     public static func bootstrap(
-        configuration: Configuration = .default,
-        detectEnvironmentOverrides: Bool = true
+        configuration: Configuration = .default
     ) throws -> some Service
 }
 ```
@@ -259,19 +253,16 @@ observability ecosystem. These APIs all have a similar shape and return a tuple 
 ```swift
 extension OTel {
     public static func makeLoggingBackend(
-        configuration: OTel.Configuration = .default,
-        detectEnvironmentOverrides: Bool = true
+        configuration: OTel.Configuration = .default
     ) throws -> (factory: @Sendable (String) -> any Logging.LogHandler, service: some
     Service)
 
     public static func makeMetricsBackend(
-        configuration: OTel.Configuration = .default,
-        detectEnvironmentOverrides: Bool = true
+        configuration: OTel.Configuration = .default
     ) throws -> (factory: any CoreMetrics.MetricsFactory, service: some Service)
 
     public static func makeTracingBackend(
-        configuration: OTel.Configuration = .default,
-        detectEnvironmentOverrides: Bool = true
+        configuration: OTel.Configuration = .default
     ) throws -> (factory: any Tracing.Instrument, service: some Service)
 }
 ```
@@ -305,7 +296,8 @@ document illustrate its use.
 extension OTel {
     public struct Configuration: Sendable {
         public var serviceName: String
-        public var resourceAttributes: [(String, String)]
+        public var resourceAttributes: [String: String]
+        public var logger: LoggerSelection
         public var logLevel: LogLevel
         public var propagators: [Propagator]
         public var traces: TracesConfiguration
@@ -313,6 +305,13 @@ extension OTel {
         public var logs: LogsConfiguration
 
         public static let `default`: Self
+    }
+}
+
+extension OTel.Configuration {
+    public struct LoggerSelection {
+        public static let console: Self
+        public static func custom(_: Logging.Logger) -> Self
     }
 }
 
@@ -545,8 +544,6 @@ This feedback was incorporated and the current proposal includes the following A
 public var OTel.Configuration.resourceAttributes: [String: String]
 ```
 
-TODO: incorporate
-
 ### Support custom logger for internal logging
 
 For the initial 1.0 release, the proposal is to follow the OTel specification for the scope and spelling of
@@ -556,8 +553,6 @@ configuration. This is limited to configuring the logging level used by the inte
 During review, we received a request to inject a custom logger for the internal logging. Because these logs will provide
 information critical to debugging issues with observability, we decided to incorporate this feedback and the current
 proposal now supports providing a logger in the configuration.
-
-TODO: incorporate
 
 ### Defer APIs for disabling environment variable config
 
@@ -575,8 +570,6 @@ The parameter has been removed and the library will unconditionally support envi
 operators.
 
 A future version may add API for disabling and/or configuring the precedence of environment variable configuration.
-
-TODO: incorporate
 
 ## Future directions
 
