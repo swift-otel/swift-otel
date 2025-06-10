@@ -497,7 +497,144 @@ backend and will log such diagnostics to standard error.
 
 Future implementations may support customizing the internal logger used by the SDK.
 
+## Incorporated feedback
+
+This section consolidates the feedback that was received during the review period which has been accepted and
+incorporated into the current proposal.
+
+### Model resource attributes configuration as a dictionary
+
+The original proposal used an array of tuples for the resource attribute configuration:
+
+```swift
+public var OTel.Configuration.resourceAttributes: [(String, String)]
+```
+
+The OTel spec details how attribute collections must use unique keys but is flexible on how these are expressed in an
+SDK. It specifically calls out that APIs will have to deal with deduplication and that repeated keys will need to be
+handled as a result of supporting the W3C Baggage format, when specified using an environment variable.
+
+> *Attribute Collections*
+>
+> Resources, Instrumentation Scopes, Metric points, Spans, Span Events, Span Links and Log Records may contain
+> a collection of attributes. The keys in each such collection are unique, i.e. there MUST NOT exist more than one
+> key-value pair with the same key. The enforcement of uniqueness may be performed in a variety of ways as it best fits
+> the limitations of the particular implementation.
+>
+> Normally for the telemetry generated using OpenTelemetry SDKs the attribute key-value pairs are set via an API that
+> either accepts a single key-value pair or a collection of key-value pairs. Setting an attribute with the same key as
+> an existing attribute SHOULD overwrite the existing attribute’s value. See for example Span’s SetAttribute API.
+>
+> — source: https://opentelemetry.io/docs/specs/otel/common/#attribute-collections
+
+> The `OTEL_RESOURCE_ATTRIBUTES` environment variable will contain of a list of key value pairs, and these are expected
+> to be represented in a format matching to the W3C Baggage, except that additional semi-colon delimited metadata is not
+> supported, i.e.: `key1=value1,key2=value2`.
+>
+> — source: https://opentelemetry.io/docs/specs/otel/resource/sdk/#specifying-resource-information-via-an-environment-variable
+
+During review it was suggested that we model this as a dictionary to more clearly express the unique key semantics.
+
+This feedback was incorporated and the current proposal includes the following API:
+
+```swift
+public var OTel.Configuration.resourceAttributes: [String: String]
+```
+
+TODO: incorporate
+
+### Support custom logger for internal logging
+
+For the initial 1.0 release, the proposal is to follow the OTel specification for the scope and spelling of
+configuration. This is limited to configuring the logging level used by the internal logger used by the SDK itself
+(note: this is unrelated to the logging backend). How these internal logs were emitted was an implementation detail.
+
+During review, we received a request to inject a custom logger for the internal logging. Because these logs will provide
+information critical to debugging issues with observability, we decided to incorporate this feedback and the current
+proposal now supports providing a logger in the configuration.
+
+TODO: incorporate
+
+### Defer APIs for disabling environment variable config
+
+In order to support the requirements of operators, the bootstrap APIs in the original proposal included
+a `detectEnvironmentOverrides: Bool = true` parameter.
+
+This sparked some discussion during the review regarding the default precedence of in-code and environment variable
+configuration, and whether the API should support disabling and/or configuring the precedence of environment variable
+configuration.
+
+A number of desired semantics and alternative spellings are being discussed and so we decided to defer explicit API for
+this.
+
+The parameter has been removed and the library will unconditionally support environment variable overrides for
+operators.
+
+A future version may add API for disabling and/or configuring the precedence of environment variable configuration.
+
+TODO: incorporate
+
+## Future directions
+
+This section consolidates feedback that was received during the review period, which has been considered out of scope
+for 1.0, but could be incorporated in a future version.
+
+### Resource detection
+
+The pre-1.0 API included some support for automatic "resource detection" to automatically populate some resource
+attributes with e.g. process information, environment details, and service name. The current proposal intentionally
+omits built-in resource detection for several reasons:
+
+- Limited stable specification: Most resource detection semantics in the OTel spec are not yet marked as stable, with
+  only `service.name` being both required and stable.
+
+- Specification guidance: The OTel spec states that custom resource detectors "MUST be implemented as packages separate
+  from the SDK."
+
+Resource attributes can still be manually configured with the proposed API via `OTel.Configuration.serviceName` and
+`OTel.Configuration.resourceAttributes`, both in-code and via environment variables, which aligns with the OTel spec.
+
+This does not preclude extending the API in the future to support some automatic resource detection, which would likely
+be built on the configuration API, to maintain the simple bootstrap APIs:
+
+```swift
+// Future API possibility
+var config = OTel.Configuration.default
+await config.applyingResourceAttributes(from: someDetector)
+let observability = try OTel.bootstrap(configuration: config)
+```
+
+### Extending configuration beyond the OTel spec
+
+For the initial 1.0 release, the proposal is to closely follow the OTel specification for the scope and spelling of
+configuration.
+
+This is a baseline and does not preclude future versions supporting additive configuration API.
+
+### More extensible (m)TLS configuration
+
+The current proposal follows the OTel specification for the scope and spelling of configuration. This is limited to
+configuring the file paths to certificate and keys used for (m)TLS.
+
+A future release might include additive API for more expressive configuration, e.g. custom callbacks for advanced use
+cases, using types from Swift Certificates, or support for certificate reloading.
+
+### Configurable transports for the OTLP exporter
+
+The current proposal follows the OTel specification for the scope and spelling of configuration. This is limited to
+choosing between OTLP/gRPC, OTLP/HTTP+Protobuf, and OTLP/HTTP+JSON, with the underlying gRPC and HTTP client libraries
+being an implementation detail.
+
+A future release could include additive API for for more expressive configuration, e.g. offering a URLSession-based
+OTLP/HTTP transport for adopters running on Darwin platforms.
+
+Another possibility would be to offer an extensible API, allowing adopters to provide a custom transport implementation,
+likely defined in terms of Swift HTTP Types.
+
 ## Alternatives considered
+
+This section consolidates feedback that was received during the review period, which has been considered out of scope
+because they are incompatible with the proposed API or conflict with stated goals of the package.
 
 ### Enums with associated values in configuration
 
@@ -535,32 +672,38 @@ Disabling the `OTLPGRPC` trait by default was considered but was rejected in fav
 
 - Support for runtime configuration by operators without manual steps on by the developer.
 
-## Future directions
+### Moving Swift Service Lifecycle dependency behind a trait
 
-### Resource detection
+The current proposal places the dependencies used for the OTLP/gRPC and OTLP/HTTP exporters behind traits to streamline
+adopters transitive dependencies and build times.
 
-The pre-1.0 API included some support for automatic "resource detection" to automatically populate some resource
-attributes with e.g. process information, environment details, and service name. The proposed 1.0 API intentionally
-omits built-in resource detection for several reasons:
+During the review period there was a question about moving the Swift Service Lifecycle dependency behind a trait. We did
+not incorporate this feedback because (1) the Swift Service Lifecycle is a small, and more crucially, (2) it is an
+important part of the implementation of Swift OTel, not just the API surface.
 
-- Limited stable specification: Most resource detection semantics in the OTel spec are not yet marked as stable, with
-  only `service.name` being both required and stable.
+### Removing top-level `OTel` namespace
 
-- Specification guidance: The OTel spec states that custom resource detectors "MUST be implemented as packages separate
-  from the SDK."
+The current proposal nests the APIs under an `OTel` namespace.
 
-Resource attributes can still be manually configured with the proposed API via `OTel.Configuration.serviceName` and
-`OTel.Configuration.resourceAttributes`, both in-code and via environment variables, which aligns with the OTel spec.
+During review we discussed whether this was necessary and whether using a namespace that matches the module name would
+cause issues.
 
-This does not preclude extending the API in the future to support some automatic resource detection, which would likely
-be built on the configuration API, to maintain the simple bootstrap APIs:
+This feedback was not incorporated for a few reasons:
 
-```swift
-// Future API possibility
-var config = OTel.Configuration.default
-await config.applyingResourceAttributes(from: someDetector)
-let observability = try OTel.bootstrap(configuration: config)
-```
+1. The API is surface is mostly static functions, and we'd prefer to not
+   pollute the global namespace.
+2. It provides a single point of discoverability for the APIs.
+3. It provides a place to anchor top-level docs (almost module-level docs) that are accessible in code, which otherwise
+   need to be viewed in the hosted DocC article.
+4. Any issues resulting from the use of the same name for the top-level enum and the module, are historical, and have
+   been addressed.
+
+   The concrete concern is if an adopter takes a new dependency on this package but already has a type called `OTel` in
+   their codebase. If they cannot rename this type (e.g. because it forms part of the adopter's API surface) then this
+   is mitigated by using a module alias when adding the dependency.
+
+   Furthermore, the import of this module is likely to be isolated to a single place in an adopter codebase, where they
+   bootstrap the observability backends, which reduces the risk of any such clash.
 
 [^1]: Configuration in the OTel specification:
     - https://opentelemetry.io/docs/languages/sdk-configuration/general/
