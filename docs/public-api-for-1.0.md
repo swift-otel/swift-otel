@@ -81,8 +81,8 @@ let serviceGroup = ServiceGroup(services: [metrics, tracer, server], logger: .in
 try await serviceGroup.run()
 ```
 
-> Note: The above snippet only uses a logging metadata provider. When Swift OTel is extended with an OTLP logging
->       backend it would likely require a similarly verbose bootstrap with the current API design.
+> [!note]
+> The above snippet only uses a logging metadata provider. When Swift OTel is extended with an OTLP logging backend it would likely require a similarly verbose bootstrap with the current API design.
 
 The current API has a number of usability drawbacks.
 
@@ -105,7 +105,7 @@ The current API has a number of usability drawbacks.
    metrics, and traces), which adopters must discover from documentation and remember to do correctly.
 
 5. There is asymmetry in which types provide the background tasks adopters must run: for tracing, adopters run the same
-   type that is passed to `InstrumentationSystem.bootstrap()`; for metrics, adopters run a different type an intermediate
+   type that is passed to `InstrumentationSystem.bootstrap()`; for metrics, adopters run an intermediate
    type, that is not passed to `MetricsSystem.bootstrap()`.
 
 6. The existing API surface is also very broad, with an emphasis on extensibility. In addition to the many types that
@@ -202,7 +202,8 @@ let serviceGroup = ServiceGroup(services: [observability, server], logger: .init
 try await serviceGroup.run()
 ```
 
-NOTE: `OTel.bootstrap` will apply additional configuration from the environment variables defined in the OTel spec.
+> [!important]
+> `OTel.bootstrap` will apply additional configuration from the environment variables defined in the OTel spec.
 
 ### Example: Compose observability backends
 
@@ -263,7 +264,7 @@ extension OTel {
 
     public static func makeTracingBackend(
         configuration: OTel.Configuration = .default
-    ) throws -> (factory: any Tracing.Instrument, service: some Service)
+    ) throws -> (factory: any Tracing.Tracer, service: some Service)
 }
 ```
 
@@ -277,7 +278,7 @@ The OTel SDK specification defines which components should be configurable in co
 specified with environment variables, including the hierarchy of per-signal and general configuration[^1].
 
 The `bootstrap`, `makeLoggingBackend`, `makeMetricsBackend`, and `makeTracingBackend` APIs all take a configuration
-parameter.  This allows for top-level configuration, without the adopter needing to discover, construct, and configure
+parameter. This allows for top-level configuration, without the adopter needing to discover, construct, and configure
 the implementation types that drive the backend.
 
 The configuration is a nested value-type, rooted at `OTel.Configuration`, following the structure and defaults from the
@@ -454,7 +455,7 @@ does not rule out expanding it the future to support deeper customization.
 
 Where extensibility is required, adopters should compose the opaque backends with their own logic. As a concrete
 example, if an adopter wishes to pre-sample traces in a way that is not supported in the OTel specification, they should
-construct their own wrapper type that conforms to `Tracing.Instrument`, which wraps the backend returned by
+construct their own wrapper type that conforms to `Tracing.Tracer`, which wraps the backend returned by
 `OTel.makeTracingBackend`.
 
 ### Package structure and traits
@@ -479,7 +480,7 @@ runtime error, e.g.:
 
 ```swift
 // Assuming OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=grpc, then...
-OTel.bootstrap()  // runtime error: Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.
+try OTel.bootstrap()  // runtime error: Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.
 ```
 
 ### Logging within Swift OTel
@@ -495,10 +496,7 @@ logging? Where do errors about exporting logs, get logged? Or the handling of un
 These concerns are addressed by the OTel spec, which states that such "self-diagnostics" can be handled with any
 language-specific conventions and/or callbacks[^2].
 
-Swift OTel will handle this by having it's own `Logger`, which it will construct without the bootstrapped logging
-backend and will log such diagnostics to standard error.
-
-Future implementations may support customizing the internal logger used by the SDK.
+Swift OTel will handle this by having its own `Logger`, which will log to standard error by default, and can be configured during bootstrap.
 
 ## Incorporated feedback
 
@@ -578,7 +576,7 @@ for 1.0, but could be incorporated in a future version.
 
 ### Resource detection
 
-The pre-1.0 API included some support for automatic "resource detection" to automatically populate some resource
+The pre-1.0 API included some support for "resource detection" to automatically populate some resource
 attributes with e.g. process information, environment details, and service name. The current proposal intentionally
 omits built-in resource detection for several reasons:
 
