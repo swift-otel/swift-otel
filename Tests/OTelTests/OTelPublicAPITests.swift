@@ -29,11 +29,8 @@ import Testing
         #expect((error as? CustomStringConvertible)?.description == "Not implemented")
     }
 
-    @Test func testMakeMetricsBackend() {
-        let error = #expect(throws: (any Error).self) {
-            try OTel.makeMetricsBackend()
-        }
-        #expect((error as? CustomStringConvertible)?.description == "Not implemented")
+    @Test func testMakeMetricsBackend() throws {
+        _ = try OTel.makeMetricsBackend()
     }
 
     @Test func testMakeTracingBackend() {
