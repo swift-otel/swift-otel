@@ -126,6 +126,21 @@ let package = Package(
             ],
             swiftSettings: sharedSwiftSettings
         ),
+
+        .target(
+            name: "OTLPHTTP",
+            dependencies: [
+            ],
+            swiftSettings: sharedSwiftSettings
+        ),
+        .testTarget(
+            name: "OTLPHTTPTests",
+            dependencies: [
+                .target(name: "OTLPHTTP"),
+            ],
+            swiftSettings: sharedSwiftSettings
+        ),
+
     ],
     swiftLanguageModes: [.version("6"), .v5]
 )
