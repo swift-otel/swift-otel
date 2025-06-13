@@ -7,6 +7,7 @@ let package = Package(
     name: "swift-otel",
     platforms: [.macOS(.v13), .iOS(.v16)],
     products: [
+        .library(name: "OTel", targets: ["OTel"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-distributed-tracing.git", from: "1.2.0"),
@@ -31,6 +32,19 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-docc-plugin.git", from: "1.0.0"),
     ],
     targets: [
+        .target(
+            name: "OTel",
+            dependencies: [
+            ],
+            swiftSettings: sharedSwiftSettings
+        ),
+        .testTarget(
+            name: "OTelTests",
+            dependencies: [
+                .target(name: "OTel"),
+            ]
+        ),
+
         .target(
             name: "OTelCore",
             dependencies: [
