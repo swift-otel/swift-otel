@@ -9,6 +9,11 @@ let package = Package(
     products: [
         .library(name: "OTel", targets: ["OTel"]),
     ],
+    traits: [
+        .trait(name: "OTLPHTTP"),
+        .trait(name: "OTLPGRPC"),
+        .default(enabledTraits: ["OTLPHTTP", "OTLPGRPC"]),
+    ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-distributed-tracing.git", from: "1.2.0"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.0"),
