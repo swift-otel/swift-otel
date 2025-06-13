@@ -14,8 +14,7 @@
 /// A span exporter receives batches of processed logs to export them, e.g. by sending them over the network.
 ///
 /// [OpenTelemetry specification: Log exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/logs/sdk.md#logrecordexporter)
-@_spi(Logging)
-public protocol OTelLogRecordExporter: Sendable {
+package protocol OTelLogRecordExporter: Sendable {
     /// Export the given batch of logs.
     ///
     /// - Parameter batch: A batch of logs to export.

@@ -27,11 +27,11 @@
 import CoreMetrics
 
 /// A Swift Metrics `MetricsFactory` implementation backed by ``OTelMetricRegistry``.
-public struct OTLPMetricsFactory: Sendable {
+package struct OTLPMetricsFactory: Sendable {
     private static let _defaultRegistry = OTelMetricRegistry()
 
     /// The shared, default registry.
-    public static var defaultRegistry: OTelMetricRegistry {
+    package static var defaultRegistry: OTelMetricRegistry {
         _defaultRegistry
     }
 
@@ -47,7 +47,7 @@ public struct OTLPMetricsFactory: Sendable {
     ///   - configuration: Configuration options for the factory.
     ///
     /// - Seealso: ``OTLPMetricsFactory/Configuration``.
-    public init(registry: OTelMetricRegistry = defaultRegistry, configuration: Configuration = .default) {
+    package init(registry: OTelMetricRegistry = defaultRegistry, configuration: Configuration = .default) {
         self.registry = registry
         self.configuration = configuration
     }
@@ -57,18 +57,18 @@ extension OTLPMetricsFactory {
     /// Configuration options for the metrics factory.
     ///
     /// - Seealso: See the static property ``default`` for details on the default configuration values.
-    public struct Configuration: Sendable {
+    package struct Configuration: Sendable {
         /// The default bucket upper bounds for duration histograms created for a Swift Metrics `Timer`.
-        public var defaultDurationHistogramBuckets: [Duration]
+        package var defaultDurationHistogramBuckets: [Duration]
 
         /// The bucket upper bounds for duration histograms created for a Swift Metrics `Timer` with a specific label.
-        public var durationHistogramBuckets: [String: [Duration]]
+        package var durationHistogramBuckets: [String: [Duration]]
 
         /// The default bucket upper bounds for value histograms created for a Swift Metrics `Recorder`.
-        public var defaultValueHistogramBuckets: [Double]
+        package var defaultValueHistogramBuckets: [Double]
 
         /// The bucket upper bounds for value histograms created for a Swift Metrics `Recorder` with a specific label.
-        public var valueHistogramBuckets: [String: [Double]]
+        package var valueHistogramBuckets: [String: [Double]]
 
         /// A closure to drop or modify metric registration made using the Swift Metrics API.
         ///
@@ -76,7 +76,7 @@ extension OTLPMetricsFactory {
         ///
         /// The closure will be called for each registration with the `label` and `dimensions` provided to the Swift Metrics
         /// API and should return the label and dimensions to actually use, or `nil` if this metric should be dropped.
-        public var registrationPreprocessor: @Sendable (_ label: String, _ dimensions: [(String, String)]) -> (String, [(String, String)])?
+        package var registrationPreprocessor: @Sendable (_ label: String, _ dimensions: [(String, String)]) -> (String, [(String, String)])?
 
         /// The default bucket upper bounds for histograms defined by the [OTel specification].
         ///
@@ -92,7 +92,7 @@ extension OTLPMetricsFactory {
         ///   specific metrics created using the Swift Metrics `Recorder` and `Timer` APIs respectively.
         ///
         ///  [OTel specification]: https://github.com/open-telemetry/opentelemetry-specification/blob/v1.29.0/specification/metrics/sdk.md#explicit-bucket-histogram-aggregation
-        public static let defaultOTelHistogramBuckets: [Double] = [
+        package static let defaultOTelHistogramBuckets: [Double] = [
             0,
             5,
             10,
@@ -146,7 +146,7 @@ extension OTLPMetricsFactory {
         ///
         /// [0]: https://github.com/open-telemetry/opentelemetry-specification/blob/v1.29.0/specification/metrics/sdk.md#explicit-bucket-histogram-aggregation
         /// [1]: https://github.com/open-telemetry/opentelemetry-specification/blob/v1.29.0/specification/metrics/sdk.md#duplicate-instrument-registration
-        public static let `default` = Self(
+        package static let `default` = Self(
             defaultDurationHistogramBuckets: defaultOTelHistogramBuckets.map(Duration.milliseconds),
             durationHistogramBuckets: [:],
             defaultValueHistogramBuckets: defaultOTelHistogramBuckets,
@@ -157,7 +157,7 @@ extension OTLPMetricsFactory {
 }
 
 extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
-    public func makeCounter(label: String, dimensions: [(String, String)]) -> CoreMetrics.CounterHandler {
+    package func makeCounter(label: String, dimensions: [(String, String)]) -> CoreMetrics.CounterHandler {
         guard let (label, dimensions) = configuration.registrationPreprocessor(label, dimensions) else {
             return NOOPMetricsHandler.instance.makeCounter(label: label, dimensions: dimensions)
         }
@@ -165,7 +165,7 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
         return registry.makeCounter(name: label, unit: unit, description: description, attributes: attributes)
     }
 
-    public func makeFloatingPointCounter(label: String, dimensions: [(String, String)]) -> CoreMetrics.FloatingPointCounterHandler {
+    package func makeFloatingPointCounter(label: String, dimensions: [(String, String)]) -> CoreMetrics.FloatingPointCounterHandler {
         guard let (label, dimensions) = configuration.registrationPreprocessor(label, dimensions) else {
             return NOOPMetricsHandler.instance.makeFloatingPointCounter(label: label, dimensions: dimensions)
         }
@@ -173,7 +173,7 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
         return registry.makeFloatingPointCounter(name: label, unit: unit, description: description, attributes: attributes)
     }
 
-    public func makeRecorder(
+    package func makeRecorder(
         label: String,
         dimensions: [(String, String)],
         aggregate: Bool
@@ -189,7 +189,7 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
         return registry.makeValueHistogram(name: label, unit: unit, description: description, attributes: attributes, buckets: buckets)
     }
 
-    public func makeMeter(label: String, dimensions: [(String, String)]) -> CoreMetrics.MeterHandler {
+    package func makeMeter(label: String, dimensions: [(String, String)]) -> CoreMetrics.MeterHandler {
         guard let (label, dimensions) = configuration.registrationPreprocessor(label, dimensions) else {
             return NOOPMetricsHandler.instance.makeMeter(label: label, dimensions: dimensions)
         }
@@ -197,7 +197,7 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
         return registry.makeGauge(name: label, unit: unit, description: description, attributes: attributes)
     }
 
-    public func makeTimer(label: String, dimensions: [(String, String)]) -> CoreMetrics.TimerHandler {
+    package func makeTimer(label: String, dimensions: [(String, String)]) -> CoreMetrics.TimerHandler {
         guard let (label, dimensions) = configuration.registrationPreprocessor(label, dimensions) else {
             return NOOPMetricsHandler.instance.makeTimer(label: label, dimensions: dimensions)
         }
@@ -206,21 +206,21 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
         return registry.makeDurationHistogram(name: label, unit: unit, description: description, attributes: attributes, buckets: buckets)
     }
 
-    public func destroyCounter(_ handler: CoreMetrics.CounterHandler) {
+    package func destroyCounter(_ handler: CoreMetrics.CounterHandler) {
         guard let counter = handler as? Counter else {
             return
         }
         registry.unregisterCounter(counter)
     }
 
-    public func destroyFloatingPointCounter(_ handler: FloatingPointCounterHandler) {
+    package func destroyFloatingPointCounter(_ handler: FloatingPointCounterHandler) {
         guard let counter = handler as? FloatingPointCounter else {
             return
         }
         registry.unregisterFloatingPointCounter(counter)
     }
 
-    public func destroyRecorder(_ handler: CoreMetrics.RecorderHandler) {
+    package func destroyRecorder(_ handler: CoreMetrics.RecorderHandler) {
         switch handler {
         case let gauge as Gauge:
             registry.unregisterGauge(gauge)
@@ -231,14 +231,14 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
         }
     }
 
-    public func destroyMeter(_ handler: CoreMetrics.MeterHandler) {
+    package func destroyMeter(_ handler: CoreMetrics.MeterHandler) {
         guard let gauge = handler as? Gauge else {
             return
         }
         registry.unregisterGauge(gauge)
     }
 
-    public func destroyTimer(_ handler: CoreMetrics.TimerHandler) {
+    package func destroyTimer(_ handler: CoreMetrics.TimerHandler) {
         guard let histogram = handler as? Histogram<Duration> else {
             return
         }

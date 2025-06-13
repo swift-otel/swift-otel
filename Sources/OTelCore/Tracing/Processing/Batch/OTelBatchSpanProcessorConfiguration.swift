@@ -12,22 +12,22 @@
 //===----------------------------------------------------------------------===//
 
 /// The configuration options for an ``OTelBatchSpanProcessor``.
-public struct OTelBatchSpanProcessorConfiguration: Sendable {
+package struct OTelBatchSpanProcessorConfiguration: Sendable {
     /// The maximum queue size.
     ///
     /// - Warning: After this size is reached spans will be dropped.
-    public var maximumQueueSize: UInt
+    package var maximumQueueSize: UInt
 
     /// The maximum delay between two consecutive span exports.
-    public var scheduleDelay: Duration
+    package var scheduleDelay: Duration
 
     /// The maximum batch size of each export.
     ///
     /// - Note: If the queue reaches this size, a batch will be exported even if ``scheduleDelay`` has not elapsed.
-    public var maximumExportBatchSize: UInt
+    package var maximumExportBatchSize: UInt
 
     /// The duration a single export can run until it is cancelled.
-    public var exportTimeout: Duration
+    package var exportTimeout: Duration
 
     /// Create a batch span processor configuration.
     ///
@@ -37,7 +37,7 @@ public struct OTelBatchSpanProcessorConfiguration: Sendable {
     ///   - scheduleDelay: A schedule delay used even if `OTEL_BSP_SCHEDULE_DELAY` is set. Defaults to `5` seconds if both are `nil`.
     ///   - maximumExportBatchSize: A maximum export batch size used even if `OTEL_BSP_MAX_EXPORT_BATCH_SIZE` is set. Defaults to `512` if both are `nil`.
     ///   - exportTimeout: An export timeout used even if `OTEL_BSP_EXPORT_TIMEOUT` is set. Defaults to `30` seconds if both are `nil`.
-    public init(
+    package init(
         environment: OTelEnvironment,
         maximumQueueSize: UInt? = nil,
         scheduleDelay: Duration? = nil,

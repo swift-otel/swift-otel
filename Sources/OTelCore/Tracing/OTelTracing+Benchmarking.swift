@@ -14,8 +14,7 @@
 import ServiceContextModule
 
 extension ServiceContext {
-    @_spi(OTelBenchmarking)
-    public static func withSpanContext(_ spanContext: OTelSpanContext) -> Self {
+    package static func withSpanContext(_ spanContext: OTelSpanContext) -> Self {
         var context = ServiceContext.topLevel
         context.spanContext = spanContext
         return context

@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 @testable import Logging
-@_spi(Testing) import OTelCore
+import OTelCore
 import OTelTesting
 import ServiceLifecycle
 import XCTest

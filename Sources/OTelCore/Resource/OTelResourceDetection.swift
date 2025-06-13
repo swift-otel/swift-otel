@@ -15,17 +15,16 @@ import Logging
 import Tracing
 
 /// A type facilitating the resource detection process using a configurable set of resource detectors.
-public struct OTelResourceDetection<Clock: _Concurrency.Clock>: Sendable where Clock.Duration == Duration {
+package struct OTelResourceDetection<Clock: _Concurrency.Clock>: Sendable where Clock.Duration == Duration {
     /// The resource detectors to be run when calling ``resource(environment:logLevel:)``.
-    public var detectors: [any OTelResourceDetector]
+    package var detectors: [any OTelResourceDetector]
 
     /// A timeout after which resource detection will be cancelled. Defaults to `3` seconds.
-    public var timeout: Duration
+    package var timeout: Duration
 
     private let clock: Clock
 
-    @_spi(Testing)
-    public init(detectors: [any OTelResourceDetector], timeout: Duration, clock: Clock) {
+    package init(detectors: [any OTelResourceDetector], timeout: Duration, clock: Clock) {
         self.detectors = detectors
         self.timeout = timeout
         self.clock = clock
@@ -38,7 +37,7 @@ public struct OTelResourceDetection<Clock: _Concurrency.Clock>: Sendable where C
     ///   - logLevel: The minimum log level used during resource detection. Defaults to `.info`.
     ///
     /// - Returns: The combined resource from running all configured resource detectors.
-    public func resource(environment: OTelEnvironment, logLevel: Logger.Level = .info) async -> OTelResource {
+    package func resource(environment: OTelEnvironment, logLevel: Logger.Level = .info) async -> OTelResource {
         let sdkResource = OTelResource(attributes: [
             "telemetry.sdk.name": "opentelemetry",
             "telemetry.sdk.language": "swift",
@@ -138,7 +137,7 @@ extension OTelResourceDetection where Clock == ContinuousClock {
     ///   - detectors: A set of resource detectors to run.
     ///   Duplicate resource attributes will be resolved in the provided order, i.e. later resource detectors will override values from earlier ones.
     ///   - timeout: A timeout after which resource detection will be cancelled. Defaults to `3` seconds.
-    public init(detectors: [any OTelResourceDetector], timeout: Duration = .seconds(3)) {
+    package init(detectors: [any OTelResourceDetector], timeout: Duration = .seconds(3)) {
         self.init(detectors: detectors, timeout: timeout, clock: .continuous)
     }
 }

@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-@testable @_spi(Testing) import OTelCore
+@testable import OTelCore
 import OTelTesting
 import ServiceContextModule
 import ServiceLifecycle

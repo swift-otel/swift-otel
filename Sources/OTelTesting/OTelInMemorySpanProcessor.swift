@@ -16,33 +16,33 @@ import ServiceContextModule
 
 /// An in-memory span processor, collecting started spans into ``OTelInMemorySpanProcessor/startedSpans``
 /// and finished spans into ``OTelInMemorySpanProcessor/finishedSpans``.
-public final actor OTelInMemorySpanProcessor: OTelSpanProcessor {
-    public private(set) var startedSpans = [(span: OTelSpan, parentContext: ServiceContext)]()
-    public private(set) var finishedSpans = [OTelFinishedSpan]()
-    public private(set) var numberOfForceFlushes = 0
-    public private(set) var numberOfShutdowns = 0
+package final actor OTelInMemorySpanProcessor: OTelSpanProcessor {
+    package private(set) var startedSpans = [(span: OTelSpan, parentContext: ServiceContext)]()
+    package private(set) var finishedSpans = [OTelFinishedSpan]()
+    package private(set) var numberOfForceFlushes = 0
+    package private(set) var numberOfShutdowns = 0
 
     private let stream: AsyncStream<Void>
     private let continuation: AsyncStream<Void>.Continuation
 
-    public init() {
+    package init() {
         (stream, continuation) = AsyncStream.makeStream()
     }
 
-    public func run() async throws {
+    package func run() async throws {
         for await _ in stream.cancelOnGracefulShutdown() {}
         numberOfShutdowns += 1
     }
 
-    public func onStart(_ span: OTelSpan, parentContext: ServiceContext) async {
+    package func onStart(_ span: OTelSpan, parentContext: ServiceContext) async {
         startedSpans.append((span, parentContext))
     }
 
-    public func onEnd(_ span: OTelFinishedSpan) async {
+    package func onEnd(_ span: OTelFinishedSpan) async {
         finishedSpans.append(span)
     }
 
-    public func forceFlush() async throws {
+    package func forceFlush() async throws {
         numberOfForceFlushes += 1
     }
 }

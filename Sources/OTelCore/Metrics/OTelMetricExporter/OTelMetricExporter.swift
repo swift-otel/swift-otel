@@ -14,7 +14,7 @@
 /// Exports a batch of metrics.
 ///
 /// - Seealso: [OTel Specification for Metric Exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/metrics/sdk.md#metricexporter)
-public protocol OTelMetricExporter: Sendable {
+package protocol OTelMetricExporter: Sendable {
     /// Export the given batch of metrics.
     ///
     /// - Parameter batch: A batch of metrics to export.
@@ -32,6 +32,6 @@ public protocol OTelMetricExporter: Sendable {
 }
 
 /// An error indicating that an exporter has already been shut down but has been asked to export a batch of metrics.
-public struct OTelMetricExporterAlreadyShutDownError: Error {
+package struct OTelMetricExporterAlreadyShutDownError: Error {
     package init() {}
 }

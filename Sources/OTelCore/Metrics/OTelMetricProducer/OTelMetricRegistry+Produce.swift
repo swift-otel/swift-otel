@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 extension OTelMetricRegistry: OTelMetricProducer {
-    public func produce() -> [OTelMetricPoint] {
+    package func produce() -> [OTelMetricPoint] {
         let metrics = storage.withLockedValue { $0 }
         var buffer: [OTelMetricPoint] = []
         buffer.reserveCapacity(1024) // TODO: Make this configurable? Also, does this overlap with OTel "cardinality"?

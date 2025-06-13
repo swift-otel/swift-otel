@@ -13,10 +13,10 @@
 
 import Tracing
 
-public struct StubInstant: TracerInstant {
-    public var nanosecondsSinceEpoch: UInt64
+package struct StubInstant: TracerInstant {
+    package var nanosecondsSinceEpoch: UInt64
 
-    public static func < (lhs: StubInstant, rhs: StubInstant) -> Bool {
+    package static func < (lhs: StubInstant, rhs: StubInstant) -> Bool {
         lhs.nanosecondsSinceEpoch < rhs.nanosecondsSinceEpoch
     }
 }
@@ -26,7 +26,7 @@ extension TracerInstant where Self == StubInstant {
     ///
     /// - Parameter nanosecondsSinceEpoch: The fixed nanoseconds since epoch.
     /// - Returns: A tracer instant with the given nanoseconds since epoch.
-    public static func constant(_ nanosecondsSinceEpoch: UInt64) -> StubInstant {
+    package static func constant(_ nanosecondsSinceEpoch: UInt64) -> StubInstant {
         StubInstant(nanosecondsSinceEpoch: nanosecondsSinceEpoch)
     }
 }

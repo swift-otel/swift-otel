@@ -15,8 +15,7 @@ import ServiceContextModule
 import ServiceLifecycle
 
 /// A pseudo-``OTelLogRecordProcessor`` that may be used to process using multiple other ``OTelLogRecordProcessor``s.
-@_spi(Logging)
-public actor OTelMultiplexLogRecordProcessor: OTelLogRecordProcessor {
+package actor OTelMultiplexLogRecordProcessor: OTelLogRecordProcessor {
     private let processors: [any OTelLogRecordProcessor]
     private let shutdownStream: AsyncStream<Void>
     private let shutdownContinuation: AsyncStream<Void>.Continuation
@@ -25,12 +24,12 @@ public actor OTelMultiplexLogRecordProcessor: OTelLogRecordProcessor {
     ///
     /// - Parameter processors: An array of ``OTelLogRecordProcessor``s, each of which will be invoked on log events
     /// Processors are called sequentially and the order of this array defines the order in which they're being called.
-    public init(processors: [any OTelLogRecordProcessor]) {
+    package init(processors: [any OTelLogRecordProcessor]) {
         self.processors = processors
         (shutdownStream, shutdownContinuation) = AsyncStream.makeStream()
     }
 
-    public func run() async throws {
+    package func run() async throws {
         await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask {
                 var shutdowns = self.shutdownStream.makeAsyncIterator()
@@ -51,13 +50,13 @@ public actor OTelMultiplexLogRecordProcessor: OTelLogRecordProcessor {
         }
     }
 
-    public nonisolated func onEmit(_ record: inout OTelLogRecord) {
+    package nonisolated func onEmit(_ record: inout OTelLogRecord) {
         for processor in processors {
             processor.onEmit(&record)
         }
     }
 
-    public func forceFlush() async throws {
+    package func forceFlush() async throws {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for processor in processors {
                 group.addTask { try await processor.forceFlush() }

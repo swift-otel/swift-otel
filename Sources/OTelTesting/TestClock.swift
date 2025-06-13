@@ -13,49 +13,49 @@
 
 import NIOConcurrencyHelpers
 
-public final class TestClock: Clock, @unchecked Sendable {
-    public struct Instant: InstantProtocol {
-        public var offset: Duration
+package final class TestClock: Clock, @unchecked Sendable {
+    package struct Instant: InstantProtocol {
+        package var offset: Duration
 
-        public init(offset: Duration = .zero) {
+        package init(offset: Duration = .zero) {
             self.offset = offset
         }
 
-        public func advanced(by duration: Duration) -> Self {
+        package func advanced(by duration: Duration) -> Self {
             .init(offset: offset + duration)
         }
 
-        public func duration(to other: Self) -> Duration {
+        package func duration(to other: Self) -> Duration {
             other.offset - offset
         }
 
-        public static func < (lhs: Self, rhs: Self) -> Bool {
+        package static func < (lhs: Self, rhs: Self) -> Bool {
             lhs.offset < rhs.offset
         }
 
-        public static func minutes(_ minutes: some BinaryInteger) -> Self {
+        package static func minutes(_ minutes: some BinaryInteger) -> Self {
             .init(offset: .seconds(minutes * 60))
         }
 
-        public static func seconds(_ seconds: some BinaryInteger) -> Self {
+        package static func seconds(_ seconds: some BinaryInteger) -> Self {
             .init(offset: .seconds(seconds))
         }
 
-        public static func milliseconds(_ milliseconds: some BinaryInteger) -> Self {
+        package static func milliseconds(_ milliseconds: some BinaryInteger) -> Self {
             .init(offset: .milliseconds(milliseconds))
         }
 
-        public static func microseconds(_ microseconds: some BinaryInteger) -> Self {
+        package static func microseconds(_ microseconds: some BinaryInteger) -> Self {
             .init(offset: .microseconds(microseconds))
         }
 
-        public static func nanoseconds(_ nanoseconds: some BinaryInteger) -> Self {
+        package static func nanoseconds(_ nanoseconds: some BinaryInteger) -> Self {
             .init(offset: .nanoseconds(nanoseconds))
         }
     }
 
-    public var minimumResolution: Duration = .zero
-    public var now: Instant {
+    package var minimumResolution: Duration = .zero
+    package var now: Instant {
         state.withLockedValue { $0.now }
     }
 
@@ -65,19 +65,19 @@ public final class TestClock: Clock, @unchecked Sendable {
         var now: Instant
     }
 
-    public let sleepCalls: AsyncStream<Void>
+    package let sleepCalls: AsyncStream<Void>
     private let sleepCallsContinuation: AsyncStream<Void>.Continuation
 
     private let state = NIOLockedValueBox(State(continuations: [], now: .init()))
 
-    public init(now: Instant = .init()) {
+    package init(now: Instant = .init()) {
         state.withLockedValue { $0.now = now }
         let (stream, continunation) = AsyncStream<Void>.makeStream()
         sleepCalls = stream
         sleepCallsContinuation = continunation
     }
 
-    public func sleep(until deadline: Instant, tolerance: Duration? = nil) async throws {
+    package func sleep(until deadline: Instant, tolerance: Duration? = nil) async throws {
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 enum Action {
@@ -116,7 +116,7 @@ public final class TestClock: Clock, @unchecked Sendable {
         }
     }
 
-    public func advance(by duration: Duration = .zero) {
+    package func advance(by duration: Duration = .zero) {
         let continuationsToResume = state.withLockedValue { state in
             let deadline = state.now.advanced(by: duration)
             precondition(state.now < deadline)
@@ -131,7 +131,7 @@ public final class TestClock: Clock, @unchecked Sendable {
         }
     }
 
-    public func advance(to deadline: Instant) {
+    package func advance(to deadline: Instant) {
         let continuationsToResume = state.withLockedValue { state in
             precondition(state.now < deadline)
             state.now = deadline

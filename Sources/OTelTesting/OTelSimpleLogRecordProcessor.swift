@@ -11,20 +11,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_spi(Logging) import OTelCore
+import OTelCore
 
-@_spi(Logging)
-public struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTelLogRecordProcessor {
+package struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTelLogRecordProcessor {
     private let exporter: Exporter
     private let stream: AsyncStream<OTelLogRecord>
     private let continuation: AsyncStream<OTelLogRecord>.Continuation
 
-    public init(exporter: Exporter) {
+    package init(exporter: Exporter) {
         self.exporter = exporter
         (stream, continuation) = AsyncStream.makeStream()
     }
 
-    public func run() async throws {
+    package func run() async throws {
         for try await record in stream.cancelOnGracefulShutdown() {
             do {
                 try await exporter.export([record])
@@ -34,15 +33,15 @@ public struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTe
         }
     }
 
-    public func onEmit(_ record: inout OTelLogRecord) {
+    package func onEmit(_ record: inout OTelLogRecord) {
         continuation.yield(record)
     }
 
-    public func forceFlush() async throws {
+    package func forceFlush() async throws {
         try await exporter.forceFlush()
     }
 
-    public func shutdown() async throws {
+    package func shutdown() async throws {
         await exporter.shutdown()
     }
 }

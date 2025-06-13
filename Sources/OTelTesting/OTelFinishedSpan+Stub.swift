@@ -36,7 +36,7 @@ extension OTelFinishedSpan {
     ///   - links: Defaults to no links.
     ///
     /// - Returns: A finished span stub.
-    public static func stub(
+    package static func stub(
         traceID: TraceID = .allZeroes,
         spanID: SpanID = .allZeroes,
         parentSpanID: SpanID? = nil,

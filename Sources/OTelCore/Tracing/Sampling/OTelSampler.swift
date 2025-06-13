@@ -15,7 +15,7 @@ import Tracing
 import W3CTraceContext
 
 /// Decides whether a given span should be sampled.
-public protocol OTelSampler: Sendable {
+package protocol OTelSampler: Sendable {
     /// Request a sampling result for the given span values.
     ///
     /// - Note: The received values are all captured at the time of span creation.

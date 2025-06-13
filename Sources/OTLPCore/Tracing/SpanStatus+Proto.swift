@@ -17,7 +17,7 @@ extension Opentelemetry_Proto_Trace_V1_Status {
     /// Create a status by casting a `SpanStatus`.
     ///
     /// - Parameter status: The `SpanStatus` to cast.
-    public init(_ status: SpanStatus) {
+    package init(_ status: SpanStatus) {
         self = .with {
             switch status.code {
             case .ok:

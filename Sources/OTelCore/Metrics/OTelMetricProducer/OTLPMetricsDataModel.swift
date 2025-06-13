@@ -33,28 +33,28 @@
 ///
 /// The types in this file represent the subset of the OTLP datamodel that we use, which map over the protobuf types.
 
-public struct OTelResourceMetrics: Equatable, Sendable {
-    public var resource: OTelResource?
-    public var scopeMetrics: [OTelScopeMetrics]
+package struct OTelResourceMetrics: Equatable, Sendable {
+    package var resource: OTelResource?
+    package var scopeMetrics: [OTelScopeMetrics]
 }
 
-public struct OTelScopeMetrics: Equatable, Sendable {
-    public var scope: OTelInstrumentationScope?
-    public var metrics: [OTelMetricPoint]
+package struct OTelScopeMetrics: Equatable, Sendable {
+    package var scope: OTelInstrumentationScope?
+    package var metrics: [OTelMetricPoint]
 }
 
-public struct OTelInstrumentationScope: Equatable, Sendable {
-    public var name: String?
-    public var version: String?
-    public var attributes: [OTelAttribute]
-    public var droppedAttributeCount: Int32
+package struct OTelInstrumentationScope: Equatable, Sendable {
+    package var name: String?
+    package var version: String?
+    package var attributes: [OTelAttribute]
+    package var droppedAttributeCount: Int32
 }
 
-public struct OTelMetricPoint: Equatable, Sendable {
-    public var name: String
-    public var description: String
-    public var unit: String
-    public struct OTelMetricData: Equatable, Sendable {
+package struct OTelMetricPoint: Equatable, Sendable {
+    package var name: String
+    package var description: String
+    package var unit: String
+    package struct OTelMetricData: Equatable, Sendable {
         package enum Data: Equatable, Sendable {
             case gauge(OTelGauge)
             case sum(OTelSum)
@@ -63,35 +63,35 @@ public struct OTelMetricPoint: Equatable, Sendable {
 
         package var data: Data
 
-        public static func gauge(_ data: OTelGauge) -> Self { self.init(data: .gauge(data)) }
-        public static func sum(_ data: OTelSum) -> Self { self.init(data: .sum(data)) }
-        public static func histogram(_ data: OTelHistogram) -> Self { self.init(data: .histogram(data)) }
+        package static func gauge(_ data: OTelGauge) -> Self { self.init(data: .gauge(data)) }
+        package static func sum(_ data: OTelSum) -> Self { self.init(data: .sum(data)) }
+        package static func histogram(_ data: OTelHistogram) -> Self { self.init(data: .histogram(data)) }
     }
 
-    public var data: OTelMetricData
+    package var data: OTelMetricData
 }
 
-public struct OTelSum: Equatable, Sendable {
-    public var points: [OTelNumberDataPoint]
-    public var aggregationTemporality: OTelAggregationTemporality
-    public var monotonic: Bool
+package struct OTelSum: Equatable, Sendable {
+    package var points: [OTelNumberDataPoint]
+    package var aggregationTemporality: OTelAggregationTemporality
+    package var monotonic: Bool
 }
 
-public struct OTelGauge: Equatable, Sendable {
-    public var points: [OTelNumberDataPoint]
+package struct OTelGauge: Equatable, Sendable {
+    package var points: [OTelNumberDataPoint]
 }
 
-public struct OTelHistogram: Equatable, Sendable {
-    public var aggregationTemporality: OTelAggregationTemporality
-    public var points: [OTelHistogramDataPoint]
+package struct OTelHistogram: Equatable, Sendable {
+    package var aggregationTemporality: OTelAggregationTemporality
+    package var points: [OTelHistogramDataPoint]
 }
 
-public struct OTelAttribute: Hashable, Equatable, Sendable {
-    public var key: String
-    public var value: String
+package struct OTelAttribute: Hashable, Equatable, Sendable {
+    package var key: String
+    package var value: String
 }
 
-public struct OTelAggregationTemporality: Equatable, Sendable {
+package struct OTelAggregationTemporality: Equatable, Sendable {
     package enum Temporality: Equatable, Sendable {
         case delta
         case cumulative
@@ -99,15 +99,15 @@ public struct OTelAggregationTemporality: Equatable, Sendable {
 
     package var temporality: Temporality
 
-    public static let delta: Self = .init(temporality: .delta)
-    public static let cumulative: Self = .init(temporality: .cumulative)
+    package static let delta: Self = .init(temporality: .delta)
+    package static let cumulative: Self = .init(temporality: .cumulative)
 }
 
-public struct OTelNumberDataPoint: Equatable, Sendable {
-    public var attributes: [OTelAttribute]
-    public var startTimeNanosecondsSinceEpoch: UInt64?
-    public var timeNanosecondsSinceEpoch: UInt64
-    public struct Value: Equatable, Sendable {
+package struct OTelNumberDataPoint: Equatable, Sendable {
+    package var attributes: [OTelAttribute]
+    package var startTimeNanosecondsSinceEpoch: UInt64?
+    package var timeNanosecondsSinceEpoch: UInt64
+    package struct Value: Equatable, Sendable {
         package enum Value: Equatable, Sendable {
             case int64(Int64)
             case double(Double)
@@ -115,25 +115,25 @@ public struct OTelNumberDataPoint: Equatable, Sendable {
 
         package var value: Value
 
-        public static func int64(_ value: Int64) -> Self { self.init(value: .int64(value)) }
-        public static func double(_ value: Double) -> Self { self.init(value: .double(value)) }
+        package static func int64(_ value: Int64) -> Self { self.init(value: .int64(value)) }
+        package static func double(_ value: Double) -> Self { self.init(value: .double(value)) }
     }
 
-    public var value: Value
+    package var value: Value
 }
 
-public struct OTelHistogramDataPoint: Equatable, Sendable {
-    public struct Bucket: Equatable, Sendable {
-        public var upperBound: Double
-        public var count: UInt64
+package struct OTelHistogramDataPoint: Equatable, Sendable {
+    package struct Bucket: Equatable, Sendable {
+        package var upperBound: Double
+        package var count: UInt64
     }
 
-    public var attributes: [OTelAttribute]
-    public var startTimeNanosecondsSinceEpoch: UInt64?
-    public var timeNanosecondsSinceEpoch: UInt64
-    public var count: UInt64
-    public var sum: Double?
-    public var min: Double?
-    public var max: Double?
-    public var buckets: [Bucket]
+    package var attributes: [OTelAttribute]
+    package var startTimeNanosecondsSinceEpoch: UInt64?
+    package var timeNanosecondsSinceEpoch: UInt64
+    package var count: UInt64
+    package var sum: Double?
+    package var min: Double?
+    package var max: Double?
+    package var buckets: [Bucket]
 }

@@ -16,28 +16,28 @@ import W3CTraceContext
 
 /// The default ID generator,
 /// based on a [`RandomNumberGenerator`](https://developer.apple.com/documentation/swift/randomnumbergenerator).
-public struct OTelRandomIDGenerator<NumberGenerator: RandomNumberGenerator & Sendable>: OTelIDGenerator {
+package struct OTelRandomIDGenerator<NumberGenerator: RandomNumberGenerator & Sendable>: OTelIDGenerator {
     private let randomNumberGenerator: NIOLockedValueBox<NumberGenerator>
 
     /// Create a random ID generator with a given random number generator.
     ///
     /// - Parameter randomNumberGenerator: The random number generator, defaults to
     /// [`SystemRandomNumberGenerator`](https://developer.apple.com/documentation/swift/systemrandomnumbergenerator)
-    public init(randomNumberGenerator: NumberGenerator) {
+    package init(randomNumberGenerator: NumberGenerator) {
         self.randomNumberGenerator = NIOLockedValueBox(randomNumberGenerator)
     }
 
-    public func nextTraceID() -> TraceID {
+    package func nextTraceID() -> TraceID {
         randomNumberGenerator.withLockedValue { .random(using: &$0) }
     }
 
-    public func nextSpanID() -> SpanID {
+    package func nextSpanID() -> SpanID {
         randomNumberGenerator.withLockedValue { .random(using: &$0) }
     }
 }
 
 extension OTelRandomIDGenerator where NumberGenerator == SystemRandomNumberGenerator {
-    public init() {
+    package init() {
         randomNumberGenerator = NIOLockedValueBox(SystemRandomNumberGenerator())
     }
 }

@@ -14,38 +14,38 @@
 import Tracing
 
 /// A read-only representation of an ended ``OTelSpan``.
-public struct OTelFinishedSpan: Sendable {
+package struct OTelFinishedSpan: Sendable {
     /// The context of this span.
-    public let spanContext: OTelSpanContext
+    package let spanContext: OTelSpanContext
 
     /// The spans operation name.
-    public let operationName: String
+    package let operationName: String
 
     /// The spans kind.
-    public let kind: SpanKind
+    package let kind: SpanKind
 
     /// The spans status.
-    public let status: SpanStatus?
+    package let status: SpanStatus?
 
     /// The time when the span started in nanoseconds since epoch.
-    public let startTimeNanosecondsSinceEpoch: UInt64
+    package let startTimeNanosecondsSinceEpoch: UInt64
 
     /// The time when the span ended in nanoseconds since epoch.
-    public let endTimeNanosecondsSinceEpoch: UInt64
+    package let endTimeNanosecondsSinceEpoch: UInt64
 
     /// The attributes added to the span.
-    public let attributes: SpanAttributes
+    package let attributes: SpanAttributes
 
     /// The resource this span instrumented.
-    public let resource: OTelResource
+    package let resource: OTelResource
 
     /// The events added to the span.
-    public let events: [SpanEvent]
+    package let events: [SpanEvent]
 
     /// The links from this span to other spans.
-    public let links: [SpanLink]
+    package let links: [SpanLink]
 
-    public init(
+    package init(
         spanContext: OTelSpanContext,
         operationName: String,
         kind: SpanKind,

@@ -17,15 +17,14 @@ import NIOConcurrencyHelpers
 import ServiceLifecycle
 import Tracing
 
-@_spi(Logging)
-public struct OTelLogHandler: Sendable, LogHandler {
-    public var metadata: Logger.Metadata
-    public var logLevel: Logger.Level
+package struct OTelLogHandler: Sendable, LogHandler {
+    package var metadata: Logger.Metadata
+    package var logLevel: Logger.Level
     private let processor: any OTelLogRecordProcessor
     private let resource: OTelResource
     private let nanosecondsSinceEpoch: @Sendable () -> UInt64
 
-    public init(
+    package init(
         processor: any OTelLogRecordProcessor,
         logLevel: Logger.Level,
         resource: OTelResource,
@@ -54,12 +53,12 @@ public struct OTelLogHandler: Sendable, LogHandler {
         self.nanosecondsSinceEpoch = nanosecondsSinceEpoch
     }
 
-    public subscript(metadataKey key: String) -> Logger.Metadata.Value? {
+    package subscript(metadataKey key: String) -> Logger.Metadata.Value? {
         get { metadata[key] }
         set { metadata[key] = newValue }
     }
 
-    public func log(
+    package func log(
         level: Logger.Level,
         message: Logger.Message,
         metadata: Logger.Metadata?,

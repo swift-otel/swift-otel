@@ -20,7 +20,7 @@ import ServiceContextModule
 /// since it will lead to an unnecessary amount of network calls within the exporter. Instead it is recommended
 /// to use a batching span processor such as ``OTelBatchSpanProcessor`` that will forward multiple spans
 /// to the exporter at once.
-public struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProcessor {
+package struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProcessor {
     private let exporter: Exporter
     private let stream: AsyncStream<OTelFinishedSpan>
     private let continuation: AsyncStream<OTelFinishedSpan>.Continuation
@@ -30,12 +30,12 @@ public struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProce
     ///
     /// - Parameter exporter: The exporter to receive finished spans.
     /// On processor shutdown this exporter will also automatically be shut down.
-    public init(exporter: Exporter) {
+    package init(exporter: Exporter) {
         self.exporter = exporter
         (stream, continuation) = AsyncStream.makeStream()
     }
 
-    public func run() async throws {
+    package func run() async throws {
         for try await span in stream.cancelOnGracefulShutdown() {
             do {
                 logger.trace("Received ended span.", metadata: ["span_id": "\(span.spanContext.spanID)"])
@@ -46,20 +46,20 @@ public struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProce
         }
     }
 
-    public func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
+    package func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
         // no-op
     }
 
-    public func onEnd(_ span: OTelFinishedSpan) {
+    package func onEnd(_ span: OTelFinishedSpan) {
         guard span.spanContext.traceFlags.contains(.sampled) else { return }
         continuation.yield(span)
     }
 
-    public func forceFlush() async throws {
+    package func forceFlush() async throws {
         try await exporter.forceFlush()
     }
 
-    public func shutdown() async throws {
+    package func shutdown() async throws {
         await exporter.shutdown()
     }
 }

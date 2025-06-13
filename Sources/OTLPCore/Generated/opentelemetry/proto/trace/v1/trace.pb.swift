@@ -44,7 +44,7 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
 ///
 /// When new fields are added into this message, the OTLP request MUST be updated
 /// as well.
-public struct Opentelemetry_Proto_Trace_V1_TracesData {
+package struct Opentelemetry_Proto_Trace_V1_TracesData {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -54,46 +54,46 @@ public struct Opentelemetry_Proto_Trace_V1_TracesData {
   /// one element. Intermediary nodes that receive data from multiple origins
   /// typically batch the data before forwarding further and in that case this
   /// array will contain multiple elements.
-  public var resourceSpans: [Opentelemetry_Proto_Trace_V1_ResourceSpans] = []
+  package var resourceSpans: [Opentelemetry_Proto_Trace_V1_ResourceSpans] = []
 
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
+  package var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public init() {}
+  package init() {}
 }
 
 /// A collection of ScopeSpans from a Resource.
-public struct Opentelemetry_Proto_Trace_V1_ResourceSpans {
+package struct Opentelemetry_Proto_Trace_V1_ResourceSpans {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   /// The resource for the spans in this message.
   /// If this field is not set then no resource info is known.
-  public var resource: Opentelemetry_Proto_Resource_V1_Resource {
+  package var resource: Opentelemetry_Proto_Resource_V1_Resource {
     get {return _resource ?? Opentelemetry_Proto_Resource_V1_Resource()}
     set {_resource = newValue}
   }
   /// Returns true if `resource` has been explicitly set.
-  public var hasResource: Bool {return self._resource != nil}
+  package var hasResource: Bool {return self._resource != nil}
   /// Clears the value of `resource`. Subsequent reads from it will return its default value.
-  public mutating func clearResource() {self._resource = nil}
+  package mutating func clearResource() {self._resource = nil}
 
   /// A list of ScopeSpans that originate from a resource.
-  public var scopeSpans: [Opentelemetry_Proto_Trace_V1_ScopeSpans] = []
+  package var scopeSpans: [Opentelemetry_Proto_Trace_V1_ScopeSpans] = []
 
   /// This schema_url applies to the data in the "resource" field. It does not apply
   /// to the data in the "scope_spans" field which have their own schema_url field.
-  public var schemaURL: String = String()
+  package var schemaURL: String = String()
 
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
+  package var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public init() {}
+  package init() {}
 
   fileprivate var _resource: Opentelemetry_Proto_Resource_V1_Resource? = nil
 }
 
 /// A collection of Spans produced by an InstrumentationScope.
-public struct Opentelemetry_Proto_Trace_V1_ScopeSpans {
+package struct Opentelemetry_Proto_Trace_V1_ScopeSpans {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -101,24 +101,24 @@ public struct Opentelemetry_Proto_Trace_V1_ScopeSpans {
   /// The instrumentation scope information for the spans in this message.
   /// Semantically when InstrumentationScope isn't set, it is equivalent with
   /// an empty instrumentation scope name (unknown).
-  public var scope: Opentelemetry_Proto_Common_V1_InstrumentationScope {
+  package var scope: Opentelemetry_Proto_Common_V1_InstrumentationScope {
     get {return _scope ?? Opentelemetry_Proto_Common_V1_InstrumentationScope()}
     set {_scope = newValue}
   }
   /// Returns true if `scope` has been explicitly set.
-  public var hasScope: Bool {return self._scope != nil}
+  package var hasScope: Bool {return self._scope != nil}
   /// Clears the value of `scope`. Subsequent reads from it will return its default value.
-  public mutating func clearScope() {self._scope = nil}
+  package mutating func clearScope() {self._scope = nil}
 
   /// A list of Spans that originate from an instrumentation scope.
-  public var spans: [Opentelemetry_Proto_Trace_V1_Span] = []
+  package var spans: [Opentelemetry_Proto_Trace_V1_Span] = []
 
   /// This schema_url applies to all spans and span events in the "spans" field.
-  public var schemaURL: String = String()
+  package var schemaURL: String = String()
 
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
+  package var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public init() {}
+  package init() {}
 
   fileprivate var _scope: Opentelemetry_Proto_Common_V1_InstrumentationScope? = nil
 }
@@ -126,7 +126,7 @@ public struct Opentelemetry_Proto_Trace_V1_ScopeSpans {
 /// A Span represents a single operation performed by a single component of the system.
 ///
 /// The next available field id is 17.
-public struct Opentelemetry_Proto_Trace_V1_Span {
+package struct Opentelemetry_Proto_Trace_V1_Span {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -137,7 +137,7 @@ public struct Opentelemetry_Proto_Trace_V1_Span {
   /// is zero-length and thus is also invalid).
   ///
   /// This field is required.
-  public var traceID: Data = Data()
+  package var traceID: Data = Data()
 
   /// A unique identifier for a span within a trace, assigned when the span
   /// is created. The ID is an 8-byte array. An ID with all zeroes OR of length
@@ -145,16 +145,16 @@ public struct Opentelemetry_Proto_Trace_V1_Span {
   /// is zero-length and thus is also invalid).
   ///
   /// This field is required.
-  public var spanID: Data = Data()
+  package var spanID: Data = Data()
 
   /// trace_state conveys information about request position in multiple distributed tracing graphs.
   /// It is a trace_state in w3c-trace-context format: https://www.w3.org/TR/trace-context/#tracestate-header
   /// See also https://github.com/w3c/distributed-tracing for more details about this field.
-  public var traceState: String = String()
+  package var traceState: String = String()
 
   /// The `span_id` of this span's parent span. If this is a root span, then this
   /// field must be empty. The ID is an 8-byte array.
-  public var parentSpanID: Data = Data()
+  package var parentSpanID: Data = Data()
 
   /// A description of the span's operation.
   ///
@@ -167,12 +167,12 @@ public struct Opentelemetry_Proto_Trace_V1_Span {
   /// Empty value is equivalent to an unknown span name.
   ///
   /// This field is required.
-  public var name: String = String()
+  package var name: String = String()
 
   /// Distinguishes between spans generated in a particular context. For example,
   /// two spans with the same name may be distinguished using `CLIENT` (caller)
   /// and `SERVER` (callee) to identify queueing latency associated with the span.
-  public var kind: Opentelemetry_Proto_Trace_V1_Span.SpanKind = .unspecified
+  package var kind: Opentelemetry_Proto_Trace_V1_Span.SpanKind = .unspecified
 
   /// start_time_unix_nano is the start time of the span. On the client side, this is the time
   /// kept by the local machine where the span execution starts. On the server side, this
@@ -180,7 +180,7 @@ public struct Opentelemetry_Proto_Trace_V1_Span {
   /// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
   ///
   /// This field is semantically required and it is expected that end_time >= start_time.
-  public var startTimeUnixNano: UInt64 = 0
+  package var startTimeUnixNano: UInt64 = 0
 
   /// end_time_unix_nano is the end time of the span. On the client side, this is the time
   /// kept by the local machine where the span execution ends. On the server side, this
@@ -188,7 +188,7 @@ public struct Opentelemetry_Proto_Trace_V1_Span {
   /// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
   ///
   /// This field is semantically required and it is expected that end_time >= start_time.
-  public var endTimeUnixNano: UInt64 = 0
+  package var endTimeUnixNano: UInt64 = 0
 
   /// attributes is a collection of key/value pairs. Note, global attributes
   /// like server name can be set using the resource API. Examples of attributes:
@@ -202,45 +202,45 @@ public struct Opentelemetry_Proto_Trace_V1_Span {
   /// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/README.md#attribute
   /// Attribute keys MUST be unique (it is not allowed to have more than one
   /// attribute with the same key).
-  public var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
+  package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
 
   /// dropped_attributes_count is the number of attributes that were discarded. Attributes
   /// can be discarded because their keys are too long or because there are too many
   /// attributes. If this value is 0, then no attributes were dropped.
-  public var droppedAttributesCount: UInt32 = 0
+  package var droppedAttributesCount: UInt32 = 0
 
   /// events is a collection of Event items.
-  public var events: [Opentelemetry_Proto_Trace_V1_Span.Event] = []
+  package var events: [Opentelemetry_Proto_Trace_V1_Span.Event] = []
 
   /// dropped_events_count is the number of dropped events. If the value is 0, then no
   /// events were dropped.
-  public var droppedEventsCount: UInt32 = 0
+  package var droppedEventsCount: UInt32 = 0
 
   /// links is a collection of Links, which are references from this span to a span
   /// in the same or different trace.
-  public var links: [Opentelemetry_Proto_Trace_V1_Span.Link] = []
+  package var links: [Opentelemetry_Proto_Trace_V1_Span.Link] = []
 
   /// dropped_links_count is the number of dropped links after the maximum size was
   /// enforced. If this value is 0, then no links were dropped.
-  public var droppedLinksCount: UInt32 = 0
+  package var droppedLinksCount: UInt32 = 0
 
   /// An optional final status for this span. Semantically when Status isn't set, it means
   /// span's status code is unset, i.e. assume STATUS_CODE_UNSET (code = 0).
-  public var status: Opentelemetry_Proto_Trace_V1_Status {
+  package var status: Opentelemetry_Proto_Trace_V1_Status {
     get {return _status ?? Opentelemetry_Proto_Trace_V1_Status()}
     set {_status = newValue}
   }
   /// Returns true if `status` has been explicitly set.
-  public var hasStatus: Bool {return self._status != nil}
+  package var hasStatus: Bool {return self._status != nil}
   /// Clears the value of `status`. Subsequent reads from it will return its default value.
-  public mutating func clearStatus() {self._status = nil}
+  package mutating func clearStatus() {self._status = nil}
 
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
+  package var unknownFields = SwiftProtobuf.UnknownStorage()
 
   /// SpanKind is the type of span. Can be used to specify additional relationships between spans
   /// in addition to a parent/child relationship.
-  public enum SpanKind: SwiftProtobuf.Enum {
-    public typealias RawValue = Int
+  package enum SpanKind: SwiftProtobuf.Enum {
+    package typealias RawValue = Int
 
     /// Unspecified. Do NOT use as default.
     /// Implementations MAY assume SpanKind to be INTERNAL when receiving UNSPECIFIED.
@@ -269,11 +269,11 @@ public struct Opentelemetry_Proto_Trace_V1_Span {
     case consumer // = 5
     case UNRECOGNIZED(Int)
 
-    public init() {
+    package init() {
       self = .unspecified
     }
 
-    public init?(rawValue: Int) {
+    package init?(rawValue: Int) {
       switch rawValue {
       case 0: self = .unspecified
       case 1: self = .internal
@@ -285,7 +285,7 @@ public struct Opentelemetry_Proto_Trace_V1_Span {
       }
     }
 
-    public var rawValue: Int {
+    package var rawValue: Int {
       switch self {
       case .unspecified: return 0
       case .internal: return 1
@@ -301,66 +301,66 @@ public struct Opentelemetry_Proto_Trace_V1_Span {
 
   /// Event is a time-stamped annotation of the span, consisting of user-supplied
   /// text description and key-value pairs.
-  public struct Event {
+  package struct Event {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
 
     /// time_unix_nano is the time the event occurred.
-    public var timeUnixNano: UInt64 = 0
+    package var timeUnixNano: UInt64 = 0
 
     /// name of the event.
     /// This field is semantically required to be set to non-empty string.
-    public var name: String = String()
+    package var name: String = String()
 
     /// attributes is a collection of attribute key/value pairs on the event.
     /// Attribute keys MUST be unique (it is not allowed to have more than one
     /// attribute with the same key).
-    public var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
+    package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
 
     /// dropped_attributes_count is the number of dropped attributes. If the value is 0,
     /// then no attributes were dropped.
-    public var droppedAttributesCount: UInt32 = 0
+    package var droppedAttributesCount: UInt32 = 0
 
-    public var unknownFields = SwiftProtobuf.UnknownStorage()
+    package var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    public init() {}
+    package init() {}
   }
 
   /// A pointer from the current span to another span in the same trace or in a
   /// different trace. For example, this can be used in batching operations,
   /// where a single batch handler processes multiple requests from different
   /// traces or when the handler receives a request from a different project.
-  public struct Link {
+  package struct Link {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
 
     /// A unique identifier of a trace that this linked span is part of. The ID is a
     /// 16-byte array.
-    public var traceID: Data = Data()
+    package var traceID: Data = Data()
 
     /// A unique identifier for the linked span. The ID is an 8-byte array.
-    public var spanID: Data = Data()
+    package var spanID: Data = Data()
 
     /// The trace_state associated with the link.
-    public var traceState: String = String()
+    package var traceState: String = String()
 
     /// attributes is a collection of attribute key/value pairs on the link.
     /// Attribute keys MUST be unique (it is not allowed to have more than one
     /// attribute with the same key).
-    public var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
+    package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
 
     /// dropped_attributes_count is the number of dropped attributes. If the value is 0,
     /// then no attributes were dropped.
-    public var droppedAttributesCount: UInt32 = 0
+    package var droppedAttributesCount: UInt32 = 0
 
-    public var unknownFields = SwiftProtobuf.UnknownStorage()
+    package var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    public init() {}
+    package init() {}
   }
 
-  public init() {}
+  package init() {}
 
   fileprivate var _status: Opentelemetry_Proto_Trace_V1_Status? = nil
 }
@@ -369,7 +369,7 @@ public struct Opentelemetry_Proto_Trace_V1_Span {
 
 extension Opentelemetry_Proto_Trace_V1_Span.SpanKind: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static let allCases: [Opentelemetry_Proto_Trace_V1_Span.SpanKind] = [
+  package static let allCases: [Opentelemetry_Proto_Trace_V1_Span.SpanKind] = [
     .unspecified,
     .internal,
     .server,
@@ -383,23 +383,23 @@ extension Opentelemetry_Proto_Trace_V1_Span.SpanKind: CaseIterable {
 
 /// The Status type defines a logical error model that is suitable for different
 /// programming environments, including REST APIs and RPC APIs.
-public struct Opentelemetry_Proto_Trace_V1_Status {
+package struct Opentelemetry_Proto_Trace_V1_Status {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   /// A developer-facing human readable error message.
-  public var message: String = String()
+  package var message: String = String()
 
   /// The status code.
-  public var code: Opentelemetry_Proto_Trace_V1_Status.StatusCode = .unset
+  package var code: Opentelemetry_Proto_Trace_V1_Status.StatusCode = .unset
 
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
+  package var unknownFields = SwiftProtobuf.UnknownStorage()
 
   /// For the semantics of status codes see
   /// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#set-status
-  public enum StatusCode: SwiftProtobuf.Enum {
-    public typealias RawValue = Int
+  package enum StatusCode: SwiftProtobuf.Enum {
+    package typealias RawValue = Int
 
     /// The default status.
     case unset // = 0
@@ -412,11 +412,11 @@ public struct Opentelemetry_Proto_Trace_V1_Status {
     case error // = 2
     case UNRECOGNIZED(Int)
 
-    public init() {
+    package init() {
       self = .unset
     }
 
-    public init?(rawValue: Int) {
+    package init?(rawValue: Int) {
       switch rawValue {
       case 0: self = .unset
       case 1: self = .ok
@@ -425,7 +425,7 @@ public struct Opentelemetry_Proto_Trace_V1_Status {
       }
     }
 
-    public var rawValue: Int {
+    package var rawValue: Int {
       switch self {
       case .unset: return 0
       case .ok: return 1
@@ -436,14 +436,14 @@ public struct Opentelemetry_Proto_Trace_V1_Status {
 
   }
 
-  public init() {}
+  package init() {}
 }
 
 #if swift(>=4.2)
 
 extension Opentelemetry_Proto_Trace_V1_Status.StatusCode: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static let allCases: [Opentelemetry_Proto_Trace_V1_Status.StatusCode] = [
+  package static let allCases: [Opentelemetry_Proto_Trace_V1_Status.StatusCode] = [
     .unset,
     .ok,
     .error,
@@ -469,12 +469,12 @@ extension Opentelemetry_Proto_Trace_V1_Status.StatusCode: @unchecked Sendable {}
 fileprivate let _protobuf_package = "opentelemetry.proto.trace.v1"
 
 extension Opentelemetry_Proto_Trace_V1_TracesData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".TracesData"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  package static let protoMessageName: String = _protobuf_package + ".TracesData"
+  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "resource_spans"),
   ]
 
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       // The use of inline closures is to circumvent an issue where the compiler
       // allocates stack space for every case branch when no optimizations are
@@ -486,14 +486,14 @@ extension Opentelemetry_Proto_Trace_V1_TracesData: SwiftProtobuf.Message, SwiftP
     }
   }
 
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  package func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if !self.resourceSpans.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.resourceSpans, fieldNumber: 1)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Opentelemetry_Proto_Trace_V1_TracesData, rhs: Opentelemetry_Proto_Trace_V1_TracesData) -> Bool {
+  package static func ==(lhs: Opentelemetry_Proto_Trace_V1_TracesData, rhs: Opentelemetry_Proto_Trace_V1_TracesData) -> Bool {
     if lhs.resourceSpans != rhs.resourceSpans {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -501,14 +501,14 @@ extension Opentelemetry_Proto_Trace_V1_TracesData: SwiftProtobuf.Message, SwiftP
 }
 
 extension Opentelemetry_Proto_Trace_V1_ResourceSpans: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".ResourceSpans"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  package static let protoMessageName: String = _protobuf_package + ".ResourceSpans"
+  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "resource"),
     2: .standard(proto: "scope_spans"),
     3: .standard(proto: "schema_url"),
   ]
 
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       // The use of inline closures is to circumvent an issue where the compiler
       // allocates stack space for every case branch when no optimizations are
@@ -522,7 +522,7 @@ extension Opentelemetry_Proto_Trace_V1_ResourceSpans: SwiftProtobuf.Message, Swi
     }
   }
 
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  package func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     // The use of inline closures is to circumvent an issue where the compiler
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
@@ -539,7 +539,7 @@ extension Opentelemetry_Proto_Trace_V1_ResourceSpans: SwiftProtobuf.Message, Swi
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Opentelemetry_Proto_Trace_V1_ResourceSpans, rhs: Opentelemetry_Proto_Trace_V1_ResourceSpans) -> Bool {
+  package static func ==(lhs: Opentelemetry_Proto_Trace_V1_ResourceSpans, rhs: Opentelemetry_Proto_Trace_V1_ResourceSpans) -> Bool {
     if lhs._resource != rhs._resource {return false}
     if lhs.scopeSpans != rhs.scopeSpans {return false}
     if lhs.schemaURL != rhs.schemaURL {return false}
@@ -549,14 +549,14 @@ extension Opentelemetry_Proto_Trace_V1_ResourceSpans: SwiftProtobuf.Message, Swi
 }
 
 extension Opentelemetry_Proto_Trace_V1_ScopeSpans: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".ScopeSpans"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  package static let protoMessageName: String = _protobuf_package + ".ScopeSpans"
+  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "scope"),
     2: .same(proto: "spans"),
     3: .standard(proto: "schema_url"),
   ]
 
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       // The use of inline closures is to circumvent an issue where the compiler
       // allocates stack space for every case branch when no optimizations are
@@ -570,7 +570,7 @@ extension Opentelemetry_Proto_Trace_V1_ScopeSpans: SwiftProtobuf.Message, SwiftP
     }
   }
 
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  package func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     // The use of inline closures is to circumvent an issue where the compiler
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
@@ -587,7 +587,7 @@ extension Opentelemetry_Proto_Trace_V1_ScopeSpans: SwiftProtobuf.Message, SwiftP
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Opentelemetry_Proto_Trace_V1_ScopeSpans, rhs: Opentelemetry_Proto_Trace_V1_ScopeSpans) -> Bool {
+  package static func ==(lhs: Opentelemetry_Proto_Trace_V1_ScopeSpans, rhs: Opentelemetry_Proto_Trace_V1_ScopeSpans) -> Bool {
     if lhs._scope != rhs._scope {return false}
     if lhs.spans != rhs.spans {return false}
     if lhs.schemaURL != rhs.schemaURL {return false}
@@ -597,8 +597,8 @@ extension Opentelemetry_Proto_Trace_V1_ScopeSpans: SwiftProtobuf.Message, SwiftP
 }
 
 extension Opentelemetry_Proto_Trace_V1_Span: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".Span"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  package static let protoMessageName: String = _protobuf_package + ".Span"
+  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "trace_id"),
     2: .standard(proto: "span_id"),
     3: .standard(proto: "trace_state"),
@@ -616,7 +616,7 @@ extension Opentelemetry_Proto_Trace_V1_Span: SwiftProtobuf.Message, SwiftProtobu
     15: .same(proto: "status"),
   ]
 
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       // The use of inline closures is to circumvent an issue where the compiler
       // allocates stack space for every case branch when no optimizations are
@@ -642,7 +642,7 @@ extension Opentelemetry_Proto_Trace_V1_Span: SwiftProtobuf.Message, SwiftProtobu
     }
   }
 
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  package func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     // The use of inline closures is to circumvent an issue where the compiler
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
@@ -695,7 +695,7 @@ extension Opentelemetry_Proto_Trace_V1_Span: SwiftProtobuf.Message, SwiftProtobu
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Opentelemetry_Proto_Trace_V1_Span, rhs: Opentelemetry_Proto_Trace_V1_Span) -> Bool {
+  package static func ==(lhs: Opentelemetry_Proto_Trace_V1_Span, rhs: Opentelemetry_Proto_Trace_V1_Span) -> Bool {
     if lhs.traceID != rhs.traceID {return false}
     if lhs.spanID != rhs.spanID {return false}
     if lhs.traceState != rhs.traceState {return false}
@@ -717,7 +717,7 @@ extension Opentelemetry_Proto_Trace_V1_Span: SwiftProtobuf.Message, SwiftProtobu
 }
 
 extension Opentelemetry_Proto_Trace_V1_Span.SpanKind: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "SPAN_KIND_UNSPECIFIED"),
     1: .same(proto: "SPAN_KIND_INTERNAL"),
     2: .same(proto: "SPAN_KIND_SERVER"),
@@ -728,15 +728,15 @@ extension Opentelemetry_Proto_Trace_V1_Span.SpanKind: SwiftProtobuf._ProtoNamePr
 }
 
 extension Opentelemetry_Proto_Trace_V1_Span.Event: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = Opentelemetry_Proto_Trace_V1_Span.protoMessageName + ".Event"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  package static let protoMessageName: String = Opentelemetry_Proto_Trace_V1_Span.protoMessageName + ".Event"
+  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "time_unix_nano"),
     2: .same(proto: "name"),
     3: .same(proto: "attributes"),
     4: .standard(proto: "dropped_attributes_count"),
   ]
 
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       // The use of inline closures is to circumvent an issue where the compiler
       // allocates stack space for every case branch when no optimizations are
@@ -751,7 +751,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Event: SwiftProtobuf.Message, SwiftP
     }
   }
 
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  package func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if self.timeUnixNano != 0 {
       try visitor.visitSingularFixed64Field(value: self.timeUnixNano, fieldNumber: 1)
     }
@@ -767,7 +767,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Event: SwiftProtobuf.Message, SwiftP
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Opentelemetry_Proto_Trace_V1_Span.Event, rhs: Opentelemetry_Proto_Trace_V1_Span.Event) -> Bool {
+  package static func ==(lhs: Opentelemetry_Proto_Trace_V1_Span.Event, rhs: Opentelemetry_Proto_Trace_V1_Span.Event) -> Bool {
     if lhs.timeUnixNano != rhs.timeUnixNano {return false}
     if lhs.name != rhs.name {return false}
     if lhs.attributes != rhs.attributes {return false}
@@ -778,8 +778,8 @@ extension Opentelemetry_Proto_Trace_V1_Span.Event: SwiftProtobuf.Message, SwiftP
 }
 
 extension Opentelemetry_Proto_Trace_V1_Span.Link: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = Opentelemetry_Proto_Trace_V1_Span.protoMessageName + ".Link"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  package static let protoMessageName: String = Opentelemetry_Proto_Trace_V1_Span.protoMessageName + ".Link"
+  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "trace_id"),
     2: .standard(proto: "span_id"),
     3: .standard(proto: "trace_state"),
@@ -787,7 +787,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Link: SwiftProtobuf.Message, SwiftPr
     5: .standard(proto: "dropped_attributes_count"),
   ]
 
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       // The use of inline closures is to circumvent an issue where the compiler
       // allocates stack space for every case branch when no optimizations are
@@ -803,7 +803,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Link: SwiftProtobuf.Message, SwiftPr
     }
   }
 
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  package func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if !self.traceID.isEmpty {
       try visitor.visitSingularBytesField(value: self.traceID, fieldNumber: 1)
     }
@@ -822,7 +822,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Link: SwiftProtobuf.Message, SwiftPr
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Opentelemetry_Proto_Trace_V1_Span.Link, rhs: Opentelemetry_Proto_Trace_V1_Span.Link) -> Bool {
+  package static func ==(lhs: Opentelemetry_Proto_Trace_V1_Span.Link, rhs: Opentelemetry_Proto_Trace_V1_Span.Link) -> Bool {
     if lhs.traceID != rhs.traceID {return false}
     if lhs.spanID != rhs.spanID {return false}
     if lhs.traceState != rhs.traceState {return false}
@@ -834,13 +834,13 @@ extension Opentelemetry_Proto_Trace_V1_Span.Link: SwiftProtobuf.Message, SwiftPr
 }
 
 extension Opentelemetry_Proto_Trace_V1_Status: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".Status"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  package static let protoMessageName: String = _protobuf_package + ".Status"
+  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     2: .same(proto: "message"),
     3: .same(proto: "code"),
   ]
 
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       // The use of inline closures is to circumvent an issue where the compiler
       // allocates stack space for every case branch when no optimizations are
@@ -853,7 +853,7 @@ extension Opentelemetry_Proto_Trace_V1_Status: SwiftProtobuf.Message, SwiftProto
     }
   }
 
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  package func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if !self.message.isEmpty {
       try visitor.visitSingularStringField(value: self.message, fieldNumber: 2)
     }
@@ -863,7 +863,7 @@ extension Opentelemetry_Proto_Trace_V1_Status: SwiftProtobuf.Message, SwiftProto
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Opentelemetry_Proto_Trace_V1_Status, rhs: Opentelemetry_Proto_Trace_V1_Status) -> Bool {
+  package static func ==(lhs: Opentelemetry_Proto_Trace_V1_Status, rhs: Opentelemetry_Proto_Trace_V1_Status) -> Bool {
     if lhs.message != rhs.message {return false}
     if lhs.code != rhs.code {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
@@ -872,7 +872,7 @@ extension Opentelemetry_Proto_Trace_V1_Status: SwiftProtobuf.Message, SwiftProto
 }
 
 extension Opentelemetry_Proto_Trace_V1_Status.StatusCode: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "STATUS_CODE_UNSET"),
     1: .same(proto: "STATUS_CODE_OK"),
     2: .same(proto: "STATUS_CODE_ERROR"),

@@ -22,8 +22,7 @@ import ServiceLifecycle
 /// ### Implementation Notes
 ///
 /// On shutdown, processors forwarding logs to an ``OTelLogRecordExporter`` MUST shutdown that exporter.
-@_spi(Logging)
-public protocol OTelLogRecordProcessor: Service & Sendable {
+package protocol OTelLogRecordProcessor: Service & Sendable {
     func onEmit(_ record: inout OTelLogRecord)
 
     /// Force log processors that batch logs to flush immediately.

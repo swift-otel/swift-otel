@@ -14,20 +14,20 @@
 import OTelCore
 import W3CTraceContext
 
-public struct OTelConstantIDGenerator: OTelIDGenerator {
+package struct OTelConstantIDGenerator: OTelIDGenerator {
     private let _traceID: TraceID
     private let _spanID: SpanID
 
-    public init(traceID: TraceID, spanID: SpanID) {
+    package init(traceID: TraceID, spanID: SpanID) {
         _traceID = traceID
         _spanID = spanID
     }
 
-    public func nextTraceID() -> TraceID {
+    package func nextTraceID() -> TraceID {
         _traceID
     }
 
-    public func nextSpanID() -> SpanID {
+    package func nextSpanID() -> SpanID {
         _spanID
     }
 }

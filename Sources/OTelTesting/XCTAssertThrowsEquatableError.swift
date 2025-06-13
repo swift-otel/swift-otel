@@ -14,7 +14,7 @@
 #if canImport(XCTest)
     import XCTest
 
-    public func XCTAssertThrowsError<E: Error & Equatable>(_ expression: @autoclosure () throws -> some Any, _ error: E) {
+    package func XCTAssertThrowsError<E: Error & Equatable>(_ expression: @autoclosure () throws -> some Any, _ error: E) {
         do {
             let value = try expression()
             XCTFail("Expected error but received value: \(value)")

@@ -19,14 +19,13 @@ import ServiceLifecycle
 /// A log processor that batches logs and forwards them to a configured exporter.
 ///
 /// [OpenTelemetry Specification: Batching processor](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/logs/sdk.md#batching-processor)
-@_spi(Logging)
-public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concurrency.Clock>:
+package actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concurrency.Clock>:
     OTelLogRecordProcessor,
     Service,
     CustomStringConvertible
     where Clock.Duration == Duration
 {
-    public nonisolated let description = "OTelBatchLogRecordProcessor"
+    package nonisolated let description = "OTelBatchLogRecordProcessor"
 
     internal /* for testing */ private(set) var buffer: Deque<OTelLogRecord>
 
@@ -39,8 +38,7 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
     private let explicitTickStream: AsyncStream<Void>
     private let explicitTick: AsyncStream<Void>.Continuation
 
-    @_spi(Testing)
-    public init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, clock: Clock) {
+    package init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, clock: Clock) {
         self.exporter = exporter
         self.configuration = configuration
         self.clock = clock
@@ -50,7 +48,7 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
         (logStream, logContinuation) = AsyncStream.makeStream()
     }
 
-    public nonisolated func onEmit(_ record: inout OTelLogRecord) {
+    package nonisolated func onEmit(_ record: inout OTelLogRecord) {
         logContinuation.yield(record)
     }
 
@@ -62,7 +60,7 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
         }
     }
 
-    public func run() async throws {
+    package func run() async throws {
         let timerSequence = AsyncTimerSequence(interval: configuration.scheduleDelay, clock: clock).map { _ in }
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
 
@@ -93,7 +91,7 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
         logger.debug("Shut down.")
     }
 
-    public func forceFlush() async throws {
+    package func forceFlush() async throws {
         let chunkSize = Int(configuration.maximumExportBatchSize)
         let batches = stride(from: 0, to: buffer.count, by: chunkSize).map {
             buffer[$0 ..< min($0 + Int(configuration.maximumExportBatchSize), buffer.count)]
@@ -143,14 +141,13 @@ public actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock:
     }
 }
 
-@_spi(Logging)
 extension OTelBatchLogRecordProcessor where Clock == ContinuousClock {
     /// Create a batch log processor exporting log batches via the given log exporter.
     ///
     /// - Parameters:
     ///   - exporter: The log exporter to receive batched logs to export.
     ///   - configuration: Further configuration parameters to tweak the batching behavior.
-    public init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration) {
+    package init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration) {
         self.init(exporter: exporter, configuration: configuration, clock: .continuous)
     }
 }

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_spi(Logging) import OTelCore
+import OTelCore
 import XCTest
 
 final class OTelBatchLogRecordProcessorConfigurationTests: XCTestCase {

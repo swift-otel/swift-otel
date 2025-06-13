@@ -12,37 +12,36 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-@_spi(Logging) import OTelCore
+import OTelCore
 
 /// An in-memory log record processor, collecting emitted log records into ``onEmit(_:)``.
-@_spi(Logging)
-public final class OTelInMemoryLogRecordProcessor: OTelLogRecordProcessor {
-    public var records: [OTelLogRecord] { _records.withLockedValue { $0 } }
+package final class OTelInMemoryLogRecordProcessor: OTelLogRecordProcessor {
+    package var records: [OTelLogRecord] { _records.withLockedValue { $0 } }
     private let _records = NIOLockedValueBox<[OTelLogRecord]>([])
 
-    public var numberOfShutdowns: Int { _numberOfShutdowns.withLockedValue { $0 } }
+    package var numberOfShutdowns: Int { _numberOfShutdowns.withLockedValue { $0 } }
     private let _numberOfShutdowns = NIOLockedValueBox<Int>(0)
 
-    public var numberOfForceFlushes: Int { _numberOfForceFlushes.withLockedValue { $0 } }
+    package var numberOfForceFlushes: Int { _numberOfForceFlushes.withLockedValue { $0 } }
     private let _numberOfForceFlushes = NIOLockedValueBox<Int>(0)
 
     private let stream: AsyncStream<Void>
     private let continuation: AsyncStream<Void>.Continuation
 
-    public init() {
+    package init() {
         (stream, continuation) = AsyncStream.makeStream()
     }
 
-    public func run() async throws {
+    package func run() async throws {
         for await _ in stream.cancelOnGracefulShutdown() {}
         _numberOfShutdowns.withLockedValue { $0 += 1 }
     }
 
-    public nonisolated func onEmit(_ record: inout OTelLogRecord) {
+    package nonisolated func onEmit(_ record: inout OTelLogRecord) {
         _records.withLockedValue { $0.append(record) }
     }
 
-    public func forceFlush() async throws {
+    package func forceFlush() async throws {
         _numberOfForceFlushes.withLockedValue { $0 += 1 }
     }
 }

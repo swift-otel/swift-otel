@@ -21,7 +21,7 @@ extension OTelSpan {
     /// - Parameter context: Defaults to `ServiceContext.topLevel`.
     ///
     /// - Returns: A no-op span stub.
-    public static func noOpStub(context: ServiceContext = .topLevel) -> OTelSpan {
+    package static func noOpStub(context: ServiceContext = .topLevel) -> OTelSpan {
         .noOp(.init(context: context))
     }
 
@@ -37,7 +37,7 @@ extension OTelSpan {
     ///   - onEnd: Defaults to a no-op closure.
     ///
     /// - Returns: A recording span stub.
-    public static func recordingStub(
+    package static func recordingStub(
         operationName: String = "test",
         kind: SpanKind = .internal,
         context: ServiceContext = .topLevel,

@@ -16,26 +16,26 @@ import W3CTraceContext
 /// Represents the portion of an ``OTelSpan`` which must be serialized and propagated across asynchronous boundaries.
 ///
 /// [OTel Spec: SpanContext](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/api.md#spancontext)
-public struct OTelSpanContext: Hashable, Sendable {
+package struct OTelSpanContext: Hashable, Sendable {
     private var traceContext: TraceContext
 
     /// The ID of the trace the span belongs to.
-    public var traceID: TraceID {
+    package var traceID: TraceID {
         traceContext.traceID
     }
 
     /// The unique ID of this span.
-    public var spanID: SpanID {
+    package var spanID: SpanID {
         traceContext.spanID
     }
 
     /// An 8-bit field controlling tracing flags such as sampling.
-    public var traceFlags: TraceFlags {
+    package var traceFlags: TraceFlags {
         traceContext.flags
     }
 
     /// Additional vendor-specific trace identification information.
-    public var traceState: TraceState {
+    package var traceState: TraceState {
         get {
             traceContext.state
         }
@@ -45,10 +45,10 @@ public struct OTelSpanContext: Hashable, Sendable {
     }
 
     /// The unique ID of the span's parent or `nil` if it's the root span.
-    public let parentSpanID: SpanID?
+    package let parentSpanID: SpanID?
 
     /// Whether this span context describes a span that originated on a different service.
-    public let isRemote: Bool
+    package let isRemote: Bool
 
     package var traceParentHeaderValue: String {
         traceContext.traceParentHeaderValue
@@ -67,7 +67,7 @@ public struct OTelSpanContext: Hashable, Sendable {
     ///   - traceFlags: An 8-bit field controlling tracing flags such as sampling.
     ///   - traceState: Additional vendor-specific trace identification information.
     /// - Returns: A span context describing a local span.
-    public static func local(
+    package static func local(
         traceID: TraceID,
         spanID: SpanID,
         parentSpanID: SpanID?,
@@ -90,7 +90,7 @@ public struct OTelSpanContext: Hashable, Sendable {
     ///
     /// - Parameter traceContext: The W3C Trace Context describing the remote span.
     /// - Returns: A span context describing a remote span.
-    public static func remote(traceContext: TraceContext) -> OTelSpanContext {
+    package static func remote(traceContext: TraceContext) -> OTelSpanContext {
         OTelSpanContext(traceContext: traceContext, parentSpanID: nil, isRemote: true)
     }
 

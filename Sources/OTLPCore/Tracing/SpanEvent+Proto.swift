@@ -17,7 +17,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Event {
     /// Create an event from a `SpanEvent`.
     ///
     /// - Parameter event: The `SpanEvent` to cast.
-    public init(_ event: SpanEvent) {
+    package init(_ event: SpanEvent) {
         name = event.name
         timeUnixNano = event.nanosecondsSinceEpoch
         attributes = .init(event.attributes)

@@ -14,7 +14,7 @@
 /// A span exporter receives batches of processed spans to export them, e.g. by sending them over the network.
 ///
 /// [OpenTelemetry specification: Span exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/sdk.md#span-exporter)
-public protocol OTelSpanExporter: Sendable {
+package protocol OTelSpanExporter: Sendable {
     /// Export the given batch of spans.
     ///
     /// - Parameter batch: A batch of spans to export.
@@ -32,7 +32,7 @@ public protocol OTelSpanExporter: Sendable {
 }
 
 /// An error indicating that a given exporter has already been shut down while receiving an additional batch of spans to export.
-public struct OTelSpanExporterAlreadyShutDownError: Error {
+package struct OTelSpanExporterAlreadyShutDownError: Error {
     /// Initialize the error.
-    public init() {}
+    package init() {}
 }

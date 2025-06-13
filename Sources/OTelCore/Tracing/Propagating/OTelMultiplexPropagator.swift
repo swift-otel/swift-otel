@@ -15,7 +15,7 @@ import Instrumentation
 
 /// A pseudo-`OTelPropagator` that may be used to instrument using
 /// multiple other `OTelPropagator`s across a common `OTelSpanContext`.
-public struct OTelMultiplexPropagator: OTelPropagator {
+package struct OTelMultiplexPropagator: OTelPropagator {
     private let propagators: [OTelPropagator]
 
     /// Create a `MultiplexPropagator`.
@@ -28,11 +28,11 @@ public struct OTelMultiplexPropagator: OTelPropagator {
     ///
     /// - Parameter propagators: An array of `OTelPropagator`s, each of which
     /// will be used to `inject`/`extract` through the same `SpanContext`.
-    public init(_ propagators: [OTelPropagator]) {
+    package init(_ propagators: [OTelPropagator]) {
         self.propagators = propagators
     }
 
-    public func extractSpanContext<Carrier, Extract>(
+    package func extractSpanContext<Carrier, Extract>(
         from carrier: Carrier,
         using extractor: Extract
     ) throws -> OTelSpanContext? where Extract: Extractor, Carrier == Extract.Carrier {
@@ -46,7 +46,7 @@ public struct OTelMultiplexPropagator: OTelPropagator {
         return spanContext
     }
 
-    public func inject<Carrier, Inject>(
+    package func inject<Carrier, Inject>(
         _ spanContext: OTelSpanContext,
         into carrier: inout Carrier,
         using injector: Inject

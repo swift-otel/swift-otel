@@ -20,7 +20,7 @@ extension Opentelemetry_Proto_Trace_V1_Span {
     /// Create a span from an `OTelFinishedSpan`.
     ///
     /// - Parameter finishedSpan: The `OTelFinishedSpan` to cast.
-    public init(_ finishedSpan: OTelFinishedSpan) {
+    package init(_ finishedSpan: OTelFinishedSpan) {
         traceID = finishedSpan.spanContext.traceID.data
         spanID = finishedSpan.spanContext.spanID.data
 

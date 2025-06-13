@@ -15,7 +15,7 @@ import AsyncAlgorithms
 import Logging
 import ServiceLifecycle
 
-public struct OTelPeriodicExportingMetricsReader<Clock: _Concurrency.Clock> where Clock.Duration == Duration {
+package struct OTelPeriodicExportingMetricsReader<Clock: _Concurrency.Clock> where Clock.Duration == Duration {
     private let logger = Logger(label: "OTelPeriodicExportingMetricsReader")
 
     var resource: OTelResource
@@ -64,9 +64,9 @@ public struct OTelPeriodicExportingMetricsReader<Clock: _Concurrency.Clock> wher
 }
 
 extension OTelPeriodicExportingMetricsReader: CustomStringConvertible, Service {
-    public var description: String { "OTelPeriodicExportingMetricsReader" }
+    package var description: String { "OTelPeriodicExportingMetricsReader" }
 
-    public func run() async throws {
+    package func run() async throws {
         let interval = configuration.exportInterval
         logger.info("Started periodic loop.", metadata: ["interval": "\(interval)"])
         for try await _ in AsyncTimerSequence.repeating(every: interval, clock: clock).cancelOnGracefulShutdown() {
@@ -84,7 +84,7 @@ extension OTelPeriodicExportingMetricsReader where Clock == ContinuousClock {
     ///   - producer: The producer used to periodically read metrics.
     ///   - exporter: The exporter to use to export the metrics.
     ///   - configuration: The configuration options for the periodic exporting reader.
-    public init(
+    package init(
         resource: OTelResource,
         producer: OTelMetricProducer,
         exporter: OTelMetricExporter,

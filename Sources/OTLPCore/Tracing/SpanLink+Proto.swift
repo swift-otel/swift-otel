@@ -19,7 +19,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Link {
     ///
     /// - Parameter link: The `SpanLink` to cast.
     /// - Returns: `nil` if the `SpanLink`s context does not contain a span context.
-    public init?(_ link: SpanLink) {
+    package init?(_ link: SpanLink) {
         guard let spanContext = link.context.spanContext else { return nil }
         self.traceID = spanContext.traceID.data
         self.spanID = spanContext.spanID.data

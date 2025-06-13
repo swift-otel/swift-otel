@@ -13,11 +13,10 @@
 
 import Foundation
 import Logging
-@_spi(Logging) import OTelCore
+import OTelCore
 
-@_spi(Logging)
 extension OTelLogRecord {
-    public static func stub(
+    package static func stub(
         body: Logger.Message = "🏎️",
         level: Logger.Level = .info,
         metadata: Logger.Metadata = [:],

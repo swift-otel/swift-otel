@@ -15,8 +15,8 @@ import W3CTraceContext
 
 extension SpanID {
     /// A stub span ID for testing with bytes from one to eight.
-    public static let oneToEight = SpanID(bytes: .init((1, 2, 3, 4, 5, 6, 7, 8)))
+    package static let oneToEight = SpanID(bytes: .init((1, 2, 3, 4, 5, 6, 7, 8)))
 
     /// A stub span ID for testing with all bytes being zero.
-    public static let allZeroes = SpanID(bytes: .init((0, 0, 0, 0, 0, 0, 0, 0)))
+    package static let allZeroes = SpanID(bytes: .init((0, 0, 0, 0, 0, 0, 0, 0)))
 }

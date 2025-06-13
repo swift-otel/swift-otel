@@ -14,29 +14,29 @@
 import OTelCore
 
 /// An in-memory span exporter, collecting exported batches into ``OTelInMemorySpanExporter/exportedBatches``.
-public final actor OTelInMemorySpanExporter: OTelSpanExporter {
-    public private(set) var exportedBatches = [[OTelFinishedSpan]]()
-    public private(set) var numberOfShutdowns = 0
-    public private(set) var numberOfForceFlushes = 0
+package final actor OTelInMemorySpanExporter: OTelSpanExporter {
+    package private(set) var exportedBatches = [[OTelFinishedSpan]]()
+    package private(set) var numberOfShutdowns = 0
+    package private(set) var numberOfForceFlushes = 0
 
     private let exportDelay: Duration
 
-    public init(exportDelay: Duration = .zero) {
+    package init(exportDelay: Duration = .zero) {
         self.exportDelay = exportDelay
     }
 
-    public func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
+    package func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
         if exportDelay != .zero {
             try await Task.sleep(for: exportDelay)
         }
         exportedBatches.append(Array(batch))
     }
 
-    public func shutdown() async {
+    package func shutdown() async {
         numberOfShutdowns += 1
     }
 
-    public func forceFlush() async throws {
+    package func forceFlush() async throws {
         numberOfForceFlushes += 1
     }
 }

@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-@_spi(Testing) import OTelCore
+import OTelCore
 import Tracing
 import XCTest
 

@@ -14,19 +14,19 @@
 import Tracing
 
 /// The result returned by ``OTelSampler``s.
-public struct OTelSamplingResult: Equatable, Sendable {
+package struct OTelSamplingResult: Equatable, Sendable {
     /// The decision on whether a span should be recorded/sampled.
-    public let decision: Decision
+    package let decision: Decision
 
     /// Additional attributes describing the sampling decision to be included in the span's attributes.
-    public let attributes: SpanAttributes
+    package let attributes: SpanAttributes
 
     /// Create a sampling result with the given decision and attributes.
     ///
     /// Parameters:
     ///   - decision: Whether the span should be recorded/sampled.
     ///   - attributes: Additional attributes describing the sampling decision.
-    public init(decision: OTelSamplingResult.Decision, attributes: SpanAttributes = [:]) {
+    package init(decision: OTelSamplingResult.Decision, attributes: SpanAttributes = [:]) {
         self.decision = decision
         self.attributes = attributes
     }
@@ -38,7 +38,7 @@ public struct OTelSamplingResult: Equatable, Sendable {
     /// | ``Decision/drop`` | ❌ | ❌ |
     /// | ``Decision/record`` | ✅ | ❌ |
     /// | ``Decision/recordAndSample`` | ✅ | ✅ |
-    public enum Decision: Equatable, Sendable {
+    package enum Decision: Equatable, Sendable {
         /// Don't record the span and drop all events and attributes.
         case drop
 

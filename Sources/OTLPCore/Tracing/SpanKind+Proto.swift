@@ -17,7 +17,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.SpanKind {
     /// Create a span kind from a `SpanKind`.
     ///
     /// - Parameter kind: The `SpanKind` to cast.
-    public init(_ kind: SpanKind) {
+    package init(_ kind: SpanKind) {
         switch kind {
         case .server:
             self = .server

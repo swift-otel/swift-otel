@@ -15,7 +15,7 @@ import ServiceContextModule
 import ServiceLifecycle
 
 /// A pseudo-``OTelSpanProcessor`` that may be used to process using multiple other ``OTelSpanProcessor``s.
-public actor OTelMultiplexSpanProcessor: OTelSpanProcessor {
+package actor OTelMultiplexSpanProcessor: OTelSpanProcessor {
     private let processors: [any OTelSpanProcessor]
     private let shutdownStream: AsyncStream<Void>
     private let shutdownContinuation: AsyncStream<Void>.Continuation
@@ -24,12 +24,12 @@ public actor OTelMultiplexSpanProcessor: OTelSpanProcessor {
     ///
     /// - Parameter processors: An array of ``OTelSpanProcessor``s, each of which will be invoked on start and end of spans.
     /// Processors are called sequentially and the order of this array defines the order in which they're being called.
-    public init(processors: [any OTelSpanProcessor]) {
+    package init(processors: [any OTelSpanProcessor]) {
         self.processors = processors
         (shutdownStream, shutdownContinuation) = AsyncStream.makeStream()
     }
 
-    public func run() async throws {
+    package func run() async throws {
         await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask {
                 var shutdowns = self.shutdownStream.makeAsyncIterator()
@@ -50,19 +50,19 @@ public actor OTelMultiplexSpanProcessor: OTelSpanProcessor {
         }
     }
 
-    public func onStart(_ span: OTelSpan, parentContext: ServiceContext) async {
+    package func onStart(_ span: OTelSpan, parentContext: ServiceContext) async {
         for processor in processors {
             await processor.onStart(span, parentContext: parentContext)
         }
     }
 
-    public func onEnd(_ span: OTelFinishedSpan) async {
+    package func onEnd(_ span: OTelFinishedSpan) async {
         for processor in processors {
             await processor.onEnd(span)
         }
     }
 
-    public func forceFlush() async throws {
+    package func forceFlush() async throws {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for processor in processors {
                 group.addTask { try await processor.forceFlush() }

@@ -14,23 +14,23 @@
 import OTelCore
 
 /// A span exporter, streaming exported batches via an async sequence.
-public final actor OTelStreamingSpanExporter: OTelSpanExporter {
-    public let batches: AsyncStream<[OTelFinishedSpan]>
+package final actor OTelStreamingSpanExporter: OTelSpanExporter {
+    package let batches: AsyncStream<[OTelFinishedSpan]>
     private let batchContinuation: AsyncStream<[OTelFinishedSpan]>.Continuation
     private var errorDuringNextExport: (any Error)?
 
-    public private(set) var numberOfShutdowns = 0
-    public private(set) var numberOfForceFlushes = 0
+    package private(set) var numberOfShutdowns = 0
+    package private(set) var numberOfForceFlushes = 0
 
-    public init() {
+    package init() {
         (batches, batchContinuation) = AsyncStream<[OTelFinishedSpan]>.makeStream()
     }
 
-    public func setErrorDuringNextExport(_ error: some Error) {
+    package func setErrorDuringNextExport(_ error: some Error) {
         errorDuringNextExport = error
     }
 
-    public func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
+    package func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
         batchContinuation.yield(Array(batch))
         if let errorDuringNextExport {
             self.errorDuringNextExport = nil
@@ -38,11 +38,11 @@ public final actor OTelStreamingSpanExporter: OTelSpanExporter {
         }
     }
 
-    public func shutdown() async {
+    package func shutdown() async {
         numberOfShutdowns += 1
     }
 
-    public func forceFlush() async throws {
+    package func forceFlush() async throws {
         numberOfForceFlushes += 1
     }
 }

@@ -22,7 +22,7 @@ import OTLPCore
 import Tracing
 
 /// A span exporter emitting span batches to an OTel collector via gRPC.
-public final class OTLPGRPCSpanExporter: OTelSpanExporter {
+package final class OTLPGRPCSpanExporter: OTelSpanExporter {
     private let configuration: OTLPGRPCSpanExporterConfiguration
     private let connection: ClientConnection
     private let client: Opentelemetry_Proto_Collector_Trace_V1_TraceServiceAsyncClient
@@ -35,7 +35,7 @@ public final class OTLPGRPCSpanExporter: OTelSpanExporter {
     ///   - group: The NIO event loop group to run the exporter in.
     ///   - requestLogger: Logs info about the underlying gRPC requests. Defaults to disabled, i.e. not emitting any logs.
     ///   - backgroundActivityLogger: Logs info about the underlying gRPC connection. Defaults to disabled, i.e. not emitting any logs.
-    public convenience init(
+    package convenience init(
         configuration: OTLPGRPCSpanExporterConfiguration,
         group: any EventLoopGroup = MultiThreadedEventLoopGroup.singleton,
         requestLogger: Logger = ._otelDisabled,
@@ -96,7 +96,7 @@ public final class OTLPGRPCSpanExporter: OTelSpanExporter {
         )
     }
 
-    public func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
+    package func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
         if case .shutdown = connection.connectivity.state {
             logger.error("Attempted to export batch while already being shut down.")
             throw OTelSpanExporterAlreadyShutDownError()
@@ -127,9 +127,9 @@ public final class OTLPGRPCSpanExporter: OTelSpanExporter {
     }
 
     /// ``OTLPGRPCSpanExporter`` sends batches of spans as soon as they are received, so this method is a no-op.
-    public func forceFlush() async throws {}
+    package func forceFlush() async throws {}
 
-    public func shutdown() async {
+    package func shutdown() async {
         let promise = connection.eventLoop.makePromise(of: Void.self)
 
         connection.closeGracefully(deadline: .now() + .milliseconds(500), promise: promise)

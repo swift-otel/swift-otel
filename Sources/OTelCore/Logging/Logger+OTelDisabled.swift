@@ -14,7 +14,7 @@
 import Logging
 
 extension Logger {
-    public static let _otelDisabled = Logger(
+    package static let _otelDisabled = Logger(
         label: "swift-otel-logging-disabled",
         factory: { _ in SwiftLogNoOpLogHandler() }
     )

@@ -15,15 +15,15 @@ import Instrumentation
 import W3CTraceContext
 
 /// A propagator which operates on HTTP headers using the [W3C TraceContext](https://www.w3.org/TR/2020/REC-trace-context-1-20200206/).
-public struct OTelW3CPropagator: OTelPropagator {
+package struct OTelW3CPropagator: OTelPropagator {
     private static let traceParentHeaderName = "traceparent"
     private static let traceStateHeaderName = "tracestate"
     private static let dash = UInt8(ascii: "-")
 
     /// Initialize a `W3CPropagator`.
-    public init() {}
+    package init() {}
 
-    public func extractSpanContext<Carrier, Extract>(
+    package func extractSpanContext<Carrier, Extract>(
         from carrier: Carrier,
         using extractor: Extract
     ) throws -> OTelSpanContext? where Extract: Extractor, Carrier == Extract.Carrier {
@@ -39,7 +39,7 @@ public struct OTelW3CPropagator: OTelPropagator {
         return .remote(traceContext: traceContext)
     }
 
-    public func inject<Carrier, Inject>(
+    package func inject<Carrier, Inject>(
         _ spanContext: OTelSpanContext,
         into carrier: inout Carrier,
         using injector: Inject

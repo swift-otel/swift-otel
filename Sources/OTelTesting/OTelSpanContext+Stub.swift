@@ -25,7 +25,7 @@ extension OTelSpanContext {
     ///   - traceState: Defaults to no trace state.
     ///
     /// - Returns: A span context stub.
-    public static func localStub(
+    package static func localStub(
         traceID: TraceID = .allZeroes,
         spanID: SpanID = .allZeroes,
         parentSpanID: SpanID? = nil,
@@ -50,7 +50,7 @@ extension OTelSpanContext {
     ///   - traceState: Defaults to no trace state.
     ///
     /// - Returns: A span context stub.
-    public static func remoteStub(
+    package static func remoteStub(
         traceID: TraceID = .allZeroes,
         spanID: SpanID = .allZeroes,
         traceFlags: TraceFlags = [],

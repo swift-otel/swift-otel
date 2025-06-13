@@ -17,7 +17,7 @@ extension [Opentelemetry_Proto_Common_V1_KeyValue] {
     /// Create an array of key-value pairs from span attributes.
     ///
     /// - Parameter attributes: The span attributes to cast.
-    public init(_ attributes: SpanAttributes) {
+    package init(_ attributes: SpanAttributes) {
         var keyValuePairs = [Opentelemetry_Proto_Common_V1_KeyValue]()
 
         attributes.forEach { key, spanAttribute in
@@ -41,7 +41,7 @@ extension Opentelemetry_Proto_Common_V1_AnyValue {
     ///
     /// - Parameter attribute: The `SpanAttribute` to cast.
     /// - Returns: `nil` if the attribute is unsupported.
-    public init?(_ attribute: SpanAttribute) {
+    package init?(_ attribute: SpanAttribute) {
         switch attribute {
         case .int32(let int32):
             self = .value(Int64(int32), keyPath: \.intValue)

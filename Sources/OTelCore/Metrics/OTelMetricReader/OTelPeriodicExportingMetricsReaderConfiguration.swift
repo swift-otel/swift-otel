@@ -12,12 +12,12 @@
 //===----------------------------------------------------------------------===//
 
 /// The configuration options for an ``OTelPeriodicExportingMetricsReader``.
-public struct OTelPeriodicExportingMetricsReaderConfiguration: Sendable {
+package struct OTelPeriodicExportingMetricsReaderConfiguration: Sendable {
     /// The time interval between the start of two export attempts.
-    public var exportInterval: Duration
+    package var exportInterval: Duration
 
     /// The maximum allowed time to export data.
-    public var exportTimeout: Duration
+    package var exportTimeout: Duration
 
     /// Create a configuration for a periodic metrics reader.
     ///
@@ -27,7 +27,7 @@ public struct OTelPeriodicExportingMetricsReaderConfiguration: Sendable {
     ///     Defaults to the value of `OTEL_METRIC_EXPORT_INTERVAL`, or 60 seconds, if the environment variable is unset.
     ///   - exportTimeout: The maximum allowed time to export data.
     ///     Defaults to the value of `OTEL_METRIC_EXPORT_TIMEOUT`, or 30 seconds, if the environment variable is unset.
-    public init(
+    package init(
         environment: OTelEnvironment,
         exportInterval: Duration? = nil,
         exportTimeout: Duration? = nil

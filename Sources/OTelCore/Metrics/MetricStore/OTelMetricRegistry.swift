@@ -18,7 +18,7 @@ import struct NIOConcurrencyHelpers.NIOLockedValueBox
 ///
 /// The registry owns the mapping from instrument identfier and attributes to the stateful instrument for recording
 /// measurements.
-public final class OTelMetricRegistry: Sendable {
+package final class OTelMetricRegistry: Sendable {
     private let logger = Logger(label: "OTelMetricRegistry")
 
     struct Storage {
@@ -56,7 +56,7 @@ public final class OTelMetricRegistry: Sendable {
     ///
     /// A duplicate instrument registration occurs when more than one instrument of the same name is created with
     /// different _identifying fields_.
-    public struct DuplicateRegistrationBehavior: Sendable {
+    package struct DuplicateRegistrationBehavior: Sendable {
         enum Behavior: Sendable {
             case warn, crash
         }
@@ -64,10 +64,10 @@ public final class OTelMetricRegistry: Sendable {
         var behavior: Behavior
 
         /// Emits a log message at warning level.
-        public static let warn = Self(behavior: .warn)
+        package static let warn = Self(behavior: .warn)
 
         /// Crashes with a fatal error.
-        public static let crash = Self(behavior: .crash)
+        package static let crash = Self(behavior: .crash)
     }
 
     init(duplicateRegistrationHandler: some DuplicateRegistrationHandler) {
@@ -80,7 +80,7 @@ public final class OTelMetricRegistry: Sendable {
     ///     different identifying fields.
     ///
     /// - Seealso: ``OTelMetricRegistry/DuplicateRegistrationBehavior``.
-    public convenience init(onDuplicateRegistration: DuplicateRegistrationBehavior = .warn) {
+    package convenience init(onDuplicateRegistration: DuplicateRegistrationBehavior = .warn) {
         switch onDuplicateRegistration.behavior {
         case .warn:
             self.init(duplicateRegistrationHandler: WarningDuplicateRegistrationHandler.default)

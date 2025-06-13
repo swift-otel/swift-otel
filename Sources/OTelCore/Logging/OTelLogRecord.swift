@@ -13,15 +13,14 @@
 
 import Logging
 
-@_spi(Logging)
-public struct OTelLogRecord: Equatable, Sendable {
-    public var body: Logger.Message
-    public var level: Logger.Level
-    public var metadata: Logger.Metadata
-    public var timeNanosecondsSinceEpoch: UInt64
+package struct OTelLogRecord: Equatable, Sendable {
+    package var body: Logger.Message
+    package var level: Logger.Level
+    package var metadata: Logger.Metadata
+    package var timeNanosecondsSinceEpoch: UInt64
 
-    public let resource: OTelResource
-    public let spanContext: OTelSpanContext?
+    package let resource: OTelResource
+    package let spanContext: OTelSpanContext?
 
     package init(
         body: Logger.Message,

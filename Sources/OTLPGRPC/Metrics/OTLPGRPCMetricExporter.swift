@@ -20,13 +20,13 @@ import OTelCore
 import OTLPCore
 
 /// Exports metrics to an OTel collector using OTLP/gRPC.
-public final class OTLPGRPCMetricExporter: OTelMetricExporter {
+package final class OTLPGRPCMetricExporter: OTelMetricExporter {
     private let configuration: OTLPGRPCMetricExporterConfiguration
     private let connection: ClientConnection
     private let client: Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient
     private let logger = Logger(label: String(describing: OTLPGRPCMetricExporter.self))
 
-    public convenience init(
+    package convenience init(
         configuration: OTLPGRPCMetricExporterConfiguration,
         group: any EventLoopGroup = MultiThreadedEventLoopGroup.singleton,
         requestLogger: Logger = ._otelDisabled,
@@ -87,7 +87,7 @@ public final class OTLPGRPCMetricExporter: OTelMetricExporter {
         )
     }
 
-    public func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
+    package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
         if case .shutdown = connection.connectivity.state {
             logger.error("Attempted to export batch while already being shut down.")
             throw OTelMetricExporterAlreadyShutDownError()
@@ -99,11 +99,11 @@ public final class OTLPGRPCMetricExporter: OTelMetricExporter {
         _ = try await client.export(request)
     }
 
-    public func forceFlush() async throws {
+    package func forceFlush() async throws {
         // This exporter is a "push exporter" and so the OTel spec says that force flush should do nothing.
     }
 
-    public func shutdown() async {
+    package func shutdown() async {
         let promise = connection.eventLoop.makePromise(of: Void.self)
         connection.closeGracefully(deadline: .now() + .milliseconds(500), promise: promise)
         try? await promise.futureResult.get()

@@ -17,7 +17,7 @@ import OTelCore
 /// Configuration for an ``OTLPGRPCMetricExporter``.
 ///
 /// - TODO: This can probably be refactored to share a bunch of common logic with ``OTLPGRPCSpanExporterConfiguration``.
-public struct OTLPGRPCMetricExporterConfiguration: Sendable {
+package struct OTLPGRPCMetricExporterConfiguration: Sendable {
     let endpoint: OTLPGRPCEndpoint
     let headers: HPACKHeaders
 
@@ -28,7 +28,7 @@ public struct OTLPGRPCMetricExporterConfiguration: Sendable {
     ///   - endpoint: An optional endpoint string that takes precedence over any environment values. Defaults to `localhost:4317` if `nil`.
     ///   - shouldUseAnInsecureConnection: Whether to use an insecure connection in the absence of a scheme inside an endpoint configuration value.
     ///   - headers: Optional headers that take precedence over any headers configured via environment values.
-    public init(
+    package init(
         environment: OTelEnvironment,
         endpoint: String? = nil,
         shouldUseAnInsecureConnection: Bool? = nil,

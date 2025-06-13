@@ -15,7 +15,7 @@ import OTelCore
 import Tracing
 import W3CTraceContext
 
-public struct OTelInlineSampler: OTelSampler {
+package struct OTelInlineSampler: OTelSampler {
     private let onSamplingResult: @Sendable (
         _ operationName: String,
         _ kind: SpanKind,
@@ -25,7 +25,7 @@ public struct OTelInlineSampler: OTelSampler {
         _ parentContext: ServiceContext
     ) -> OTelSamplingResult
 
-    public init(
+    package init(
         onSamplingResult: @escaping @Sendable (
             _ operationName: String,
             _ spanKind: SpanKind,
@@ -38,7 +38,7 @@ public struct OTelInlineSampler: OTelSampler {
         self.onSamplingResult = onSamplingResult
     }
 
-    public func samplingResult(
+    package func samplingResult(
         operationName: String,
         kind: SpanKind,
         traceID: TraceID,

@@ -13,8 +13,8 @@
 
 import Foundation
 import Logging
+import OTelCore
 import OTelTesting
-@_spi(Testing) import OTelCore
 import XCTest
 
 final class OTelProcessResourceDetectorTests: XCTestCase {

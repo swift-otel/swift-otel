@@ -18,14 +18,14 @@ import Tracing
 /// Resources are immutable, but multiple resources may be merged using ``merging(_:)``.
 ///
 /// [OpenTelemetry Specification: Resource](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/resource/sdk.md#resource-sdk)
-public struct OTelResource: Sendable, Equatable {
+package struct OTelResource: Sendable, Equatable {
     /// The attributes describing this resource.
-    public let attributes: SpanAttributes
+    package let attributes: SpanAttributes
 
     /// Create a resource described by the given attributes.
     ///
     /// - Parameter attributes: The attributes describing this resource. Defaults to no attributes.
-    public init(attributes: SpanAttributes = [:]) {
+    package init(attributes: SpanAttributes = [:]) {
         self.attributes = attributes
     }
 
@@ -38,7 +38,7 @@ public struct OTelResource: Sendable, Equatable {
     /// - Returns: A new ``OTelResource`` combining the attributes from both resources.
     ///
     /// [OpenTelemetry Specification: Merge Resources](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/resource/sdk.md#merge)
-    public func merging(_ other: OTelResource) -> OTelResource {
+    package func merging(_ other: OTelResource) -> OTelResource {
         var attributes = attributes
         attributes.merge(other.attributes)
         return OTelResource(attributes: attributes)

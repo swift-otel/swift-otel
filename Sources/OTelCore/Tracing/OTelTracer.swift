@@ -20,7 +20,7 @@ import W3CTraceContext
 /// An OpenTelemetry tracer implementing the Swift Distributed Tracing `Tracer` protocol.
 ///
 /// [OpenTelemetry Specification: Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/api.md#tracer)
-public final class OTelTracer<
+package final class OTelTracer<
     IDGenerator: OTelIDGenerator,
     Sampler: OTelSampler,
     Propagator: OTelPropagator,
@@ -38,8 +38,7 @@ public final class OTelTracer<
     private let eventStreamContinuation: AsyncStream<Event>.Continuation
     private let recordingSpans = NIOLockedValueBox([OTelSpanContext: OTelSpan]())
 
-    @_spi(Testing)
-    public init(
+    package init(
         idGenerator: IDGenerator,
         sampler: Sampler,
         propagator: Propagator,
@@ -74,7 +73,7 @@ extension OTelTracer where Clock == ContinuousClock {
     ///   - processor: The processor handling started/ended spans.
     ///   - environment: The environment variables.
     ///   - resource: Attributes about the resource being traced. Should be obtained using <doc:resource-detection>.
-    public convenience init(
+    package convenience init(
         idGenerator: IDGenerator,
         sampler: Sampler,
         propagator: Propagator,
@@ -95,7 +94,7 @@ extension OTelTracer where Clock == ContinuousClock {
 }
 
 extension OTelTracer: Service {
-    public func run() async throws {
+    package func run() async throws {
         try await withGracefulShutdownHandler {
             try await withThrowingTaskGroup(of: Void.self) { group in
                 group.addTask {
@@ -133,7 +132,7 @@ extension OTelTracer: Service {
 }
 
 extension OTelTracer: Tracer {
-    public func startSpan(
+    package func startSpan(
         _ operationName: String,
         context: @autoclosure () -> ServiceContext,
         ofKind kind: SpanKind,
@@ -201,7 +200,7 @@ extension OTelTracer: Tracer {
         return span
     }
 
-    public func forceFlush() {
+    package func forceFlush() {
         eventStreamContinuation.yield(.forceFlushed)
     }
 
@@ -222,7 +221,7 @@ extension OTelTracer: Tracer {
         eventStreamContinuation.yield(.spanEnded(finishedSpan))
     }
 
-    public func activeSpan(identifiedBy context: ServiceContext) -> OTelSpan? {
+    package func activeSpan(identifiedBy context: ServiceContext) -> OTelSpan? {
         guard let spanContext = context.spanContext else { return nil }
         guard let recordingSpan = recordingSpans.withLockedValue({ $0[spanContext] }) else { return nil }
         return recordingSpan
@@ -230,7 +229,7 @@ extension OTelTracer: Tracer {
 }
 
 extension OTelTracer: Instrument {
-    public func inject<Carrier, Inject>(
+    package func inject<Carrier, Inject>(
         _ context: ServiceContext,
         into carrier: inout Carrier,
         using injector: Inject
@@ -239,7 +238,7 @@ extension OTelTracer: Instrument {
         propagator.inject(spanContext, into: &carrier, using: injector)
     }
 
-    public func extract<Carrier, Extract>(
+    package func extract<Carrier, Extract>(
         _ carrier: Carrier,
         into context: inout ServiceContext,
         using extractor: Extract
@@ -257,5 +256,5 @@ extension OTelTracer: Instrument {
 }
 
 extension OTelTracer: CustomStringConvertible {
-    public var description: String { "OTelTracer" }
+    package var description: String { "OTelTracer" }
 }
