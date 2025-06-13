@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOHPACK
-import OTel
+import OTelCore
 
 /// Configuration for an ``OTLPGRPCMetricExporter``.
 ///

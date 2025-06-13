@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-@_spi(Logging) import OTel
+@_spi(Logging) import OTelCore
 
 /// An in-memory log record processor, collecting emitted log records into ``onEmit(_:)``.
 @_spi(Logging)

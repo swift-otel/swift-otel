@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTel
+import OTelCore
 import Tracing
 import W3CTraceContext
 

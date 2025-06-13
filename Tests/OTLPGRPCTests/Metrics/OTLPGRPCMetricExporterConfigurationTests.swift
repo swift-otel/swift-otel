@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOHPACK
-import OTel
+import OTelCore
 @testable import OTLPGRPC
 import XCTest
 

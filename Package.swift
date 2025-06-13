@@ -7,7 +7,7 @@ let package = Package(
     name: "swift-otel",
     platforms: [.macOS(.v13), .iOS(.v16)],
     products: [
-        .library(name: "OTel", targets: ["OTel"]),
+        .library(name: "OTelCore", targets: ["OTelCore"]),
         .library(name: "OTLPGRPC", targets: ["OTLPGRPC"]),
     ],
     dependencies: [
@@ -34,7 +34,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "OTel",
+            name: "OTelCore",
             dependencies: [
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
                 .product(name: "DequeModule", package: "swift-collections"),
@@ -49,9 +49,9 @@ let package = Package(
             swiftSettings: sharedSwiftSettings
         ),
         .testTarget(
-            name: "OTelTests",
+            name: "OTelCoreTests",
             dependencies: [
-                .target(name: "OTel"),
+                .target(name: "OTelCore"),
                 .target(name: "OTelTesting"),
             ],
             swiftSettings: sharedSwiftSettings
@@ -62,7 +62,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Tracing", package: "swift-distributed-tracing"),
                 .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
-                .target(name: "OTel"),
+                .target(name: "OTelCore"),
             ],
             swiftSettings: sharedSwiftSettings
         ),
@@ -72,7 +72,7 @@ let package = Package(
         .target(
             name: "OTLPCore",
             dependencies: [
-                .target(name: "OTel"),
+                .target(name: "OTelCore"),
                 .product(name: "SwiftProtobuf", package: "swift-protobuf"),
             ],
             swiftSettings: sharedSwiftSettings
@@ -89,7 +89,7 @@ let package = Package(
         .target(
             name: "OTLPGRPC",
             dependencies: [
-                .target(name: "OTel"),
+                .target(name: "OTelCore"),
                 .target(name: "OTLPCore"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Tracing", package: "swift-distributed-tracing"),

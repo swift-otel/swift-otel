@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(XCTest)
-    @testable import OTel
+    @testable import OTelCore
     import XCTest
 
     extension Counter {

@@ -17,7 +17,7 @@ import Logging
 import NIO
 import NIOHPACK
 import NIOSSL
-import OTel
+import OTelCore
 import OTLPCore
 import Tracing
 

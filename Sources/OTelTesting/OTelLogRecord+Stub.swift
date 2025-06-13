@@ -13,7 +13,7 @@
 
 import Foundation
 import Logging
-@_spi(Logging) import OTel
+@_spi(Logging) import OTelCore
 
 @_spi(Logging)
 extension OTelLogRecord {

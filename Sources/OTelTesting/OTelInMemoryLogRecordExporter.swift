@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-@_spi(Logging) import OTel
+@_spi(Logging) import OTelCore
 
 @_spi(Logging)
 public actor OTelInMemoryLogRecordExporter: OTelLogRecordExporter {

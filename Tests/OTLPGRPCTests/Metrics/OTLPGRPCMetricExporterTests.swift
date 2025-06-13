@@ -13,7 +13,7 @@
 
 @testable import Logging
 import NIO
-@testable import OTel
+@testable import OTelCore
 import OTLPCore
 @testable import OTLPGRPC
 import XCTest

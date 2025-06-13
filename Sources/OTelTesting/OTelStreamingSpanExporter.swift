@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTel
+import OTelCore
 
 /// A span exporter, streaming exported batches via an async sequence.
 public final actor OTelStreamingSpanExporter: OTelSpanExporter {

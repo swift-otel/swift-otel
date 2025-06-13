@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
+@testable import OTelCore
 import Tracing
 
 extension OTelResource {

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_spi(Logging) import OTel
+@_spi(Logging) import OTelCore
 
 /// A log record exporter streaming exported batches via an async sequence.
 @_spi(Logging)

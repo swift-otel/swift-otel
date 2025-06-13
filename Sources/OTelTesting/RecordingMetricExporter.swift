@@ -13,11 +13,11 @@
 
 #if canImport(XCTest)
     import NIOConcurrencyHelpers
-    import OTel
+    import OTelCore
     import XCTest
 
     package struct RecordingMetricExporter: OTelMetricExporter {
-        package typealias ExportCall = Collection<OTel.OTelResourceMetrics> & Sendable
+        package typealias ExportCall = Collection<OTelResourceMetrics> & Sendable
 
         package struct RecordedCalls {
             var exportCalls = [any ExportCall]()
@@ -29,7 +29,7 @@
 
         package init() {}
 
-        package func export(_ batch: some Collection<OTel.OTelResourceMetrics> & Sendable) {
+        package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) {
             recordedCalls.withLockedValue { $0.exportCalls.append(batch) }
         }
 

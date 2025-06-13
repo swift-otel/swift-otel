@@ -14,7 +14,7 @@
 import GRPC
 @testable import Logging
 import NIO
-@testable import OTel
+@testable import OTelCore
 import OTelTesting
 @testable import OTLPGRPC
 import Tracing

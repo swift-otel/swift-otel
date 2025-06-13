@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-@testable import OTel
+@testable import OTelCore
 
 package final class RecordingDuplicateRegistrationHandler: DuplicateRegistrationHandler {
     package let invocations = NIOLockedValueBox([(InstrumentIdentifier, Set<InstrumentIdentifier>)]())

@@ -16,7 +16,7 @@ import Logging
 import NIO
 import NIOHPACK
 import NIOSSL
-import OTel
+import OTelCore
 import OTLPCore
 
 /// Exports metrics to an OTel collector using OTLP/gRPC.

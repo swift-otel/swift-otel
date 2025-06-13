@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTel
+import OTelCore
 import W3CTraceContext
 
 extension OTelSpanContext {
