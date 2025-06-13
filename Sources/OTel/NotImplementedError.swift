@@ -11,4 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import enum OTelCore.OTel
+struct NotImplementedError: Error, CustomStringConvertible {
+    var description: String { "Not implemented" }
+}

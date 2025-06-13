@@ -11,4 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import enum OTelCore.OTel
+extension OTel {
+    public struct Configuration: Sendable {
+        public static var `default`: Self { .init() }
+    }
+}

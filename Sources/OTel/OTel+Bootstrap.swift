@@ -11,4 +11,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import enum OTelCore.OTel
+import ServiceLifecycle
+
+extension OTel {
+    public static func bootstrap(configuration: Configuration = .default) throws -> some Service {
+        throw NotImplementedError()
+        // The following placeholder code exists only to type check the opaque return type.
+        let service: ServiceGroup! = nil
+        return service
+    }
+}
