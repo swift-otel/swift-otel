@@ -7,8 +7,6 @@ let package = Package(
     name: "swift-otel",
     platforms: [.macOS(.v13), .iOS(.v16)],
     products: [
-        .library(name: "OTelCore", targets: ["OTelCore"]),
-        .library(name: "OTLPGRPC", targets: ["OTLPGRPC"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-distributed-tracing.git", from: "1.2.0"),
