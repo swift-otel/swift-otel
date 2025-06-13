@@ -10,3 +10,21 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import OTelCore
+import SwiftProtobuf
+
+final class OTLPHTTPExporter: Sendable {
+    init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {}
+
+    func send(_ proto: Message) async throws {
+        // TODO:
+    }
+
+    func forceFlush() async throws {
+        // TODO:
+    }
+
+    func shutdown() async {
+        // TODO:
+    }
+}

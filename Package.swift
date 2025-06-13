@@ -138,6 +138,9 @@ let package = Package(
         .target(
             name: "OTLPHTTP",
             dependencies: [
+                .target(name: "OTelCore"),
+                .target(name: "OTLPCore"),
+                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
             ],
             swiftSettings: sharedSwiftSettings
         ),
