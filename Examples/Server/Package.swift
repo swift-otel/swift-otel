@@ -19,7 +19,6 @@ let package = Package(
             name: "ServerExample",
             dependencies: [
                 .product(name: "OTel", package: "swift-otel"),
-                .product(name: "OTLPGRPC", package: "swift-otel"),
                 .product(name: "Hummingbird", package: "hummingbird"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Metrics", package: "swift-metrics"),

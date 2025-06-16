@@ -12,78 +12,26 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-import NIO
 import OTel
-import OTLPGRPC
 import ServiceLifecycle
 import Tracing
 
 @main
 enum Example {
     static func main() async throws {
-        let environment = OTelEnvironment.detected()
-        let resourceDetection = OTelResourceDetection(detectors: [
-            OTelProcessResourceDetector(),
-            OTelEnvironmentResourceDetector(environment: environment),
-            .manual(OTelResource(attributes: ["service.name": "counter"])),
-        ])
-        let resource = await resourceDetection.resource(environment: environment, logLevel: .trace)
+        // Bootstrap the observability backends with default configuration.
+        // TODO: Uncomment this line when the 1.0 API is ready.
+        // let observability = try OTel.bootstrap()
+        let observability: ServiceGroup! = nil
 
-        /*
-         Bootstrap the logging system to use the OTel metadata provider.
-         This will automatically include trace and span IDs in log statements
-         from your app and its dependencies.
-         */
-        LoggingSystem.bootstrap({ label, _ in
-            var handler = StreamLogHandler.standardOutput(label: label)
-            // We set the lowest possible minimum log level to see all log statements.
-            handler.logLevel = .trace
-            return handler
-        }, metadataProvider: .otel)
-        let logger = Logger(label: "example")
-
-        /*
-         Here we create an OTel span exporter that sends spans via gRPC to an OTel collector.
-         */
-        let exporter = try OTLPGRPCSpanExporter(configuration: .init(environment: environment))
-
-        /*
-         This exporter is passed to a batch span processor.
-         The processor receives ended spans from the tracer, batches them up, and finally forwards them to the exporter.
-         */
-        let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(environment: environment))
-
-        /*
-         We need to await tracer initialization since the tracer needs
-         some time to detect attributes about the resource being traced.
-         */
-        let tracer = OTelTracer(
-            idGenerator: OTelRandomIDGenerator(),
-            sampler: OTelConstantSampler(isOn: true),
-            propagator: OTelW3CPropagator(),
-            processor: processor,
-            environment: environment,
-            resource: resource
-        )
-
-        /*
-         Once we have a tracer, we bootstrap the instrumentation system to use it.
-         This configures your application code and any of your dependencies to use the OTel tracer.
-         */
-        InstrumentationSystem.bootstrap(tracer)
-
+        // Create your servics that uses the Swift observbility API packages for instrumentation.
         let service = Counter()
 
-        /*
-         Finally, OTel uses swift-server/swift-service-lifecycle to control the tracers lifetime.
-         Usually, you'd want to have the tracer be one of the first services and definitely before
-         your app services since this will allow to still export spans during graceful shutdown of
-         your app.
-         */
+        // Add the observability and exmaple services to a service group and run.
         let serviceGroup = ServiceGroup(
-            services: [tracer, service],
+            services: [observability, service],
             gracefulShutdownSignals: [.sigint],
-            logger: logger
+            logger: Logger(label: "Example")
         )
         try await serviceGroup.run()
     }
