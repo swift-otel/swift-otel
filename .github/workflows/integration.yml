@@ -1,5 +1,10 @@
 name: "Integration Tests"
-on: [push, pull_request]
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    branches-ignore: [main]
+
 jobs:
   integration_test:
     name: Integration Tests

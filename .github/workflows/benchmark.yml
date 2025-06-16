@@ -1,9 +1,9 @@
-name: Benchmark PR vs. main
+name: Benchmark PR vs. release-0.x
 
 on:
   pull_request:
     branches:
-      - main
+      - release-0.x
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-benchmark
@@ -30,11 +30,11 @@ jobs:
           cd Benchmarks
           swift package --allow-writing-to-directory .benchmarkBaselines/ benchmark baseline update pr
 
-      - name: Benchmark main
+      - name: Benchmark release-0.x
         run: |
-          git switch main
+          git switch release-0.x
           cd Benchmarks
-          swift package --allow-writing-to-directory .benchmarkBaselines/ benchmark baseline update main
+          swift package --allow-writing-to-directory .benchmarkBaselines/ benchmark baseline update release-0.x
 
       - name: Check benchmark delta
         id: check_delta
@@ -42,7 +42,7 @@ jobs:
           echo $(date) >> $GITHUB_STEP_SUMMARY
           echo "BENCHMARK_STATUS=1" >> "$GITHUB_OUTPUT"
           cd Benchmarks
-          swift package benchmark baseline check main pr --format markdown >> $GITHUB_STEP_SUMMARY
+          swift package benchmark baseline check release-0.x pr --format markdown >> $GITHUB_STEP_SUMMARY
           echo "BENCHMARK_STATUS=0" >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
