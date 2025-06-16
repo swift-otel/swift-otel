@@ -24,7 +24,7 @@ enum Example {
         // let observability = try OTel.bootstrap()
         let observability: ServiceGroup! = nil
 
-        // Create your servics that uses the Swift observbility API packages for instrumentation.
+        // Create your services that use the Swift observability API packages for instrumentation.
         let service = Counter()
 
         // Add the observability and exmaple services to a service group and run.
