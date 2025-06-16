@@ -242,7 +242,7 @@ extension OTel.Configuration.OTLPExporterConfiguration {
         public static let gzip: Self = .init(backing: .gzip)
     }
 
-    // swiftformat:disable:redundantBackticks
+    // swiftformat:disable:next redundantBackticks
     public struct `Protocol`: Equatable, Sendable {
         package enum Backing {
             case grpc
@@ -252,8 +252,25 @@ extension OTel.Configuration.OTLPExporterConfiguration {
 
         package var backing: Backing
 
+        // swiftformat:disable indent
+        #if !OTLPGRPC
+        @available(*, unavailable, message: "Using the OTLP/gRPC exporter requires the `OTLPGRPC` trait enabled.")
+        #endif
+        // swiftformat:enable indent
         public static let grpc: Self = .init(backing: .grpc)
+
+        // swiftformat:disable indent
+        #if !OTLPHTTP
+        @available(*, unavailable, message: "Using the OTLP/HTTP exporter requires the `OTLPHTTP` trait enabled.")
+        #endif
+        // swiftformat:enable indent
         public static let httpProtobuf: Self = .init(backing: .httpProtobuf)
+
+        // swiftformat:disable indent
+        #if !OTLPHTTP
+        @available(*, unavailable, message: "Using the OTLP/HTTP exporter requires the `OTLPHTTP` trait enabled.")
+        #endif
+        // swiftformat:enable indent
         public static let httpJSON: Self = .init(backing: .httpJSON)
     }
 }
