@@ -73,6 +73,13 @@ extension OTelPeriodicExportingMetricsReader: CustomStringConvertible, Service {
             logger.trace("Timer fired.", metadata: ["interval": "\(interval)"])
             await tick()
         }
+
+        logger.debug("Shutting down.")
+        // Unlike traces, force-flush is just a regular tick for metrics; no need for a different function.
+        await tick()
+        try await exporter.forceFlush()
+        await exporter.shutdown()
+        logger.debug("Shut down.")
     }
 }
 

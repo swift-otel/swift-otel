@@ -15,6 +15,7 @@
 import NIOConcurrencyHelpers
 @testable import OTelCore
 @testable import OTelTesting
+import ServiceLifecycle
 import XCTest
 
 final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
@@ -76,6 +77,55 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             exporter.assert(exportCallCount: 2, forceFlushCallCount: 0, shutdownCallCount: 0)
 
             group.cancelAll()
+        }
+    }
+
+    func test_onGracefulShutdown_exportsAndShutsDown() async throws {
+        let clock = TestClock()
+        let exporter = RecordingMetricExporter()
+        let producer = MockMetricProducer()
+        let reader = OTelPeriodicExportingMetricsReader(
+            resource: .init(),
+            producer: producer,
+            exporter: exporter,
+            configuration: .init(
+                environment: .detected(),
+                exportInterval: .seconds(1),
+                exportTimeout: .milliseconds(100)
+            ),
+            clock: clock
+        )
+        let serviceGroup = ServiceGroup(services: [reader], logger: Logger(label: #function))
+        var sleepCalls = clock.sleepCalls.makeAsyncIterator()
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            let shutdownExpectation = expectation(description: "Expected service group to finish shutting down.")
+            group.addTask {
+                try await serviceGroup.run()
+                shutdownExpectation.fulfill()
+            }
+
+            // await sleep for tick.
+            await sleepCalls.next()
+
+            // while the timer sequence is sleeping, check the expected producer and exporter counts.
+            producer.assert(produceCallCount: 0)
+            exporter.assert(exportCallCount: 0, forceFlushCallCount: 0, shutdownCallCount: 0)
+
+            // trigger graceful shutdown
+            await serviceGroup.triggerGracefulShutdown()
+
+            // await flush timeout sleep
+            await sleepCalls.next()
+            // advance past flush timeout
+            clock.advance(by: .seconds(2))
+
+            await fulfillment(of: [shutdownExpectation], timeout: 0.1)
+
+            // check we did a final metric production, export, then shutdown the exporter.
+            producer.assert(produceCallCount: 1)
+            exporter.assert(exportCallCount: 1, forceFlushCallCount: 1, shutdownCallCount: 1)
+
+            try await group.waitForAll()
         }
     }
 
@@ -245,6 +295,8 @@ final class MockMetricExporter: Sendable, OTelMetricExporter {
 
     let cancellationCount = NIOLockedValueBox(0)
     let throwCount = NIOLockedValueBox(0)
+    let forceFlushCount = NIOLockedValueBox(0)
+    let shutdownCount = NIOLockedValueBox(0)
 
     init(behavior: Behavior) {
         self.behavior = behavior
@@ -266,7 +318,11 @@ final class MockMetricExporter: Sendable, OTelMetricExporter {
         }
     }
 
-    func forceFlush() async throws { fatalError("not implemented") }
+    func forceFlush() async throws {
+        forceFlushCount.withLockedValue { $0 += 1 }
+    }
 
-    func shutdown() async { fatalError("not implemented") }
+    func shutdown() async {
+        shutdownCount.withLockedValue { $0 += 1 }
+    }
 }
