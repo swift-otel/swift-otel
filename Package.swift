@@ -56,6 +56,7 @@ let package = Package(
             name: "OTelTests",
             dependencies: [
                 .target(name: "OTel"),
+                .product(name: "NIOTestUtils", package: "swift-nio"),
             ]
         ),
 
