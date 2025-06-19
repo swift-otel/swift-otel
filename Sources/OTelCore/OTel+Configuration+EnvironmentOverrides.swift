@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 extension OTel.Configuration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
+    package mutating func applyEnvironmentOverrides(environment: [String: String]) {
         if let resourceAttributes = environment.getHeadersValue(.resourceAttributes) {
             // https://opentelemetry.io/docs/specs/otel/resource/sdk/#specifying-resource-information-via-an-environment-variable
             let incomingAttributes = Dictionary(resourceAttributes, uniquingKeysWith: { _, second in second })
