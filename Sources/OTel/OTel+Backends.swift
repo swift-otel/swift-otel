@@ -32,12 +32,37 @@ extension OTel {
         return (factory, service)
     }
 
-    public static func makeMetricsBackend(configuration: OTel.Configuration = .default) throws -> (factory: any CoreMetrics.MetricsFactory, service: some Service) {
-        throw NotImplementedError()
-        // The following placeholder code exists only to type check the opaque return type.
-        let factory: (any CoreMetrics.MetricsFactory)! = nil
-        let service: ServiceGroup! = nil
-        return (factory, service)
+    public static func makeMetricsBackend(configuration: OTel.Configuration = .default) throws -> (factory: any MetricsFactory, service: some Service) {
+        let resource = OTelResource(configuration: configuration)
+        let registry = OTelMetricRegistry()
+        let metricsExporter: OTelMetricExporter
+        switch configuration.metrics.exporter.backing {
+        case .otlp:
+            switch configuration.metrics.otlpExporter.protocol.backing {
+            case .grpc:
+                #if OTLPGRPC
+                    metricsExporter = try OTLPGRPCMetricExporter(configuration: configuration.metrics.otlpExporter)
+                #else // OTLPGRPC
+                    fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
+                #endif
+            case .httpProtobuf, .httpJSON:
+                #if OTLPHTTP
+                    metricsExporter = try OTLPHTTPMetricExporter(configuration: configuration.metrics.otlpExporter)
+                #else
+                    fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
+                #endif
+            }
+        case .console:
+            metricsExporter = OTelConsoleMetricExporter()
+        case .prometheus:
+            fatalError("Swift OTel does not support Prometheus exporter")
+        }
+
+        let readerConfig = OTelPeriodicExportingMetricsReaderConfiguration(configuration: configuration.metrics)
+
+        let reader = OTelPeriodicExportingMetricsReader(resource: resource, producer: registry, exporter: metricsExporter, configuration: readerConfig)
+
+        return (OTLPMetricsFactory(registry: registry), reader)
     }
 
     public static func makeTracingBackend(configuration: OTel.Configuration = .default) throws -> (factory: any Tracing.Tracer, service: some Service) {
