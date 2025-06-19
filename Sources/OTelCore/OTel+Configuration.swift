@@ -515,8 +515,7 @@ extension OTel.Configuration {
 
         /// Path to certificate for verifying server's TLS credentials.
         ///
-        /// Path to the certificate file used for TLS verification. When not specified,
-        /// the system's default certificate store is used.
+        /// When not specified, the system's default certificate store is used.
         ///
         /// - Environment variable(s):
         ///   - `OTEL_EXPORTER_OTLP_CERTIFICATE`
