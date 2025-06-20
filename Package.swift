@@ -31,6 +31,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.0.0"),
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.23.1"),
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.25.0"),
 
         // MARK: - Plugins
 
@@ -140,6 +141,8 @@ let package = Package(
             dependencies: [
                 .target(name: "OTelCore"),
                 .target(name: "OTLPCore"),
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "NIOSSL", package: "swift-nio-ssl"),
                 .product(name: "SwiftProtobuf", package: "swift-protobuf"),
             ],
             swiftSettings: sharedSwiftSettings
@@ -147,7 +150,12 @@ let package = Package(
         .testTarget(
             name: "OTLPHTTPTests",
             dependencies: [
+                .target(name: "OTel"),
+                .target(name: "OTelCore"),
+                .target(name: "OTelTesting"),
+                .target(name: "OTLPCore"),
                 .target(name: "OTLPHTTP"),
+                .product(name: "NIOTestUtils", package: "swift-nio"),
             ],
             swiftSettings: sharedSwiftSettings
         ),

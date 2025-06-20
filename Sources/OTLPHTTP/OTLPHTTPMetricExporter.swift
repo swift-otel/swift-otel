@@ -11,21 +11,29 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Logging
 import OTelCore
 import OTLPCore
 
 package final class OTLPHTTPMetricExporter: OTelMetricExporter {
-    let exporter: OTLPHTTPExporter
+    typealias Request = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest
+    typealias Response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse
+    let exporter: OTLPHTTPExporter<Request, Response>
+    private let logger = Logger(label: String(describing: OTLPHTTPMetricExporter.self))
 
     package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
         exporter = try OTLPHTTPExporter(configuration: configuration)
     }
 
     package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
-        let proto = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest.with { request in
+        let proto = Request.with { request in
             request.resourceMetrics = batch.map(Opentelemetry_Proto_Metrics_V1_ResourceMetrics.init)
         }
-        try await exporter.send(proto)
+        let response = try await exporter.send(proto)
+        if response.hasPartialSuccess {
+            // https://opentelemetry.io/docs/specs/otlp/#partial-success-1
+            logger.warning("Partial success", metadata: ["message": .string(response.partialSuccess.errorMessage)])
+        }
     }
 
     package func forceFlush() async throws {
