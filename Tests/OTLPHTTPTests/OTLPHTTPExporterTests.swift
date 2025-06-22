@@ -23,7 +23,7 @@ import ServiceLifecycle
 import Testing
 import Tracing
 
-@Suite struct OTLPHTTPExporterTests {
+@Suite(.serialized) struct OTLPHTTPExporterTests {
     @Test func testOTLPHTTPSpanExporterProtobuf() async throws {
         try await withThrowingTaskGroup { group in
             let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
