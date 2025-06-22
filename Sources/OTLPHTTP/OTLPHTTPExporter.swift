@@ -25,7 +25,6 @@ import struct Foundation.URL
 final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
     let configuration: OTel.Configuration.OTLPExporterConfiguration
     let httpClient: HTTPClient
-    private let logger = Logger(label: String(describing: OTLPHTTPExporter.self))
 
     init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
         self.configuration = configuration
