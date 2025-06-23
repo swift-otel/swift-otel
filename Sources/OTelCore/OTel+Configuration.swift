@@ -337,6 +337,11 @@ extension OTel.Configuration {
         /// - Default value: `true`.
         public var enabled: Bool
 
+        /// Configuration for the batch log record processor.
+        ///
+        /// - Default value: `.default`.
+        public var batchLogRecordProcessor: BatchLogRecordProcessorConfiguration
+
         /// Selection of logs exporter implementation.
         ///
         /// - Environment variable(s): `OTEL_LOGS_EXPORTER`.
@@ -354,6 +359,7 @@ extension OTel.Configuration {
         /// where possible.
         public static let `default`: Self = .init(
             enabled: true,
+            batchLogRecordProcessor: .default,
             exporter: .otlp,
             otlpExporter: .default
         )
@@ -474,6 +480,51 @@ extension OTel.Configuration.LogsConfiguration {
 
         /// Console exporter for logs (development/debugging).
         public static let console: Self = .init(backing: .console)
+    }
+}
+
+extension OTel.Configuration.LogsConfiguration {
+    /// Configuration for the batch log record processor.
+    ///
+    /// The batch processor collects log records in memory and exports them in batches to improve
+    /// performance and reduce network overhead.
+    public struct BatchLogRecordProcessorConfiguration: Sendable {
+        /// Maximum time to wait before triggering an export.
+        ///
+        /// - Environment variable(s): `OTEL_BRLP_SCHEDULE_DELAY`.
+        /// - Default value: 1 seconds.
+        public var scheduleDelay: Duration
+
+        /// Maximum time to wait for each export operation.
+        ///
+        /// - Environment variable(s): `OTEL_BRLP_EXPORT_TIMEOUT`.
+        /// - Default value: 30 seconds.
+        public var exportTimeout: Duration
+
+        /// Maximum number of log records to keep in the queue.
+        ///
+        /// After the size is reached logs are dropped.
+        ///
+        /// - Environment variable(s): `OTEL_BRLP_MAX_QUEUE_SIZE`.
+        /// - Default value: 2048.
+        public var maxQueueSize: Int
+
+        /// Maximum number of log records to export in a single batch.
+        ///
+        /// - Environment variable(s): `OTEL_BRLP_MAX_EXPORT_BATCH_SIZE`.
+        /// - Default value: 512.
+        public var maxExportBatchSize: Int
+
+        /// Default batch span processor configuration.
+        ///
+        /// See individual property documentation for specific default values, which respect the OTel specification
+        /// where possible.
+        public static let `default`: Self = .init(
+            scheduleDelay: .seconds(1),
+            exportTimeout: .seconds(30),
+            maxQueueSize: 2048,
+            maxExportBatchSize: 512
+        )
     }
 }
 

@@ -106,6 +106,7 @@ extension OTel.Configuration.MetricsConfiguration {
 
 extension OTel.Configuration.LogsConfiguration {
     internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
+        batchLogRecordProcessor.applyEnvironmentOverrides(environment: environment)
         if let logsExporter = environment.getStringValue(.logsExporter) {
             switch logsExporter {
             case "none":
@@ -134,6 +135,23 @@ extension OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration
             self.maxQueueSize = maxQueueSize
         }
         if let exportBatchSize = environment.getIntegerValue(.batchSpanProcessorExportBatchSize) {
+            maxExportBatchSize = exportBatchSize
+        }
+    }
+}
+
+extension OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration {
+    internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
+        if let scheduleDelay = environment.getDurationValue(.batchLogRecordProcessorScheduleDelay) {
+            self.scheduleDelay = scheduleDelay
+        }
+        if let exportTimeout = environment.getTimeoutValue(.batchLogRecordProcessorExportTimeout) {
+            self.exportTimeout = exportTimeout
+        }
+        if let maxQueueSize = environment.getIntegerValue(.batchLogRecordProcessorMaxQueueSize) {
+            self.maxQueueSize = maxQueueSize
+        }
+        if let exportBatchSize = environment.getIntegerValue(.batchLogRecordProcessorExportBatchSize) {
             maxExportBatchSize = exportBatchSize
         }
     }
