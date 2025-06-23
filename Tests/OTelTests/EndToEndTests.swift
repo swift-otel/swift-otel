@@ -13,6 +13,7 @@
 
 #if compiler(>=6.2) // Swift Testing exit tests only added in 6.2
 import struct Foundation.Data
+import Logging
 import Metrics
 import NIOTestUtils
 import OTel
@@ -246,6 +247,130 @@ import Tracing
 
                 try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
                 let response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse()
+                try testServer.writeOutbound(.body(.byteBuffer(.init(data: response.jsonUTF8Data()))))
+                try testServer.writeOutbound(.end(nil))
+
+                try await group.waitForAll()
+            }
+        }
+    }
+
+    @Test func testLoggingProtobufExportUsingBootstrap() async throws {
+        /// Note: It's easier to debug this test by commenting out the surrounding `#expect(procesExitsWith:_:)`.
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            try await withThrowingTaskGroup { group in
+                let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
+                defer { #expect(throws: Never.self) { try testServer.stop() } }
+
+                // Client
+                group.addTask {
+                    var config = OTel.Configuration.default
+                    config.metrics.enabled = false
+                    config.traces.enabled = false
+                    config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
+                    config.logs.otlpExporter.protocol = .httpProtobuf
+                    let observability = try OTel.bootstrap(configuration: config)
+                    let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
+
+                    try await withThrowingTaskGroup { group in
+                        group.addTask {
+                            try await serviceGroup.run()
+                        }
+                        group.addTask {
+                            let logger = Logger(label: "logger")
+                            logger.debug(
+                                "Waffle party privileges have been revoked due to insufficient team spirit",
+                                metadata: ["person": "milchick"]
+                            )
+                            await serviceGroup.triggerGracefulShutdown()
+                        }
+                        try await group.waitForAll()
+                    }
+                }
+
+                try testServer.receiveHeadAndVerify { head in
+                    #expect(head.method == .POST)
+                    #expect(head.uri == "/some/path")
+                    #expect(head.headers["Content-Type"] == ["application/x-protobuf"])
+                }
+                try testServer.receiveBodyAndVerify { body in
+                    let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(serializedBytes: Data(buffer: body))
+                    withKnownIssue("Internal diagnostic logging is still using bootstrapped backend") {
+                        #expect(message.resourceLogs.count == 1)
+                        #expect(message.resourceLogs.first?.scopeLogs.count == 1)
+                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
+                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Waffle party privileges have been revoked due to insufficient team spirit"))
+                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value == .init("milchick"))
+                    }
+                }
+                try testServer.receiveEndAndVerify { trailers in
+                    #expect(trailers == nil)
+                }
+
+                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
+                let response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse()
+                try testServer.writeOutbound(.body(.byteBuffer(.init(data: response.serializedData()))))
+                try testServer.writeOutbound(.end(nil))
+
+                try await group.waitForAll()
+            }
+        }
+    }
+
+    @Test func testLoggingJSONExportUsingBootstrap() async throws {
+        /// Note: It's easier to debug this test by commenting out the surrounding `#expect(procesExitsWith:_:)`.
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            try await withThrowingTaskGroup { group in
+                let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
+                defer { #expect(throws: Never.self) { try testServer.stop() } }
+
+                // Client
+                group.addTask {
+                    var config = OTel.Configuration.default
+                    config.metrics.enabled = false
+                    config.traces.enabled = false
+                    config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
+                    config.logs.otlpExporter.protocol = .httpJSON
+                    let observability = try OTel.bootstrap(configuration: config)
+                    let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
+
+                    try await withThrowingTaskGroup { group in
+                        group.addTask {
+                            try await serviceGroup.run()
+                        }
+                        group.addTask {
+                            let logger = Logger(label: "logger")
+                            logger.debug(
+                                "Waffle party privileges have been revoked due to insufficient team spirit",
+                                metadata: ["person": "milchick"]
+                            )
+                            await serviceGroup.triggerGracefulShutdown()
+                        }
+                        try await group.waitForAll()
+                    }
+                }
+
+                try testServer.receiveHeadAndVerify { head in
+                    #expect(head.method == .POST)
+                    #expect(head.uri == "/some/path")
+                    #expect(head.headers["Content-Type"] == ["application/json"])
+                }
+                try testServer.receiveBodyAndVerify { body in
+                    let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(jsonUTF8Data: Data(buffer: body))
+                    withKnownIssue("Internal diagnostic logging is still using bootstrapped backend") {
+                        #expect(message.resourceLogs.count == 1)
+                        #expect(message.resourceLogs.first?.scopeLogs.count == 1)
+                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
+                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Waffle party privileges have been revoked due to insufficient team spirit"))
+                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value == .init("milchick"))
+                    }
+                }
+                try testServer.receiveEndAndVerify { trailers in
+                    #expect(trailers == nil)
+                }
+
+                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
+                let response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse()
                 try testServer.writeOutbound(.body(.byteBuffer(.init(data: response.jsonUTF8Data()))))
                 try testServer.writeOutbound(.end(nil))
 
