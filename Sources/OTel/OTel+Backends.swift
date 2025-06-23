@@ -55,7 +55,7 @@ extension OTel {
         case .console:
             metricsExporter = OTelConsoleMetricExporter()
         case .prometheus:
-            fatalError("Swift OTel does not support Prometheus exporter")
+            fatalError("Swift OTel does not support the Prometheus exporter")
         }
 
         let readerConfig = OTelPeriodicExportingMetricsReaderConfiguration(configuration: configuration.metrics)
