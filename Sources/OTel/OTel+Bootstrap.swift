@@ -44,7 +44,7 @@ extension OTel {
             try services.append(bootstrapTraces(configuration: configuration))
         }
 
-        return ServiceGroup(services: services, gracefulShutdownSignals: [.sigterm], logger: Logger(label: "OTelServiceGroup"))
+        return ServiceGroup(services: services, logger: Logger(label: "OTelServiceGroup"))
     }
 
     internal static func bootstrapTraces(configuration: OTel.Configuration) throws -> some Service {
