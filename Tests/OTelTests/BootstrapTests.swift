@@ -12,12 +12,20 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) // Swift Testing exit tests only added in 6.2
+import Logging
 import Metrics
 import OTel // NOTE: Not @testable import, to test public API visibility.
 import Testing
 import Tracing
 
 @Suite struct OTelBootstrapTests {
+    @Test func testMakeLoggingBackend() async throws {
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            let (factory, _) = try OTel.makeLoggingBackend()
+            LoggingSystem.bootstrap(factory)
+        }
+    }
+
     @Test func testMakeMetricsBackend() async throws {
         await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
             let (factory, _) = try OTel.makeMetricsBackend()
@@ -69,6 +77,26 @@ import Tracing
             config.traces.enabled = true
             _ = try OTel.bootstrap(configuration: config)
             InstrumentationSystem.bootstrap(NoOpTracer())
+        }
+    }
+
+    @Test func testBootstrapLoggingBackend() async throws {
+        // Bootstrapping once succeeds.
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            var config = OTel.Configuration.default
+            config.logs.enabled = true
+            config.metrics.enabled = false
+            config.traces.enabled = false
+            _ = try OTel.bootstrap(configuration: config)
+        }
+        // We test the bootstrap API actually did bootstrap, by attempting a second bootstrap.
+        await #expect(processExitsWith: .failure, "Running in a separate process because test uses bootstrap") {
+            var config = OTel.Configuration.default
+            config.logs.enabled = true
+            config.metrics.enabled = false
+            config.traces.enabled = false
+            _ = try OTel.bootstrap(configuration: config)
+            LoggingSystem.bootstrap { _ in SwiftLogNoOpLogHandler() }
         }
     }
 }
