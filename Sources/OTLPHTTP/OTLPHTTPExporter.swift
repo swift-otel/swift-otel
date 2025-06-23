@@ -31,10 +31,6 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         self.httpClient = try HTTPClient(configuration: configuration)
     }
 
-    deinit {
-        try? self.httpClient.syncShutdown()
-    }
-
     func send(_ proto: Request) async throws -> Response {
         // https://opentelemetry.io/docs/specs/otlp/#otlphttp-request
         var request = HTTPClientRequest(url: self.configuration.endpoint)
@@ -101,6 +97,10 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
 
     func shutdown() async {
         try? await self.httpClient.shutdown()
+    }
+
+    func syncShutdown() throws {
+        try self.httpClient.syncShutdown()
     }
 }
 

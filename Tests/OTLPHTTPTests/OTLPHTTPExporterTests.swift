@@ -35,9 +35,9 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpProtobuf
                 let exporter = try OTLPHTTPSpanExporter(configuration: config)
+                defer { try? exporter.exporter.syncShutdown() }
                 let span = OTelFinishedSpan.stub()
-                try await exporter.export([span])
-                await exporter.shutdown()
+                await #expect(throws: Never.self) { try await exporter.export([span]) }
             }
 
             try testServer.receiveHeadAndVerify { head in
@@ -73,9 +73,9 @@ import Tracing
                 config.protocol = .httpJSON
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 let exporter = try OTLPHTTPSpanExporter(configuration: config)
+                defer { try? exporter.exporter.syncShutdown() }
                 let span = OTelFinishedSpan.stub()
-                try await exporter.export([span])
-                await exporter.shutdown()
+                await #expect(throws: Never.self) { try await exporter.export([span]) }
             }
 
             try testServer.receiveHeadAndVerify { head in
@@ -111,8 +111,8 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpProtobuf
                 let exporter = try OTLPHTTPMetricExporter(configuration: config)
-                try await exporter.export([OTelResourceMetrics(scopeMetrics: [])])
-                await exporter.shutdown()
+                defer { try? exporter.exporter.syncShutdown() }
+                await #expect(throws: Never.self) { try await exporter.export([OTelResourceMetrics(scopeMetrics: [])]) }
             }
 
             try testServer.receiveHeadAndVerify { head in
@@ -148,8 +148,8 @@ import Tracing
                 config.protocol = .httpJSON
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 let exporter = try OTLPHTTPMetricExporter(configuration: config)
-                try await exporter.export([OTelResourceMetrics(scopeMetrics: [])])
-                await exporter.shutdown()
+                defer { try? exporter.exporter.syncShutdown() }
+                await #expect(throws: Never.self) { try await exporter.export([OTelResourceMetrics(scopeMetrics: [])]) }
             }
 
             try testServer.receiveHeadAndVerify { head in
