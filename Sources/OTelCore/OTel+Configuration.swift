@@ -378,6 +378,8 @@ extension OTel.Configuration.TracesConfiguration {
 
         /// Maximum number of spans to keep in the queue.
         ///
+        /// After the size is reached spans are dropped.
+        ///
         /// - Environment variable(s): `OTEL_BSP_MAX_QUEUE_SIZE`.
         /// - Default value: 2048.
         public var maxQueueSize: Int
