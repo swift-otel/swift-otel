@@ -33,7 +33,7 @@ extension OTel {
     /// - Returns: A service that manages the background work for the bootstrapped observability backends.
     ///
     ///   The returned service manages the complete lifecycle of all observability backends. It handles startup,
-    ///   background processing, and graceful shutdown of exporters and processors.  The service performs these
+    ///   background processing, and graceful shutdown of exporters and processors. The service performs these
     ///   operations.
     ///
     ///   > Important: You must run this service in a `ServiceGroup` alongside your application services for
@@ -76,8 +76,8 @@ extension OTel {
     /// To configure the behavior of the observability backends, first start with the default configuration and override
     /// the properties as required.
     ///
-    /// - Note: some of the values in this example are the default, but are explicitly set for illustrative purposes.
-    /// - Note: additional configuration will be applied from the environment variables defined in the OTel spec.
+    /// - Note: Some of the values in this example are the default, but are explicitly set for illustrative purposes.
+    /// - Note: Additional configuration will be applied from the environment variables defined in the OTel spec.
     ///
     /// ```swift
     /// // Start with defaults.
