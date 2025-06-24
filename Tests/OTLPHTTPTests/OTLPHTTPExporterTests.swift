@@ -35,7 +35,6 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpProtobuf
                 let exporter = try OTLPHTTPSpanExporter(configuration: config)
-                defer { try? exporter.exporter.syncShutdown() }
                 let span = OTelFinishedSpan.stub()
                 await #expect(throws: Never.self) { try await exporter.export([span]) }
             }
@@ -73,7 +72,6 @@ import Tracing
                 config.protocol = .httpJSON
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 let exporter = try OTLPHTTPSpanExporter(configuration: config)
-                defer { try? exporter.exporter.syncShutdown() }
                 let span = OTelFinishedSpan.stub()
                 await #expect(throws: Never.self) { try await exporter.export([span]) }
             }
@@ -111,7 +109,6 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpProtobuf
                 let exporter = try OTLPHTTPMetricExporter(configuration: config)
-                defer { try? exporter.exporter.syncShutdown() }
                 await #expect(throws: Never.self) { try await exporter.export([OTelResourceMetrics(scopeMetrics: [])]) }
             }
 
@@ -148,7 +145,6 @@ import Tracing
                 config.protocol = .httpJSON
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 let exporter = try OTLPHTTPMetricExporter(configuration: config)
-                defer { try? exporter.exporter.syncShutdown() }
                 await #expect(throws: Never.self) { try await exporter.export([OTelResourceMetrics(scopeMetrics: [])]) }
             }
 

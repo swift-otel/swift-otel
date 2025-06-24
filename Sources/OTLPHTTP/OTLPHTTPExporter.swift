@@ -31,6 +31,18 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         self.httpClient = try HTTPClient(configuration: configuration)
     }
 
+    deinit {
+        // This is a backstop measure where we shut down the HTTP client.
+        //
+        // The usual flow for this type is an explicit shutdown, which is handled by the object that holds the exporter.
+        //
+        // In some narrow scenarios, this type will have been created but the holding type not successfully created or
+        // started, e.g. when there is a misconfiguraiton. In these scenarios, the user should be presented with a clear
+        // error that they can debug. Having the application crash because HTTP client inside the exporter was not
+        // shutdown will worsen the experience.
+        try? self.httpClient.syncShutdown()
+    }
+
     func send(_ proto: Request) async throws -> Response {
         // https://opentelemetry.io/docs/specs/otlp/#otlphttp-request
         var request = HTTPClientRequest(url: self.configuration.endpoint)
@@ -97,10 +109,6 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
 
     func shutdown() async {
         try? await self.httpClient.shutdown()
-    }
-
-    func syncShutdown() throws {
-        try self.httpClient.syncShutdown()
     }
 }
 
