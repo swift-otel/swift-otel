@@ -146,7 +146,7 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
 
                 XCTFail("Expected exporter to throw error, successfully exported instead.")
             }
-        } catch is OTelSpanExporterAlreadyShutDownError {}
+        } catch OTLPGRPCExporterError.exporterAlreadyShutDown {}
     }
 
     func test_forceFlush() async throws {

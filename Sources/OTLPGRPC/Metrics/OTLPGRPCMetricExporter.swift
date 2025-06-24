@@ -11,101 +11,46 @@
 //
 //===----------------------------------------------------------------------===//
 
-import GRPC
 import Logging
 import NIO
-import NIOHPACK
 import NIOSSL
 import OTelCore
 import OTLPCore
 
-/// Exports metrics to an OTel collector using OTLP/gRPC.
+/// A span exporter emitting span batches to an OTel collector via gRPC.
 package final class OTLPGRPCMetricExporter: OTelMetricExporter {
-    private let configuration: OTLPGRPCMetricExporterConfiguration
-    private let connection: ClientConnection
-    private let client: Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient
-    private let logger = Logger(label: String(describing: OTLPGRPCMetricExporter.self))
+    typealias Client = Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient
+    typealias Configuration = OTLPGRPCMetricExporterConfiguration
+    private let client: OTLPGRPCExporter<Client, Configuration>
 
-    package convenience init(
-        configuration: OTLPGRPCMetricExporterConfiguration,
+    init(
+        configuration: Configuration,
         group: any EventLoopGroup = MultiThreadedEventLoopGroup.singleton,
         requestLogger: Logger = ._otelDisabled,
-        backgroundActivityLogger: Logger = ._otelDisabled
+        backgroundActivityLogger: Logger = ._otelDisabled,
+        trustRoots: NIOSSLTrustRoots = .default
     ) {
-        self.init(
+        client = OTLPGRPCExporter(
             configuration: configuration,
             group: group,
             requestLogger: requestLogger,
             backgroundActivityLogger: backgroundActivityLogger,
-            trustRoots: .default
-        )
-    }
-
-    init(
-        configuration: OTLPGRPCMetricExporterConfiguration,
-        group: any EventLoopGroup,
-        requestLogger: Logger,
-        backgroundActivityLogger: Logger,
-        trustRoots: NIOSSLTrustRoots
-    ) {
-        self.configuration = configuration
-
-        if configuration.endpoint.isInsecure {
-            logger.debug("Using insecure connection.", metadata: [
-                "host": "\(configuration.endpoint.host)",
-                "port": "\(configuration.endpoint.port)",
-            ])
-            connection = ClientConnection.insecure(group: group)
-                .withBackgroundActivityLogger(backgroundActivityLogger)
-                .connect(host: configuration.endpoint.host, port: configuration.endpoint.port)
-        } else {
-            logger.debug("Using secure connection.", metadata: [
-                "host": "\(configuration.endpoint.host)",
-                "port": "\(configuration.endpoint.port)",
-            ])
-            connection = ClientConnection
-                .usingPlatformAppropriateTLS(for: group)
-                .withTLS(trustRoots: trustRoots)
-                .withBackgroundActivityLogger(backgroundActivityLogger)
-                // TODO: Support OTEL_EXPORTER_OTLP_CERTIFICATE
-                // TODO: Support OTEL_EXPORTER_OTLP_CLIENT_KEY
-                // TODO: Support OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE
-                .connect(host: configuration.endpoint.host, port: configuration.endpoint.port)
-        }
-
-        var headers = configuration.headers
-        if !headers.isEmpty {
-            logger.trace("Configured custom request headers.", metadata: [
-                "keys": .array(headers.map { "\($0.name)" }),
-            ])
-        }
-        headers.replaceOrAdd(name: "user-agent", value: "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)")
-
-        client = Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient(
-            channel: connection,
-            defaultCallOptions: .init(customMetadata: headers, logger: requestLogger)
+            trustRoots: trustRoots
         )
     }
 
     package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
-        if case .shutdown = connection.connectivity.state {
-            logger.error("Attempted to export batch while already being shut down.")
-            throw OTelMetricExporterAlreadyShutDownError()
-        }
         let request = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest.with { request in
             request.resourceMetrics = batch.map(Opentelemetry_Proto_Metrics_V1_ResourceMetrics.init)
         }
-
         _ = try await client.export(request)
     }
 
     package func forceFlush() async throws {
-        // This exporter is a "push exporter" and so the OTel spec says that force flush should do nothing.
+        try await client.forceFlush()
     }
 
     package func shutdown() async {
-        let promise = connection.eventLoop.makePromise(of: Void.self)
-        connection.closeGracefully(deadline: .now() + .milliseconds(500), promise: promise)
-        try? await promise.futureResult.get()
+        await client.shutdown()
     }
 }

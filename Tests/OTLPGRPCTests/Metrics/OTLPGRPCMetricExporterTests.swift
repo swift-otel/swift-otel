@@ -176,7 +176,7 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
 
                 XCTFail("Expected exporter to throw error, successfully exported instead.")
             }
-        } catch is OTelMetricExporterAlreadyShutDownError {
+        } catch OTLPGRPCExporterError.exporterAlreadyShutDown {
             errorCaught.fulfill()
         }
         await fulfillment(of: [errorCaught], timeout: 0.0)
