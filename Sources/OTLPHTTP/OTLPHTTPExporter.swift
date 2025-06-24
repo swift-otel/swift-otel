@@ -110,10 +110,6 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
     func shutdown() async {
         try? await self.httpClient.shutdown()
     }
-
-    func syncShutdown() throws {
-        try self.httpClient.syncShutdown()
-    }
 }
 
 enum OTLPHTTPExporterError: Swift.Error {
