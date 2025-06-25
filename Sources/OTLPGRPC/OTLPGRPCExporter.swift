@@ -37,6 +37,7 @@ protocol OTLPGRPCClient<Request, Response, Interceptors>: GRPCClient {
 
 extension Opentelemetry_Proto_Collector_Trace_V1_TraceServiceAsyncClient: OTLPGRPCClient {}
 extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient: OTLPGRPCClient {}
+extension Opentelemetry_Proto_Collector_Logs_V1_LogsServiceAsyncClient: OTLPGRPCClient {}
 
 final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sendable {
     private let connection: ClientConnection
