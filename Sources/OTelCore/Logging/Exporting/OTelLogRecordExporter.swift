@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceLifecycle
+package import ServiceLifecycle
 
 /// A span exporter receives batches of processed logs to export them, e.g. by sending them over the network.
 ///

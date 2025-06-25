@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Tracing
+package import Tracing
 
 /// A read-only representation of an ended ``OTelSpan``.
 package struct OTelFinishedSpan: Sendable {

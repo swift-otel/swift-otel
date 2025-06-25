@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTelCore
+package import OTelCore
 
 extension Opentelemetry_Proto_Metrics_V1_ResourceMetrics {
     package init(_ resourceMetrics: OTelResourceMetrics) {

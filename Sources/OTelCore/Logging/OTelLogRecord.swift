@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
+package import Logging
 
 package struct OTelLogRecord: Equatable, Sendable {
     package var body: Logger.Message

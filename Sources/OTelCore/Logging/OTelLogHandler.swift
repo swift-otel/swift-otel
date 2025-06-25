@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import AsyncAlgorithms
-import Logging
+package import Logging
 import NIOConcurrencyHelpers
 import ServiceLifecycle
 import Tracing

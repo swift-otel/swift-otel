@@ -14,7 +14,7 @@
 import Logging
 import NIO
 import NIOSSL
-import OTelCore
+package import OTelCore
 import OTLPCore
 
 /// A span exporter emitting span batches to an OTel collector via gRPC.

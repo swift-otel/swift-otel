@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import struct Foundation.Data
-import Tracing
+package import Tracing
 
 extension Opentelemetry_Proto_Trace_V1_Span.Link {
     /// Create a span link from a `SpanLink`.

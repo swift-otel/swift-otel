@@ -14,7 +14,7 @@
 import class Foundation.ProcessInfo
 import Logging
 import Metrics
-import ServiceLifecycle
+public import ServiceLifecycle
 import Tracing
 
 // MARK: - API

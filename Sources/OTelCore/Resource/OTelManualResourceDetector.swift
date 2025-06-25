@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
+package import Logging
 
 @_documentation(visibility: private)
 package struct OTelManualResourceDetector: OTelResourceDetector, CustomStringConvertible {

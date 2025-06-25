@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import OTelCore
-import W3CTraceContext
+package import W3CTraceContext
 
 package struct OTelConstantIDGenerator: OTelIDGenerator {
     private let _traceID: TraceID

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Tracing
+package import Tracing
 
 package struct StubInstant: TracerInstant {
     package var nanosecondsSinceEpoch: UInt64

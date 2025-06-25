@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
-import ServiceContextModule
+package import Logging
+private import ServiceContextModule
 
 extension Logger.MetadataProvider {
     /// A metadata provider exposing the current trace and span ID.

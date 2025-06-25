@@ -12,8 +12,8 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
-import Logging
-import OTelCore
+package import Logging
+package import OTelCore
 
 extension OTelLogRecord {
     package static func stub(

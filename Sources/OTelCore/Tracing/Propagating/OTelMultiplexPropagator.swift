@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Instrumentation
+package import Instrumentation
 
 /// A pseudo-`OTelPropagator` that may be used to instrument using
 /// multiple other `OTelPropagator`s across a common `OTelSpanContext`.

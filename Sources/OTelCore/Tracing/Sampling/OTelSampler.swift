@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Tracing
-import W3CTraceContext
+package import Tracing
+package import W3CTraceContext
 
 /// Decides whether a given span should be sampled.
 package protocol OTelSampler: Sendable {

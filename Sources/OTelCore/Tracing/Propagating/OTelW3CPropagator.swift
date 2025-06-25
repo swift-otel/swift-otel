@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Instrumentation
+package import Instrumentation
 import W3CTraceContext
 
 /// A propagator which operates on HTTP headers using the [W3C TraceContext](https://www.w3.org/TR/2020/REC-trace-context-1-20200206/).

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
+package import Logging
 
 /// A resource detector asynchronously detects attributes describing an ``OTelResource``.
 ///

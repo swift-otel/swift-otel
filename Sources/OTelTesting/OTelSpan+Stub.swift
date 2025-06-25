@@ -11,9 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTelCore
-import ServiceContextModule
-import Tracing
+@testable package import OTelCore
+package import ServiceContextModule
+package import Tracing
 
 extension OTelSpan {
     /// A no-op span stub.

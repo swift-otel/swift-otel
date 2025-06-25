@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Tracing
+package import Tracing
 
 /// A set of attributes describing the entity being instrumented.
 ///

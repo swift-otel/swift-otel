@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import struct Foundation.Data
-import OTelCore
+package import OTelCore
 import Tracing
 import W3CTraceContext
 

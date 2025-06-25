@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Tracing
+package import Tracing
 
 extension [Opentelemetry_Proto_Common_V1_KeyValue] {
     /// Create an array of key-value pairs from span attributes.

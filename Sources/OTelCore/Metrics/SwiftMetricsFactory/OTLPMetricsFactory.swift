@@ -24,7 +24,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import CoreMetrics
+package import CoreMetrics
 
 /// A Swift Metrics `MetricsFactory` implementation backed by ``OTelMetricRegistry``.
 package struct OTLPMetricsFactory: Sendable {

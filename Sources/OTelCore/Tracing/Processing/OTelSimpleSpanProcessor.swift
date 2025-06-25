@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-import ServiceContextModule
+package import ServiceContextModule
 
 /// A span processor that simply forwards finished spans to a configured exporter, one at a time as soon as their ended.
 ///

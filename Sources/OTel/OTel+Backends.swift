@@ -11,11 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-import CoreMetrics
-import Logging
-import OTelCore
-import ServiceLifecycle
-import Tracing
+public import CoreMetrics
+public import Logging
+public import OTelCore
+public import ServiceLifecycle
+public import Tracing
 #if OTLPGRPC
 import OTLPGRPC
 #endif

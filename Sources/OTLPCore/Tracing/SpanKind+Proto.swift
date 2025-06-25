@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Tracing
+package import Tracing
 
 extension Opentelemetry_Proto_Trace_V1_Span.SpanKind {
     /// Create a span kind from a `SpanKind`.

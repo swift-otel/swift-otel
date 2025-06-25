@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Tracing
+package import Tracing
 
 extension Opentelemetry_Proto_Trace_V1_Span.Event {
     /// Create an event from a `SpanEvent`.

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
+package import ServiceContextModule
 
 extension ServiceContext {
     package static func withSpanContext(_ spanContext: OTelSpanContext) -> Self {
