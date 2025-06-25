@@ -20,23 +20,10 @@ import OTLPCore
 /// A span exporter emitting span batches to an OTel collector via gRPC.
 package final class OTLPGRPCSpanExporter: OTelSpanExporter {
     typealias Client = Opentelemetry_Proto_Collector_Trace_V1_TraceServiceAsyncClient
-    typealias Configuration = OTLPGRPCSpanExporterConfiguration
-    private let client: OTLPGRPCExporter<Client, Configuration>
+    private let client: OTLPGRPCExporter<Client>
 
-    init(
-        configuration: Configuration,
-        group: any EventLoopGroup = MultiThreadedEventLoopGroup.singleton,
-        requestLogger: Logger = ._otelDisabled,
-        backgroundActivityLogger: Logger = ._otelDisabled,
-        trustRoots: NIOSSLTrustRoots = .default
-    ) {
-        client = OTLPGRPCExporter(
-            configuration: configuration,
-            group: group,
-            requestLogger: requestLogger,
-            backgroundActivityLogger: backgroundActivityLogger,
-            trustRoots: trustRoots
-        )
+    package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+        client = try OTLPGRPCExporter(configuration: configuration)
     }
 
     package func export(_ batch: some Collection<OTelFinishedSpan>) async throws {

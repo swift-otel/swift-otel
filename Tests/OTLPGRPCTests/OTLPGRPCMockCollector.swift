@@ -49,7 +49,7 @@ final class OTLPGRPCMockCollector: Sendable {
 
     @discardableResult
     func withSecureServer<T>(
-        operation: (_ endpoint: String, _ trustRoots: NIOSSLTrustRoots) async throws -> T
+        operation: (_ endpoint: String, _ trustRootsPath: String) async throws -> T
     ) async throws -> T {
         try await withTemporaryDirectory { tempDir in
             let trustRootsPath = tempDir.appendingPathComponent("trust_roots.pem")
@@ -75,7 +75,7 @@ final class OTLPGRPCMockCollector: Sendable {
 
             do {
                 let port = try XCTUnwrap(server.channel.localAddress?.port)
-                let result = try await operation("https://localhost:\(port)", .file(trustRootsPath.path()))
+                let result = try await operation("https://localhost:\(port)", trustRootsPath.path())
                 try await server.close().get()
                 return result
             } catch {

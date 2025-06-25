@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import struct Foundation.URLComponents
 import GRPC
 import Logging
 import NIO
@@ -37,81 +38,72 @@ protocol OTLPGRPCClient<Request, Response, Interceptors>: GRPCClient {
 extension Opentelemetry_Proto_Collector_Trace_V1_TraceServiceAsyncClient: OTLPGRPCClient {}
 extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient: OTLPGRPCClient {}
 
-/// Unifying protocol for shared OTLP/gRPC exporter across signals.
-///
-/// NOTE: This is a temporary measure and this type will be overhauled as we move to using `OTel.Configuration`.
-protocol OTLPGRPCExporterConfiguration {
-    var endpoint: OTLPGRPCEndpoint { get }
-    var headers: HPACKHeaders { get }
-}
-
-extension OTLPGRPCSpanExporterConfiguration: OTLPGRPCExporterConfiguration {}
-extension OTLPGRPCMetricExporterConfiguration: OTLPGRPCExporterConfiguration {}
-
-final class OTLPGRPCExporter<Client: OTLPGRPCClient, Configuration: OTLPGRPCExporterConfiguration>: Sendable where Client: Sendable, Configuration: Sendable {
-    private let configuration: Configuration
+final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sendable {
     private let connection: ClientConnection
     private let client: Client
     private let logger = Logger(label: "OTLPGRPCExporter")
 
-    convenience init(
-        configuration: Configuration,
-        group: any EventLoopGroup = MultiThreadedEventLoopGroup.singleton,
-        requestLogger: Logger = ._otelDisabled,
-        backgroundActivityLogger: Logger = ._otelDisabled
-    ) {
-        self.init(
-            configuration: configuration,
-            group: group,
-            requestLogger: requestLogger,
-            backgroundActivityLogger: backgroundActivityLogger,
-            trustRoots: .default
-        )
-    }
+    init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+        let group = MultiThreadedEventLoopGroup.singleton
 
-    init(
-        configuration: Configuration,
-        group: any EventLoopGroup,
-        requestLogger: Logger,
-        backgroundActivityLogger: Logger,
-        trustRoots: NIOSSLTrustRoots
-    ) {
-        self.configuration = configuration
-
-        if configuration.endpoint.isInsecure {
-            logger.debug("Using insecure connection.", metadata: [
-                "host": "\(configuration.endpoint.host)",
-                "port": "\(configuration.endpoint.port)",
-            ])
-            connection = ClientConnection.insecure(group: group)
-                .withBackgroundActivityLogger(backgroundActivityLogger)
-                .connect(host: configuration.endpoint.host, port: configuration.endpoint.port)
-        } else {
-            logger.debug("Using secure connection.", metadata: [
-                "host": "\(configuration.endpoint.host)",
-                "port": "\(configuration.endpoint.port)",
-            ])
-            connection = ClientConnection
-                .usingPlatformAppropriateTLS(for: group)
-                .withTLS(trustRoots: trustRoots)
-                .withBackgroundActivityLogger(backgroundActivityLogger)
-                // TODO: Support OTEL_EXPORTER_OTLP_CERTIFICATE
-                // TODO: Support OTEL_EXPORTER_OTLP_CLIENT_KEY
-                // TODO: Support OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE
-                .connect(host: configuration.endpoint.host, port: configuration.endpoint.port)
+        guard configuration.protocol == .grpc else {
+            throw OTLPGRPCExporterError.invalidProtocol
         }
 
-        var headers = configuration.headers
+        guard
+            let endpointComponents = URLComponents(string: configuration.endpoint),
+            let host = endpointComponents.host,
+            let port = endpointComponents.port
+        else {
+            throw OTLPGRPCExporterError.invalidEndpoint(configuration.endpoint)
+        }
+
+        /// > A scheme of https indicates a secure connection and takes precedence over the insecure configuration
+        /// > setting. A scheme of http indicates ainsecure connection and takes precedence over the insecure
+        /// > configuration setting. If the gRPC client implementation does not support an endpoint with a scheme of
+        /// > http or https then the endpoint SHOULD be transformed to the most sensible format for that implementation.
+        /// > —— source: https://opentelemetry.io/docs/specs/otel/protocol/exporter/
+        let insecure = switch endpointComponents.scheme {
+        case "https": false
+        case "http": true
+        default: configuration.insecure
+        }
+
+        if insecure {
+            self.connection = ClientConnection.insecure(group: group).connect(host: host, port: port)
+        } else {
+            let builder = ClientConnection.usingTLSBackedByNIOSSL(on: group)
+            // TLS
+            if let certPath = configuration.certificateFilePath {
+                builder.withTLS(trustRoots: .file(certPath))
+            } else {
+                builder.withTLS(trustRoots: .default)
+            }
+            // mTLS
+            switch (configuration.clientCertificateFilePath, configuration.clientKeyFilePath) {
+            case (.none, .none):
+                break
+            case (.some, .none), (.none, .some):
+                throw OTLPGRPCExporterError.partialMTLSdConfiguration
+            case (.some(let clientCertPath), .some(let clientKeyPath)):
+                try builder
+                    .withTLS(certificateChain: NIOSSLCertificate.fromPEMFile(clientCertPath))
+                    .withTLS(privateKey: NIOSSLPrivateKey(file: clientKeyPath, format: .pem))
+            }
+            self.connection = builder.connect(host: host, port: port)
+        }
+
+        var headers = HPACKHeaders(configuration.headers)
         if !headers.isEmpty {
             logger.trace("Configured custom request headers.", metadata: [
-                "keys": .array(headers.map { "\($0.name)" }),
+                "keys": .array(headers.map { .string($0.name) }),
             ])
         }
-        headers.replaceOrAdd(name: "user-agent", value: "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)")
+        headers.replaceOrAdd(name: "User-Agent", value: "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)")
 
-        client = Client(
+        self.client = Client(
             channel: connection,
-            defaultCallOptions: .init(customMetadata: headers, logger: requestLogger),
+            defaultCallOptions: .init(customMetadata: headers, logger: ._otelDisabled),
             interceptors: nil
         )
     }
@@ -136,5 +128,8 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient, Configuration: OTLPGRPCExpo
 }
 
 enum OTLPGRPCExporterError: Swift.Error {
+    case invalidEndpoint(String)
+    case partialMTLSdConfiguration
     case exporterAlreadyShutDown
+    case invalidProtocol
 }

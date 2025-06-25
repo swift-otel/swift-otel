@@ -32,12 +32,10 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
         let collector = OTLPGRPCMockCollector()
 
         try await collector.withInsecureServer { endpoint in
-            let configuration = try OTLPGRPCMetricExporterConfiguration(environment: [:], endpoint: endpoint)
-            let exporter = OTLPGRPCMetricExporter(
-                configuration: configuration,
-                requestLogger: requestLogger,
-                backgroundActivityLogger: backgroundActivityLogger
-            )
+            var configuration = OTel.Configuration.OTLPExporterConfiguration.default
+            configuration.protocol = .grpc
+            configuration.endpoint = endpoint
+            let exporter = try OTLPGRPCMetricExporter(configuration: configuration)
 
             let metrics = OTelResourceMetrics(scopeMetrics: [])
             try await exporter.export([metrics])
@@ -57,15 +55,12 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
     func test_export_whenConnected_withSecureConnection_sendsExportRequestToCollector() async throws {
         let collector = OTLPGRPCMockCollector()
 
-        try await collector.withSecureServer { endpoint, trustRoots in
-            let configuration = try OTLPGRPCMetricExporterConfiguration(environment: [:], endpoint: endpoint)
-            let exporter = OTLPGRPCMetricExporter(
-                configuration: configuration,
-                group: MultiThreadedEventLoopGroup.singleton,
-                requestLogger: requestLogger,
-                backgroundActivityLogger: backgroundActivityLogger,
-                trustRoots: trustRoots
-            )
+        try await collector.withSecureServer { endpoint, trustRootsPath in
+            var configuration = OTel.Configuration.OTLPExporterConfiguration.default
+            configuration.protocol = .grpc
+            configuration.endpoint = endpoint
+            configuration.certificateFilePath = trustRootsPath
+            let exporter = try OTLPGRPCMetricExporter(configuration: configuration)
 
             let metrics = OTelResourceMetrics(scopeMetrics: [])
             try await exporter.export([metrics])
@@ -113,19 +108,14 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
         )
 
         try await collector.withInsecureServer { endpoint in
-            let configuration = try OTLPGRPCMetricExporterConfiguration(
-                environment: [:],
-                endpoint: endpoint,
-                headers: [
-                    "key1": "42",
-                    "key2": "84",
-                ]
-            )
-            let exporter = OTLPGRPCMetricExporter(
-                configuration: configuration,
-                requestLogger: requestLogger,
-                backgroundActivityLogger: backgroundActivityLogger
-            )
+            var configuration = OTel.Configuration.OTLPExporterConfiguration.default
+            configuration.protocol = .grpc
+            configuration.endpoint = endpoint
+            configuration.headers = [
+                ("key1", "42"),
+                ("key2", "84"),
+            ]
+            let exporter = try OTLPGRPCMetricExporter(configuration: configuration)
 
             try await exporter.export([resourceMetricsToExport])
 
@@ -163,12 +153,10 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
         let errorCaught = expectation(description: "Caught expected error")
         do {
             try await collector.withInsecureServer { endpoint in
-                let configuration = try OTLPGRPCMetricExporterConfiguration(environment: [:], endpoint: endpoint)
-                let exporter = OTLPGRPCMetricExporter(
-                    configuration: configuration,
-                    requestLogger: requestLogger,
-                    backgroundActivityLogger: backgroundActivityLogger
-                )
+                var configuration = OTel.Configuration.OTLPExporterConfiguration.default
+                configuration.protocol = .grpc
+                configuration.endpoint = endpoint
+                let exporter = try OTLPGRPCMetricExporter(configuration: configuration)
                 await exporter.shutdown()
 
                 let metrics = OTelResourceMetrics(scopeMetrics: [])
@@ -184,8 +172,12 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
 
     func test_forceFlush() async throws {
         // This exporter is a "push exporter" and so the OTel spec says that force flush should do nothing.
-        let configuration = try OTLPGRPCMetricExporterConfiguration(environment: [:])
-        let exporter = OTLPGRPCMetricExporter(configuration: configuration)
-        try await exporter.forceFlush()
+        try await OTLPGRPCMockCollector().withInsecureServer { endpoint in
+            var configuration = OTel.Configuration.OTLPExporterConfiguration.default
+            configuration.protocol = .grpc
+            configuration.endpoint = endpoint
+            let exporter = try OTLPGRPCMetricExporter(configuration: configuration)
+            try await exporter.forceFlush()
+        }
     }
 }

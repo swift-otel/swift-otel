@@ -20,23 +20,10 @@ import OTLPCore
 /// A metrics exporter emitting metric batches to an OTel collector via gRPC.
 package final class OTLPGRPCMetricExporter: OTelMetricExporter {
     typealias Client = Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient
-    typealias Configuration = OTLPGRPCMetricExporterConfiguration
-    private let client: OTLPGRPCExporter<Client, Configuration>
+    private let client: OTLPGRPCExporter<Client>
 
-    init(
-        configuration: Configuration,
-        group: any EventLoopGroup = MultiThreadedEventLoopGroup.singleton,
-        requestLogger: Logger = ._otelDisabled,
-        backgroundActivityLogger: Logger = ._otelDisabled,
-        trustRoots: NIOSSLTrustRoots = .default
-    ) {
-        client = OTLPGRPCExporter(
-            configuration: configuration,
-            group: group,
-            requestLogger: requestLogger,
-            backgroundActivityLogger: backgroundActivityLogger,
-            trustRoots: trustRoots
-        )
+    package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+        client = try OTLPGRPCExporter(configuration: configuration)
     }
 
     package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
