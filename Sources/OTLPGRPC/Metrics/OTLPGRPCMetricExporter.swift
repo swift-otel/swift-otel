@@ -17,7 +17,7 @@ import NIOSSL
 import OTelCore
 import OTLPCore
 
-/// A span exporter emitting span batches to an OTel collector via gRPC.
+/// A metrics exporter emitting metric batches to an OTel collector via gRPC.
 package final class OTLPGRPCMetricExporter: OTelMetricExporter {
     typealias Client = Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient
     typealias Configuration = OTLPGRPCMetricExporterConfiguration
