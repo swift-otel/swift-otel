@@ -169,6 +169,8 @@ extension OTel.Configuration {
     /// Log level for internal diagnostic messages.
     ///
     /// Controls the minimum severity level for diagnostic output.
+    ///
+    /// This option is ignored for custom loggers.
     public struct LogLevel: Sendable {
         package enum Backing: String, Sendable {
             case error
