@@ -76,12 +76,14 @@ $(OTLP_CORE_SWIFTS): $(OTLP_CORE_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_SWIFT)
 		--plugin=$(PROTOC_GEN_SWIFT) \
 		--swift_out=$(OTLP_CORE_SWIFT_ROOT) \
 		--swift_opt=Visibility=Package \
+		--swift_opt=UseAccessLevelOnImports=true \
 		--experimental_allow_proto3_optional
 	protoc $(OTLP_GRPC_PROTOS) \
 		--proto_path=$(PROTO_ROOT) \
 		--plugin=$(PROTOC_GEN_SWIFT) \
 		--swift_out=$(OTLP_CORE_SWIFT_ROOT) \
 		--swift_opt=Visibility=Package \
+		--swift_opt=UseAccessLevelOnImports=true \
 		--experimental_allow_proto3_optional
 
 $(OTLP_CLIENT_GRPC_SWIFTS): $(OTLP_GRPC_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_GRPC_SWIFT)
