@@ -491,13 +491,13 @@ extension OTel.Configuration.LogsConfiguration {
     public struct BatchLogRecordProcessorConfiguration: Sendable {
         /// Maximum time to wait before triggering an export.
         ///
-        /// - Environment variable(s): `OTEL_BRLP_SCHEDULE_DELAY`.
-        /// - Default value: 1 seconds.
+        /// - Environment variable(s): `OTEL_BLRP_SCHEDULE_DELAY`.
+        /// - Default value: 1 second.
         public var scheduleDelay: Duration
 
         /// Maximum time to wait for each export operation.
         ///
-        /// - Environment variable(s): `OTEL_BRLP_EXPORT_TIMEOUT`.
+        /// - Environment variable(s): `OTEL_BLRP_EXPORT_TIMEOUT`.
         /// - Default value: 30 seconds.
         public var exportTimeout: Duration
 
@@ -505,13 +505,13 @@ extension OTel.Configuration.LogsConfiguration {
         ///
         /// After the size is reached logs are dropped.
         ///
-        /// - Environment variable(s): `OTEL_BRLP_MAX_QUEUE_SIZE`.
+        /// - Environment variable(s): `OTEL_BLRP_MAX_QUEUE_SIZE`.
         /// - Default value: 2048.
         public var maxQueueSize: Int
 
         /// Maximum number of log records to export in a single batch.
         ///
-        /// - Environment variable(s): `OTEL_BRLP_MAX_EXPORT_BATCH_SIZE`.
+        /// - Environment variable(s): `OTEL_BLRP_MAX_EXPORT_BATCH_SIZE`.
         /// - Default value: 512.
         public var maxExportBatchSize: Int
 
