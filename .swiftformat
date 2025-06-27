@@ -9,6 +9,7 @@
 
 --extensionacl on-declarations
 --indent 4
+--ifdef no-indent
 --patternlet inline
 --stripunusedargs closure-only
 --wraparguments before-first

@@ -12,104 +12,104 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(XCTest)
-    @testable import OTelCore
-    import XCTest
+@testable import OTelCore
+import XCTest
 
-    extension Counter {
-        package var atomicValue: Int64 { atomic.load(ordering: .relaxed) }
+extension Counter {
+    package var atomicValue: Int64 { atomic.load(ordering: .relaxed) }
+}
+
+extension FloatingPointCounter {
+    package var atomicValue: Double { Double(bitPattern: atomic.load(ordering: .relaxed)) }
+}
+
+extension Gauge {
+    package var atomicValue: Double { Double(bitPattern: atomic.load(ordering: .relaxed)) }
+}
+
+extension Histogram {
+    private struct EquatableBucket: Equatable {
+        var bound: Value
+        var count: Int
     }
 
-    extension FloatingPointCounter {
-        package var atomicValue: Double { Double(bitPattern: atomic.load(ordering: .relaxed)) }
+    package func assertStateEquals(
+        count: Int,
+        sum: Value,
+        buckets: [(bound: Value, count: Int)],
+        countAboveUpperBound: Int,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let state = box.withLockedValue { $0 }
+        XCTAssertEqual(state.count, count, "Unexpected count", file: file, line: line)
+        XCTAssertEqual(state.sum, sum, "Unexpected sum", file: file, line: line)
+        XCTAssertEqual(
+            state.buckets.map { EquatableBucket(bound: $0.bound, count: $0.count) },
+            buckets.map { EquatableBucket(bound: $0.bound, count: $0.count) },
+            "Unexpected buckets",
+            file: file, line: line
+        )
+        XCTAssertEqual(state.countAboveUpperBound, countAboveUpperBound, "Unexpected countAboveUpperBound", file: file, line: line)
+    }
+}
+
+extension OTelMetricPoint.OTelMetricData {
+    package var asSum: OTelSum? {
+        guard case .sum(let sum) = self.data else { return nil }
+        return sum
     }
 
-    extension Gauge {
-        package var atomicValue: Double { Double(bitPattern: atomic.load(ordering: .relaxed)) }
+    package var asGauge: OTelGauge? {
+        guard case .gauge(let gauge) = self.data else { return nil }
+        return gauge
     }
 
-    extension Histogram {
-        private struct EquatableBucket: Equatable {
-            var bound: Value
-            var count: Int
-        }
-
-        package func assertStateEquals(
-            count: Int,
-            sum: Value,
-            buckets: [(bound: Value, count: Int)],
-            countAboveUpperBound: Int,
-            file: StaticString = #filePath,
-            line: UInt = #line
-        ) {
-            let state = box.withLockedValue { $0 }
-            XCTAssertEqual(state.count, count, "Unexpected count", file: file, line: line)
-            XCTAssertEqual(state.sum, sum, "Unexpected sum", file: file, line: line)
-            XCTAssertEqual(
-                state.buckets.map { EquatableBucket(bound: $0.bound, count: $0.count) },
-                buckets.map { EquatableBucket(bound: $0.bound, count: $0.count) },
-                "Unexpected buckets",
-                file: file, line: line
-            )
-            XCTAssertEqual(state.countAboveUpperBound, countAboveUpperBound, "Unexpected countAboveUpperBound", file: file, line: line)
-        }
+    package var asHistogram: OTelHistogram? {
+        guard case .histogram(let histogram) = self.data else { return nil }
+        return histogram
     }
 
-    extension OTelMetricPoint.OTelMetricData {
-        package var asSum: OTelSum? {
-            guard case .sum(let sum) = self.data else { return nil }
-            return sum
+    package func assertIsCumulativeSumWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
+        guard
+            case .sum(let sum) = data,
+            sum.monotonic,
+            sum.aggregationTemporality == .cumulative,
+            sum.points.count == 1,
+            let point = sum.points.first
+        else {
+            XCTFail("Not cumulative sum with one point: \(self)", file: file, line: line)
+            return
         }
-
-        package var asGauge: OTelGauge? {
-            guard case .gauge(let gauge) = self.data else { return nil }
-            return gauge
-        }
-
-        package var asHistogram: OTelHistogram? {
-            guard case .histogram(let histogram) = self.data else { return nil }
-            return histogram
-        }
-
-        package func assertIsCumulativeSumWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
-            guard
-                case .sum(let sum) = data,
-                sum.monotonic,
-                sum.aggregationTemporality == .cumulative,
-                sum.points.count == 1,
-                let point = sum.points.first
-            else {
-                XCTFail("Not cumulative sum with one point: \(self)", file: file, line: line)
-                return
-            }
-            XCTAssertEqual(point.value, value, file: file, line: line)
-        }
-
-        package func assertIsGaugeWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
-            guard
-                case .gauge(let gauge) = data,
-                gauge.points.count == 1,
-                let point = gauge.points.first
-            else {
-                XCTFail("Not gauge with one point: \(self)", file: file, line: line)
-                return
-            }
-            XCTAssertEqual(point.value, value, file: file, line: line)
-        }
-
-        package func assertIsCumulativeHistogramWith(count: Int, sum: Double, buckets: [OTelHistogramDataPoint.Bucket], file: StaticString = #filePath, line: UInt = #line) {
-            guard
-                case .histogram(let histogram) = data,
-                histogram.aggregationTemporality == .cumulative,
-                histogram.points.count == 1,
-                let point = histogram.points.first
-            else {
-                XCTFail("Not cumulative histogram with one point: \(self)", file: file, line: line)
-                return
-            }
-
-            XCTAssertEqual(point.count, UInt64(count), file: file, line: line)
-            XCTAssertEqual(point.sum, sum, file: file, line: line)
-            XCTAssertEqual(point.buckets, buckets, file: file, line: line)
-        }
+        XCTAssertEqual(point.value, value, file: file, line: line)
     }
+
+    package func assertIsGaugeWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
+        guard
+            case .gauge(let gauge) = data,
+            gauge.points.count == 1,
+            let point = gauge.points.first
+        else {
+            XCTFail("Not gauge with one point: \(self)", file: file, line: line)
+            return
+        }
+        XCTAssertEqual(point.value, value, file: file, line: line)
+    }
+
+    package func assertIsCumulativeHistogramWith(count: Int, sum: Double, buckets: [OTelHistogramDataPoint.Bucket], file: StaticString = #filePath, line: UInt = #line) {
+        guard
+            case .histogram(let histogram) = data,
+            histogram.aggregationTemporality == .cumulative,
+            histogram.points.count == 1,
+            let point = histogram.points.first
+        else {
+            XCTFail("Not cumulative histogram with one point: \(self)", file: file, line: line)
+            return
+        }
+
+        XCTAssertEqual(point.count, UInt64(count), file: file, line: line)
+        XCTAssertEqual(point.sum, sum, file: file, line: line)
+        XCTAssertEqual(point.buckets, buckets, file: file, line: line)
+    }
+}
 #endif

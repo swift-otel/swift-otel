@@ -20,6 +20,18 @@ extension OTelResource {
     }
 }
 
+extension OTelBatchLogRecordProcessorConfiguration {
+    package init(configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration) {
+        self.init(
+            environment: [:],
+            maximumQueueSize: UInt(configuration.maxQueueSize),
+            scheduleDelay: configuration.scheduleDelay,
+            maximumExportBatchSize: UInt(configuration.maxExportBatchSize),
+            exportTimeout: configuration.exportTimeout
+        )
+    }
+}
+
 extension OTelPeriodicExportingMetricsReaderConfiguration {
     package init(configuration: OTel.Configuration.MetricsConfiguration) {
         self.init(

@@ -12,18 +12,18 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(XCTest)
-    import XCTest
+import XCTest
 
-    package func XCTAssertThrowsError<E: Error & Equatable>(_ expression: @autoclosure () throws -> some Any, _ error: E) {
-        do {
-            let value = try expression()
-            XCTFail("Expected error but received value: \(value)")
-        } catch let actualError {
-            guard let e = actualError as? E else {
-                XCTFail("Expected \(type(of: E.self)), but received \(type(of: actualError))")
-                return
-            }
-            XCTAssertEqual(e, error)
+package func XCTAssertThrowsError<E: Error & Equatable>(_ expression: @autoclosure () throws -> some Any, _ error: E) {
+    do {
+        let value = try expression()
+        XCTFail("Expected error but received value: \(value)")
+    } catch let actualError {
+        guard let e = actualError as? E else {
+            XCTFail("Expected \(type(of: E.self)), but received \(type(of: actualError))")
+            return
         }
+        XCTAssertEqual(e, error)
     }
+}
 #endif

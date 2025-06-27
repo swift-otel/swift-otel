@@ -106,6 +106,7 @@ extension OTel.Configuration.MetricsConfiguration {
 
 extension OTel.Configuration.LogsConfiguration {
     internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
+        batchLogRecordProcessor.applyEnvironmentOverrides(environment: environment)
         if let logsExporter = environment.getStringValue(.logsExporter) {
             switch logsExporter {
             case "none":
@@ -139,33 +140,50 @@ extension OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration
     }
 }
 
+extension OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration {
+    internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
+        if let scheduleDelay = environment.getDurationValue(.batchLogRecordProcessorScheduleDelay) {
+            self.scheduleDelay = scheduleDelay
+        }
+        if let exportTimeout = environment.getTimeoutValue(.batchLogRecordProcessorExportTimeout) {
+            self.exportTimeout = exportTimeout
+        }
+        if let maxQueueSize = environment.getIntegerValue(.batchLogRecordProcessorMaxQueueSize) {
+            self.maxQueueSize = maxQueueSize
+        }
+        if let exportBatchSize = environment.getIntegerValue(.batchLogRecordProcessorExportBatchSize) {
+            maxExportBatchSize = exportBatchSize
+        }
+    }
+}
+
 extension OTel.Configuration.OTLPExporterConfiguration {
     internal mutating func applyEnvironmentOverrides(environment: [String: String], signal: OTel.Configuration.Key.Signal) {
         if let `protocol` = environment.getStringValue(.otlpExporterProtocol, signal: signal) {
             switch `protocol` {
             case "http/json":
                 #if OTLPHTTP
-                    self.protocol = .httpJSON
+                self.protocol = .httpJSON
                 #else // OTLPHTTP
-                    fatalError("Using the OTLP/HTTP + JSON exporter requires the `OTLPHTTP` trait enabled.")
+                fatalError("Using the OTLP/HTTP + JSON exporter requires the `OTLPHTTP` trait enabled.")
                 #endif
             case "grpc":
                 #if OTLPGRPC
-                    self.protocol = .grpc
+                self.protocol = .grpc
                 #else // OTLPGRPC
-                    fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
+                fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
                 #endif
             case "http/protobuf":
                 #if OTLPHTTP
-                    self.protocol = .httpProtobuf
+                self.protocol = .httpProtobuf
                 #else // OTLPHTTP
-                    fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
+                fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
                 #endif
             default:
                 #if OTLPHTTP
-                    self.protocol = .httpProtobuf
+                self.protocol = .httpProtobuf
                 #else // OTLPHTTP
-                    fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
+                fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
                 #endif
             }
         }

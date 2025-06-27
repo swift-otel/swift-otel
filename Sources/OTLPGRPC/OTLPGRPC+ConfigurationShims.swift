@@ -24,12 +24,6 @@ extension OTLPGRPCMetricExporterConfiguration {
     }
 }
 
-extension OTLPGRPCMetricExporter {
-    package convenience init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
-        try self.init(configuration: .init(configuration: configuration))
-    }
-}
-
 extension OTLPGRPCSpanExporterConfiguration {
     package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
         try self.init(
@@ -38,11 +32,5 @@ extension OTLPGRPCSpanExporterConfiguration {
             shouldUseAnInsecureConnection: configuration.insecure,
             headers: .init(configuration.headers)
         )
-    }
-}
-
-extension OTLPGRPCSpanExporter {
-    package convenience init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
-        try self.init(configuration: .init(configuration: configuration))
     }
 }

@@ -49,36 +49,39 @@ final class OTLPGRPCMockCollector: Sendable {
 
     @discardableResult
     func withSecureServer<T>(
-        operation: (_ endpoint: String, _ trustRoots: NIOSSLTrustRoots) async throws -> T
+        operation: (_ endpoint: String, _ trustRootsPath: String) async throws -> T
     ) async throws -> T {
-        let trustRoots = try NIOSSLTrustRoots.certificates(
-            [NIOSSLCertificate(bytes: Array(exampleCACert.utf8), format: .pem)]
-        )
-        let certificate = try NIOSSLCertificate(bytes: Array(exampleServerCert.utf8), format: .pem)
-        let privateKey = try NIOSSLPrivateKey(bytes: Array(exampleServerKey.utf8), format: .pem)
-        let server = try await Server
-            .usingTLSBackedByNIOSSL(
-                on: MultiThreadedEventLoopGroup.singleton,
-                certificateChain: [certificate],
-                privateKey: privateKey
-            )
-            .withLogger(Logger(label: String(describing: type(of: self))))
-            .withTLS(trustRoots: trustRoots)
-            .withServiceProviders([
-                metricsProvider,
-                traceProvider,
-            ])
-            .bind(host: "localhost", port: 0)
-            .get()
+        try await withTemporaryDirectory { tempDir in
+            let trustRootsPath = tempDir.appendingPathComponent("trust_roots.pem")
+            try Data(exampleCACert.utf8).write(to: trustRootsPath)
+            let certificatePath = tempDir.appendingPathComponent("server_cert.pem")
+            try Data(exampleServerCert.utf8).write(to: certificatePath)
+            let privateKeyPath = tempDir.appendingPathComponent("server_key.pem")
+            try Data(exampleServerKey.utf8).write(to: privateKeyPath)
+            let server = try await Server
+                .usingTLSBackedByNIOSSL(
+                    on: MultiThreadedEventLoopGroup.singleton,
+                    certificateChain: [.init(file: certificatePath.path(), format: .pem)],
+                    privateKey: .init(file: privateKeyPath.path(), format: .pem)
+                )
+                .withLogger(Logger(label: String(describing: type(of: self))))
+                .withTLS(trustRoots: .file(trustRootsPath.path()))
+                .withServiceProviders([
+                    metricsProvider,
+                    traceProvider,
+                ])
+                .bind(host: "localhost", port: 0)
+                .get()
 
-        do {
-            let port = try XCTUnwrap(server.channel.localAddress?.port)
-            let result = try await operation("https://localhost:\(port)", trustRoots)
-            try await server.close().get()
-            return result
-        } catch {
-            try await server.close().get()
-            throw error
+            do {
+                let port = try XCTUnwrap(server.channel.localAddress?.port)
+                let result = try await operation("https://localhost:\(port)", trustRootsPath.path())
+                try await server.close().get()
+                return result
+            } catch {
+                try await server.close().get()
+                throw error
+            }
         }
     }
 }
@@ -189,3 +192,10 @@ kKUVuyR2bLgpIRpj/KQY/UOdl1zu3MUs9OkG0suPrY3EOa0K7hDkXnHjX2ZipSw7
 TAuG9Q==
 -----END CERTIFICATE-----
 """
+
+private func withTemporaryDirectory<T>(_ body: (URL) async throws -> T) async throws -> T {
+    let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: false)
+    defer { try! FileManager.default.removeItem(at: tempDir) }
+    return try await body(tempDir)
+}
