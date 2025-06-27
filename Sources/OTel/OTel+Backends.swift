@@ -17,10 +17,10 @@ import OTelCore
 import ServiceLifecycle
 import Tracing
 #if OTLPGRPC
-    import OTLPGRPC
+import OTLPGRPC
 #endif
 #if OTLPHTTP
-    import OTLPHTTP
+import OTLPHTTP
 #endif
 
 extension OTel {
@@ -41,15 +41,15 @@ extension OTel {
             switch configuration.metrics.otlpExporter.protocol.backing {
             case .grpc:
                 #if OTLPGRPC
-                    metricsExporter = try OTLPGRPCMetricExporter(configuration: configuration.metrics.otlpExporter)
+                metricsExporter = try OTLPGRPCMetricExporter(configuration: configuration.metrics.otlpExporter)
                 #else // OTLPGRPC
-                    fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
+                fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
                 #endif
             case .httpProtobuf, .httpJSON:
                 #if OTLPHTTP
-                    metricsExporter = try OTLPHTTPMetricExporter(configuration: configuration.metrics.otlpExporter)
+                metricsExporter = try OTLPHTTPMetricExporter(configuration: configuration.metrics.otlpExporter)
                 #else
-                    fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
+                fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
                 #endif
             }
         case .console:
@@ -86,35 +86,35 @@ extension OTel {
             switch configuration.traces.otlpExporter.protocol.backing {
             case .grpc:
                 #if OTLPGRPC
-                    let exporter = try OTLPGRPCSpanExporter(configuration: configuration.traces.otlpExporter)
-                    let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor))
-                    let tracer = OTelTracer(
-                        idGenerator: OTelRandomIDGenerator(),
-                        sampler: OTelConstantSampler(isOn: true),
-                        propagator: OTelW3CPropagator(),
-                        processor: processor,
-                        environment: .detected(),
-                        resource: resource
-                    )
-                    return (tracer, TracerWrapper(wrapped: tracer))
+                let exporter = try OTLPGRPCSpanExporter(configuration: configuration.traces.otlpExporter)
+                let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor))
+                let tracer = OTelTracer(
+                    idGenerator: OTelRandomIDGenerator(),
+                    sampler: OTelConstantSampler(isOn: true),
+                    propagator: OTelW3CPropagator(),
+                    processor: processor,
+                    environment: .detected(),
+                    resource: resource
+                )
+                return (tracer, TracerWrapper(wrapped: tracer))
                 #else // OTLPGRPC
-                    fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
+                fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
                 #endif
             case .httpProtobuf, .httpJSON:
                 #if OTLPHTTP
-                    let exporter = try OTLPHTTPSpanExporter(configuration: configuration.traces.otlpExporter)
-                    let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor))
-                    let tracer = OTelTracer(
-                        idGenerator: OTelRandomIDGenerator(),
-                        sampler: OTelConstantSampler(isOn: true),
-                        propagator: OTelW3CPropagator(),
-                        processor: processor,
-                        environment: .detected(),
-                        resource: resource
-                    )
-                    return (tracer, TracerWrapper(wrapped: tracer))
+                let exporter = try OTLPHTTPSpanExporter(configuration: configuration.traces.otlpExporter)
+                let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor))
+                let tracer = OTelTracer(
+                    idGenerator: OTelRandomIDGenerator(),
+                    sampler: OTelConstantSampler(isOn: true),
+                    propagator: OTelW3CPropagator(),
+                    processor: processor,
+                    environment: .detected(),
+                    resource: resource
+                )
+                return (tracer, TracerWrapper(wrapped: tracer))
                 #else
-                    fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
+                fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
                 #endif
             }
         case .console, .jaeger, .zipkin:

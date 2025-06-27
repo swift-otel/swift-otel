@@ -36,9 +36,9 @@ package struct OTelProcessResourceDetector: OTelResourceDetector, CustomStringCo
             commandLine: { ProcessInfo.processInfo.arguments.joined(separator: " ") },
             owner: {
                 #if os(macOS) || os(Linux)
-                    return ProcessInfo.processInfo.userName
+                return ProcessInfo.processInfo.userName
                 #else
-                    return nil
+                return nil
                 #endif
             }
         )

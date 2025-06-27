@@ -32,35 +32,17 @@ $(EXAMPLES_DIR)/%.build:
 .PHONY: examples
 examples: $(patsubst %,%.build,$(EXAMPLES))  # Build example packages.
 
-# Download protoc plugins
+# Build protoc plugins
 # -----------------------------------------------------------------------------
-GRPC_SWIFT_VERSION = 1.21.0
-PROTOC_GRPC_SWIFT_PLUGINS_SHA256SUM = d5316b166b7e9bbb79e1aec4e00f14e523c99d406d39009aeb7d423f4bd3b2ca
-PROTOC_GRPC_SWIFT_PLUGINS_DOWNLOAD_CACHE_DIR = .protoc-grpc-swift-plugins.download
-PROTOC_GRPC_SWIFT_PLUGINS_URL = https://github.com/grpc/grpc-swift/releases/download/$(GRPC_SWIFT_VERSION)/protoc-grpc-swift-plugins-$(GRPC_SWIFT_VERSION).zip
-PROTOC_GRPC_SWIFT_PLUGINS_ZIP = $(PROTOC_GRPC_SWIFT_PLUGINS_DOWNLOAD_CACHE_DIR)/$(notdir $(PROTOC_GRPC_SWIFT_PLUGINS_URL))
-PROTOC_GRPC_SWIFT_PLUGINS_ROOT ?= .protoc-grpc-swift-plugins
-PROTOC_GEN_SWIFT ?= $(PROTOC_GRPC_SWIFT_PLUGINS_ROOT)/bin/protoc-gen-swift
-PROTOC_GEN_GRPC_SWIFT ?= $(PROTOC_GRPC_SWIFT_PLUGINS_ROOT)/bin/protoc-gen-grpc-swift
+PROTOC_PLUGINS_BUILD_DIR = $(shell swift build --show-bin-path)
+PROTOC_GEN_SWIFT ?= $(PROTOC_PLUGINS_BUILD_DIR)/protoc-gen-swift
+PROTOC_GEN_GRPC_SWIFT ?= $(PROTOC_PLUGINS_BUILD_DIR)/protoc-gen-grpc-swift
 
-$(PROTOC_GRPC_SWIFT_PLUGINS_ZIP):
-	curl -L --create-dirs -o $@ $(PROTOC_GRPC_SWIFT_PLUGINS_URL)
-	echo "$(PROTOC_GRPC_SWIFT_PLUGINS_SHA256SUM) $@" | sha256sum --check
+$(PROTOC_GEN_SWIFT):
+	swift build --product protoc-gen-swift
 
-$(PROTOC_GRPC_SWIFT_PLUGINS_ROOT): $(PROTOC_GRPC_SWIFT_PLUGINS_ZIP)
-	unzip -o -d $@ $<
-	test -x $(PROTOC_GEN_SWIFT)
-	test -x $(PROTOC_GEN_GRPC_SWIFT)
-	touch $(PROTOC_GEN_SWIFT) $(PROTOC_GEN_GRPC_SWIFT)
-
-$(PROTOC_GEN_SWIFT) $(PROTOC_GEN_GRPC_SWIFT): $(PROTOC_GRPC_SWIFT_PLUGINS_ROOT)
-
-.PHONY: download-protoc-plugins
-download-protoc-plugins: $(PROTOC_GEN_SWIFT) $(PROTOC_GEN_GRPC_SWIFT)
-
-.PHONY: clean-download-cache
-clean-download-cache:
-	-rm -rf $(PROTOC_GRPC_SWIFT_PLUGINS_DOWNLOAD_CACHE_DIR)
+$(PROTOC_GEN_GRPC_SWIFT):
+	swift build --product protoc-gen-grpc-swift
 
 # Code generation
 # -----------------------------------------------------------------------------
