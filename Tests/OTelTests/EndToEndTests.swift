@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2) // Swift Testing exit tests only added in 6.2
 import struct Foundation.Data
 import Metrics
 import NIOTestUtils
@@ -253,3 +254,4 @@ import Tracing
         }
     }
 }
+#endif // compiler(>=6.2)
