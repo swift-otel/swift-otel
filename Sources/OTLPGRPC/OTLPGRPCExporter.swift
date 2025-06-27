@@ -59,7 +59,7 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sen
         }
 
         /// > A scheme of https indicates a secure connection and takes precedence over the insecure configuration
-        /// > setting. A scheme of http indicates ainsecure connection and takes precedence over the insecure
+        /// > setting. A scheme of http indicates an insecure connection and takes precedence over the insecure
         /// > configuration setting. If the gRPC client implementation does not support an endpoint with a scheme of
         /// > http or https then the endpoint SHOULD be transformed to the most sensible format for that implementation.
         /// > —— source: https://opentelemetry.io/docs/specs/otel/protocol/exporter/
