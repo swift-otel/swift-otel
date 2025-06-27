@@ -669,27 +669,21 @@ extension OTel.Configuration.OTLPExporterConfiguration {
         package var backing: Backing
 
         /// gRPC transport protocol for OTLP.
-        // swiftformat:disable indent
         #if !OTLPGRPC
         @available(*, unavailable, message: "Using the OTLP/gRPC exporter requires the `OTLPGRPC` trait enabled.")
         #endif
-        // swiftformat:enable indent
         public static let grpc: Self = .init(backing: .grpc)
 
         /// HTTP transport with Protocol Buffers encoding for OTLP.
-        // swiftformat:disable indent
         #if !OTLPHTTP
         @available(*, unavailable, message: "Using the OTLP/HTTP exporter requires the `OTLPHTTP` trait enabled.")
         #endif
-        // swiftformat:enable indent
         public static let httpProtobuf: Self = .init(backing: .httpProtobuf)
 
         /// HTTP transport with JSON encoding for OTLP.
-        // swiftformat:disable indent
         #if !OTLPHTTP
         @available(*, unavailable, message: "Using the OTLP/HTTP exporter requires the `OTLPHTTP` trait enabled.")
         #endif
-        // swiftformat:enable indent
         public static let httpJSON: Self = .init(backing: .httpJSON)
     }
 }
