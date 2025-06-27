@@ -12,11 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(Glibc)
-    import Glibc
+import Glibc
 #elseif canImport(Musl)
-    import Musl
+import Musl
 #else
-    import Darwin.C
+import Darwin.C
 #endif
 
 import Foundation
