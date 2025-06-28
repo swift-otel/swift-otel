@@ -9,6 +9,7 @@ import GRPC
 import NIO
 import NIOConcurrencyHelpers
 import SwiftProtobuf
+import OTLPCore
 
 
 /// Service that can be used to push logs between one Application instrumented with
