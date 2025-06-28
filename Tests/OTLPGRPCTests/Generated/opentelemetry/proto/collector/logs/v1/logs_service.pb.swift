@@ -114,12 +114,6 @@ struct Opentelemetry_Proto_Collector_Logs_V1_ExportLogsPartialSuccess {
   init() {}
 }
 
-#if swift(>=5.5) && canImport(_Concurrency)
-extension Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest: @unchecked Sendable {}
-extension Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse: @unchecked Sendable {}
-extension Opentelemetry_Proto_Collector_Logs_V1_ExportLogsPartialSuccess: @unchecked Sendable {}
-#endif  // swift(>=5.5) && canImport(_Concurrency)
-
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "opentelemetry.proto.collector.logs.v1"
