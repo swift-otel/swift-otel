@@ -29,11 +29,15 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-metrics.git", from: "2.4.1"),
         .package(url: "https://github.com/swift-otel/swift-w3c-trace-context.git", exact: "1.0.0-beta.3"),
 
-        // MARK: - OTLP
+        // MARK: - OTLPCore
+        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.30.0"),
 
-        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.0.0"),
-        .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.23.1"),
+        // MARK: - OTLPGRPC
+        .package(url: "https://github.com/grpc/grpc-swift-2.git", from: "2.0.0"),
+        .package(url: "https://github.com/grpc/grpc-swift-nio-transport.git", from: "2.0.0"),
+        .package(url: "https://github.com/grpc/grpc-swift-protobuf.git", from: "2.0.0"),
+
+        // MARK: - OTLPHTTP
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.25.0"),
 
         // MARK: - Plugins
@@ -123,9 +127,9 @@ let package = Package(
                 .target(name: "OTLPCore"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Tracing", package: "swift-distributed-tracing"),
-                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
-                .product(name: "GRPC", package: "grpc-swift"),
-                .product(name: "NIOHTTP2", package: "swift-nio-http2"),
+                .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf"),
+                .product(name: "GRPCCore", package: "grpc-swift-2"),
+                .product(name: "GRPCNIOTransportHTTP2", package: "grpc-swift-nio-transport"),
                 .product(name: "W3CTraceContext", package: "swift-w3c-trace-context"),
             ],
             swiftSettings: sharedSwiftSettings
