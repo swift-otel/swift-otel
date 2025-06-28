@@ -36,13 +36,15 @@ examples: $(patsubst %,%.build,$(EXAMPLES))  # Build example packages.
 # -----------------------------------------------------------------------------
 PROTOC_PLUGINS_BUILD_DIR = $(shell swift build --show-bin-path)
 PROTOC_GEN_SWIFT ?= $(PROTOC_PLUGINS_BUILD_DIR)/protoc-gen-swift
-PROTOC_GEN_GRPC_SWIFT ?= $(PROTOC_PLUGINS_BUILD_DIR)/protoc-gen-grpc-swift
+PROTOC_GEN_GRPC_SWIFT ?= $(PROTOC_PLUGINS_BUILD_DIR)/protoc-gen-grpc-swift-2
 
+.PHONY: $(PROTOC_GEN_SWIFT)
 $(PROTOC_GEN_SWIFT):
-	swift build --product protoc-gen-swift
+	swift build --product $(notdir $@)
 
+.PHONY: $(PROTOC_GEN_GRPC_SWIFT)
 $(PROTOC_GEN_GRPC_SWIFT):
-	swift build --product protoc-gen-grpc-swift
+	swift build --product $(notdir $@)
 
 # Code generation
 # -----------------------------------------------------------------------------
@@ -91,8 +93,8 @@ $(OTLP_CLIENT_GRPC_SWIFTS): $(OTLP_GRPC_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_
 	protoc $(OTLP_GRPC_PROTOS) \
 		--proto_path=$(PROTO_ROOT) \
 		--plugin=$(PROTOC_GEN_GRPC_SWIFT) \
-		--grpc-swift_opt=ProtoPathModuleMappings=$(PROTO_MODULEMAP) \
-		--grpc-swift_out=Client=true,Server=false:$(OTLP_CLIENT_GRPC_SWIFT_ROOT)
+		--grpc-swift-2_opt=ProtoPathModuleMappings=$(PROTO_MODULEMAP) \
+		--grpc-swift-2_out=Client=true,Server=false:$(OTLP_CLIENT_GRPC_SWIFT_ROOT)
 
 $(OTLP_SERVER_GRPC_SWIFTS): $(OTLP_GRPC_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_GRPC_SWIFT)
 	@mkdir -pv $(OTLP_SERVER_GRPC_SWIFT_ROOT)
@@ -101,7 +103,7 @@ $(OTLP_SERVER_GRPC_SWIFTS): $(OTLP_GRPC_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_
 		--plugin=$(PROTOC_GEN_GRPC_SWIFT) \
 		--swift_out=$(OTLP_SERVER_GRPC_SWIFT_ROOT) \
 		--swift_opt=ProtoPathModuleMappings=$(PROTO_MODULEMAP) \
-		--grpc-swift_out=Client=false,Server=true:$(OTLP_SERVER_GRPC_SWIFT_ROOT)
+		--grpc-swift-2_out=Client=false,Server=true:$(OTLP_SERVER_GRPC_SWIFT_ROOT)
 
 .PHONY: generate
 generate: $(OTLP_CORE_SWIFTS) $(OTLP_CLIENT_GRPC_SWIFTS) $(OTLP_SERVER_GRPC_SWIFTS)  # Generate Swift files from Protobuf.
