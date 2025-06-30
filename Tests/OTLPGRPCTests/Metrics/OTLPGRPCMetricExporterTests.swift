@@ -29,9 +29,7 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
     }
 
     func test_export_whenConnected_withInsecureConnection_sendsExportRequestToCollector() async throws {
-        let collector = OTLPGRPCMockCollector()
-
-        try await collector.withInsecureServer { endpoint in
+        try await OTLPGRPCMockCollector.withInsecureServer { collector, endpoint in
             var configuration = OTel.Configuration.OTLPExporterConfiguration.default
             configuration.protocol = .grpc
             configuration.endpoint = endpoint
@@ -41,21 +39,19 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
             try await exporter.export([metrics])
 
             await exporter.shutdown()
+
+            XCTAssertEqual(collector.metricsProvider.requests.count, 1)
+            let request = try XCTUnwrap(collector.metricsProvider.requests.first)
+
+            XCTAssertEqual(
+                request.headers.first(name: "user-agent"),
+                "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)"
+            )
         }
-
-        XCTAssertEqual(collector.metricsProvider.requests.count, 1)
-        let request = try XCTUnwrap(collector.metricsProvider.requests.first)
-
-        XCTAssertEqual(
-            request.headers.first(name: "user-agent"),
-            "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)"
-        )
     }
 
     func test_export_whenConnected_withSecureConnection_sendsExportRequestToCollector() async throws {
-        let collector = OTLPGRPCMockCollector()
-
-        try await collector.withSecureServer { endpoint, trustRootsPath in
+        try await OTLPGRPCMockCollector.withSecureServer { collector, endpoint, trustRootsPath in
             var configuration = OTel.Configuration.OTLPExporterConfiguration.default
             configuration.protocol = .grpc
             configuration.endpoint = endpoint
@@ -66,19 +62,18 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
             try await exporter.export([metrics])
 
             await exporter.shutdown()
+
+            XCTAssertEqual(collector.metricsProvider.requests.count, 1)
+            let request = try XCTUnwrap(collector.metricsProvider.requests.first)
+
+            XCTAssertEqual(
+                request.headers.first(name: "user-agent"),
+                "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)"
+            )
         }
-
-        XCTAssertEqual(collector.metricsProvider.requests.count, 1)
-        let request = try XCTUnwrap(collector.metricsProvider.requests.first)
-
-        XCTAssertEqual(
-            request.headers.first(name: "user-agent"),
-            "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)"
-        )
     }
 
     func test_export_withCustomHeaders_includesCustomHeadersInExportRequest() async throws {
-        let collector = OTLPGRPCMockCollector()
         let resourceMetricsToExport = OTelResourceMetrics(
             resource: OTelResource(attributes: ["service.name": "mock_service"]),
             scopeMetrics: [
@@ -107,7 +102,7 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
             ]
         )
 
-        try await collector.withInsecureServer { endpoint in
+        try await OTLPGRPCMockCollector.withInsecureServer { collector, endpoint in
             var configuration = OTel.Configuration.OTLPExporterConfiguration.default
             configuration.protocol = .grpc
             configuration.endpoint = endpoint
@@ -120,39 +115,38 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
             try await exporter.export([resourceMetricsToExport])
 
             await exporter.shutdown()
+
+            XCTAssertEqual(collector.metricsProvider.requests.count, 1)
+            let request = try XCTUnwrap(collector.metricsProvider.requests.first)
+
+            XCTAssertEqual(request.exportRequest.resourceMetrics.count, 1)
+            let resourceMetrics = try XCTUnwrap(request.exportRequest.resourceMetrics.first)
+            XCTAssertEqual(resourceMetrics.resource, .with {
+                $0.attributes = .init(["service.name": "mock_service"])
+            })
+            XCTAssertEqual(resourceMetrics.scopeMetrics.count, 1)
+            let scopeMetrics = try XCTUnwrap(resourceMetrics.scopeMetrics.first)
+            XCTAssertEqual(scopeMetrics.scope, .with {
+                $0.name = "scope_name"
+                $0.version = "scope_version"
+                $0.attributes = [
+                    .with {
+                        $0.key = "scope_attr_key"
+                        $0.value = .init("scope_attr_val")
+                    },
+                ]
+            })
+            XCTAssertEqual(scopeMetrics.metrics, .init(resourceMetricsToExport.scopeMetrics.first!.metrics))
+
+            XCTAssertEqual(request.headers.first(name: "key1"), "42")
+            XCTAssertEqual(request.headers.first(name: "key2"), "84")
         }
-
-        XCTAssertEqual(collector.metricsProvider.requests.count, 1)
-        let request = try XCTUnwrap(collector.metricsProvider.requests.first)
-
-        XCTAssertEqual(request.exportRequest.resourceMetrics.count, 1)
-        let resourceMetrics = try XCTUnwrap(request.exportRequest.resourceMetrics.first)
-        XCTAssertEqual(resourceMetrics.resource, .with {
-            $0.attributes = .init(["service.name": "mock_service"])
-        })
-        XCTAssertEqual(resourceMetrics.scopeMetrics.count, 1)
-        let scopeMetrics = try XCTUnwrap(resourceMetrics.scopeMetrics.first)
-        XCTAssertEqual(scopeMetrics.scope, .with {
-            $0.name = "scope_name"
-            $0.version = "scope_version"
-            $0.attributes = [
-                .with {
-                    $0.key = "scope_attr_key"
-                    $0.value = .init("scope_attr_val")
-                },
-            ]
-        })
-        XCTAssertEqual(scopeMetrics.metrics, .init(resourceMetricsToExport.scopeMetrics.first!.metrics))
-
-        XCTAssertEqual(request.headers.first(name: "key1"), "42")
-        XCTAssertEqual(request.headers.first(name: "key2"), "84")
     }
 
     func test_export_whenAlreadyShutdown_throwsAlreadyShutdownError() async throws {
-        let collector = OTLPGRPCMockCollector()
-        let errorCaught = expectation(description: "Caught expected error")
-        do {
-            try await collector.withInsecureServer { endpoint in
+        try await OTLPGRPCMockCollector.withInsecureServer { _, endpoint in
+            let errorCaught = expectation(description: "Caught expected error")
+            do {
                 var configuration = OTel.Configuration.OTLPExporterConfiguration.default
                 configuration.protocol = .grpc
                 configuration.endpoint = endpoint
@@ -163,16 +157,16 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
                 try await exporter.export([metrics])
 
                 XCTFail("Expected exporter to throw error, successfully exported instead.")
+            } catch OTLPGRPCExporterError.exporterAlreadyShutDown {
+                errorCaught.fulfill()
             }
-        } catch OTLPGRPCExporterError.exporterAlreadyShutDown {
-            errorCaught.fulfill()
+            await fulfillment(of: [errorCaught], timeout: 0.0)
         }
-        await fulfillment(of: [errorCaught], timeout: 0.0)
     }
 
     func test_forceFlush() async throws {
         // This exporter is a "push exporter" and so the OTel spec says that force flush should do nothing.
-        try await OTLPGRPCMockCollector().withInsecureServer { endpoint in
+        try await OTLPGRPCMockCollector.withInsecureServer { _, endpoint in
             var configuration = OTel.Configuration.OTLPExporterConfiguration.default
             configuration.protocol = .grpc
             configuration.endpoint = endpoint

@@ -26,19 +26,20 @@ final class OTLPGRPCMockCollector: Sendable {
     let traceProvider = TraceServiceProvider()
 
     @discardableResult
-    func withInsecureServer<T>(operation: (String) async throws -> T) async throws -> T {
+    static func withInsecureServer<T>(operation: (_ collector: OTLPGRPCMockCollector, _ endpoint: String) async throws -> T) async throws -> T {
+        let collector = self.init()
         let server = try await Server.insecure(group: MultiThreadedEventLoopGroup.singleton)
             .withLogger(Logger(label: String(describing: type(of: self))))
             .withServiceProviders([
-                metricsProvider,
-                traceProvider,
+                collector.metricsProvider,
+                collector.traceProvider,
             ])
             .bind(host: "localhost", port: 0)
             .get()
 
         do {
             let port = try XCTUnwrap(server.channel.localAddress?.port)
-            let result = try await operation("http://localhost:\(port)")
+            let result = try await operation(collector, "http://localhost:\(port)")
             try await server.close().get()
             return result
         } catch {
@@ -48,8 +49,8 @@ final class OTLPGRPCMockCollector: Sendable {
     }
 
     @discardableResult
-    func withSecureServer<T>(
-        operation: (_ endpoint: String, _ trustRootsPath: String) async throws -> T
+    static func withSecureServer<T>(
+        operation: (_ collector: OTLPGRPCMockCollector, _ endpoint: String, _ trustRootsPath: String) async throws -> T
     ) async throws -> T {
         try await withTemporaryDirectory { tempDir in
             let trustRootsPath = tempDir.appendingPathComponent("trust_roots.pem")
@@ -58,6 +59,7 @@ final class OTLPGRPCMockCollector: Sendable {
             try Data(exampleServerCert.utf8).write(to: certificatePath)
             let privateKeyPath = tempDir.appendingPathComponent("server_key.pem")
             try Data(exampleServerKey.utf8).write(to: privateKeyPath)
+            let collector = self.init()
             let server = try await Server
                 .usingTLSBackedByNIOSSL(
                     on: MultiThreadedEventLoopGroup.singleton,
@@ -67,15 +69,15 @@ final class OTLPGRPCMockCollector: Sendable {
                 .withLogger(Logger(label: String(describing: type(of: self))))
                 .withTLS(trustRoots: .file(trustRootsPath.path()))
                 .withServiceProviders([
-                    metricsProvider,
-                    traceProvider,
+                    collector.metricsProvider,
+                    collector.traceProvider,
                 ])
                 .bind(host: "localhost", port: 0)
                 .get()
 
             do {
                 let port = try XCTUnwrap(server.channel.localAddress?.port)
-                let result = try await operation("https://localhost:\(port)", trustRootsPath.path())
+                let result = try await operation(collector, "https://localhost:\(port)", trustRootsPath.path())
                 try await server.close().get()
                 return result
             } catch {
