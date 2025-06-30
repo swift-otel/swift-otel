@@ -8,7 +8,7 @@ let sharedSwiftSettings: [SwiftSetting] = [
 
 let package = Package(
     name: "swift-otel",
-    platforms: [.macOS(.v13), .iOS(.v16)],
+    platforms: [.macOS(.v15), .iOS(.v16)],
     products: [
         .library(name: "OTel", targets: ["OTel"]),
     ],

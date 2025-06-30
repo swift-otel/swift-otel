@@ -52,11 +52,11 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
                 try await exporter.export([metrics])
             }
 
-            XCTAssertEqual(collector.metricsProvider.requests.count, 1)
-            let request = try XCTUnwrap(collector.metricsProvider.requests.first)
+            XCTAssertEqual(collector.recordingMetricsService.recordingService.requests.count, 1)
+            let request = try XCTUnwrap(collector.recordingMetricsService.recordingService.requests.first)
 
             XCTAssertEqual(
-                request.headers.first(name: "user-agent"),
+                request.metadata.first(where: { $0.key == "user-agent" })?.value,
                 "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)"
             )
         }
@@ -73,11 +73,11 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
                 try await exporter.export([metrics])
             }
 
-            XCTAssertEqual(collector.metricsProvider.requests.count, 1)
-            let request = try XCTUnwrap(collector.metricsProvider.requests.first)
+            XCTAssertEqual(collector.recordingMetricsService.recordingService.requests.count, 1)
+            let request = try XCTUnwrap(collector.recordingMetricsService.recordingService.requests.first)
 
             XCTAssertEqual(
-                request.headers.first(name: "user-agent"),
+                request.metadata.first(where: { $0.key == "user-agent" })?.value,
                 "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)"
             )
         }
@@ -124,11 +124,11 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
                 try await exporter.export([resourceMetricsToExport])
             }
 
-            XCTAssertEqual(collector.metricsProvider.requests.count, 1)
-            let request = try XCTUnwrap(collector.metricsProvider.requests.first)
+            XCTAssertEqual(collector.recordingMetricsService.recordingService.requests.count, 1)
+            let request = try XCTUnwrap(collector.recordingMetricsService.recordingService.requests.first)
 
-            XCTAssertEqual(request.exportRequest.resourceMetrics.count, 1)
-            let resourceMetrics = try XCTUnwrap(request.exportRequest.resourceMetrics.first)
+            XCTAssertEqual(request.message.resourceMetrics.count, 1)
+            let resourceMetrics = try XCTUnwrap(request.message.resourceMetrics.first)
             XCTAssertEqual(resourceMetrics.resource, .with {
                 $0.attributes = .init(["service.name": "mock_service"])
             })
@@ -146,8 +146,8 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
             })
             XCTAssertEqual(scopeMetrics.metrics, .init(resourceMetricsToExport.scopeMetrics.first!.metrics))
 
-            XCTAssertEqual(request.headers.first(name: "key1"), "42")
-            XCTAssertEqual(request.headers.first(name: "key2"), "84")
+            XCTAssertEqual(request.metadata.first(where: { $0.key == "key1" })?.value, "42")
+            XCTAssertEqual(request.metadata.first(where: { $0.key == "key2" })?.value, "84")
         }
     }
 
