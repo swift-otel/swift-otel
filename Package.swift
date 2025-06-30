@@ -1,7 +1,10 @@
 // swift-tools-version:6.1
 import PackageDescription
 
-let sharedSwiftSettings: [SwiftSetting] = [.enableExperimentalFeature("StrictConcurrency=complete")]
+let sharedSwiftSettings: [SwiftSetting] = [
+    .enableExperimentalFeature("StrictConcurrency=complete"),
+    .enableUpcomingFeature("InternalImportsByDefault"),
+]
 
 let package = Package(
     name: "swift-otel",
