@@ -25,6 +25,10 @@ package final actor OTelInMemorySpanExporter: OTelSpanExporter {
         self.exportDelay = exportDelay
     }
 
+    package func run() async throws {
+        // no-op
+    }
+
     package func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
         if exportDelay != .zero {
             try await Task.sleep(for: exportDelay)

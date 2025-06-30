@@ -30,17 +30,29 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
         backgroundActivityLogger = Logger(label: "backgroundActivityLogger")
     }
 
+    fileprivate func withExporter<Result>(
+        configuration: OTel.Configuration.OTLPExporterConfiguration,
+        operation: (OTLPGRPCSpanExporter) async throws -> Result
+    ) async throws -> Result {
+        try await withThrowingTaskGroup { group in
+            let exporter = try OTLPGRPCSpanExporter(configuration: configuration)
+            group.addTask { try await exporter.run() }
+            let result = try await operation(exporter)
+            await exporter.shutdown()
+            try await group.waitForAll()
+            return result
+        }
+    }
+
     func test_export_whenConnected_withInsecureConnection_sendsExportRequestToCollector() async throws {
         try await OTLPGRPCMockCollector.withInsecureServer { collector, endpoint in
             var configuration = OTel.Configuration.OTLPExporterConfiguration.default
             configuration.protocol = .grpc
             configuration.endpoint = endpoint
-            let exporter = try OTLPGRPCSpanExporter(configuration: configuration)
-
-            let span = OTelFinishedSpan.stub()
-            try await exporter.export([span])
-
-            await exporter.shutdown()
+            try await withExporter(configuration: configuration) { exporter in
+                let span = OTelFinishedSpan.stub()
+                try await exporter.export([span])
+            }
 
             XCTAssertEqual(collector.traceProvider.requests.count, 1)
             let request = try XCTUnwrap(collector.traceProvider.requests.first)
@@ -54,16 +66,15 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
 
     func test_export_whenConnected_withSecureConnection_sendsExportRequestToCollector() async throws {
         try await OTLPGRPCMockCollector.withSecureServer { collector, endpoint, trustRootsPath in
+            print("test: endpoint: \(endpoint)")
             var configuration = OTel.Configuration.OTLPExporterConfiguration.default
             configuration.protocol = .grpc
             configuration.endpoint = endpoint
             configuration.certificateFilePath = trustRootsPath
-            let exporter = try OTLPGRPCSpanExporter(configuration: configuration)
-
-            let span = OTelFinishedSpan.stub()
-            try await exporter.export([span])
-
-            await exporter.shutdown()
+            try await withExporter(configuration: configuration) { exporter in
+                let span = OTelFinishedSpan.stub()
+                try await exporter.export([span])
+            }
 
             XCTAssertEqual(collector.traceProvider.requests.count, 1)
             let request = try XCTUnwrap(collector.traceProvider.requests.first)
@@ -84,12 +95,11 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
                 ("key1", "42"),
                 ("key2", "84"),
             ]
-            let exporter = try OTLPGRPCSpanExporter(configuration: configuration)
 
             let span = OTelFinishedSpan.stub(resource: OTelResource(attributes: ["service.name": "test"]))
-            try await exporter.export([span])
-
-            await exporter.shutdown()
+            try await withExporter(configuration: configuration) { exporter in
+                try await exporter.export([span])
+            }
 
             XCTAssertEqual(collector.traceProvider.requests.count, 1)
             let request = try XCTUnwrap(collector.traceProvider.requests.first)

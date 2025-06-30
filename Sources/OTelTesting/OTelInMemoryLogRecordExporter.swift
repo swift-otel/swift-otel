@@ -26,6 +26,8 @@ package actor OTelInMemoryLogRecordExporter: OTelLogRecordExporter {
         self.exportDelay = exportDelay
     }
 
+    package func run() async throws {}
+
     package func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
         if exportDelay != .zero {
             do {

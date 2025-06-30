@@ -25,6 +25,8 @@ package final class OTLPHTTPMetricExporter: OTelMetricExporter {
         exporter = try OTLPHTTPExporter(configuration: configuration)
     }
 
+    package func run() async throws {}
+
     package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
         let proto = Request.with { request in
             request.resourceMetrics = batch.map(Opentelemetry_Proto_Metrics_V1_ResourceMetrics.init)

@@ -29,6 +29,8 @@ package struct RecordingMetricExporter: OTelMetricExporter {
 
     package init() {}
 
+    package func run() async throws {}
+
     package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) {
         recordedCalls.withLockedValue { $0.exportCalls.append(batch) }
     }

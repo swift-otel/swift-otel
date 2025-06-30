@@ -108,6 +108,10 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sen
         )
     }
 
+    func run() async throws {
+        // Nothing to do right now, but will be important for gRPC v2.
+    }
+
     func export(_ request: Client.Request) async throws -> Client.Response {
         if case .shutdown = connection.connectivity.state {
             logger.error("Attempted to export while already being shut down.")

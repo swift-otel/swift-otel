@@ -16,6 +16,8 @@ package struct OTelConsoleMetricExporter: OTelMetricExporter {
     /// Create a new ``OTelConsoleMetricExporter``.
     package init() {}
 
+    package func run() async throws {}
+
     package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
         for metric in batch {
             print(metric)

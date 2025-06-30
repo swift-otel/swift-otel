@@ -59,13 +59,20 @@ package actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurr
         let timerSequence = AsyncTimerSequence(interval: configuration.scheduleDelay, clock: clock).map { _ in }
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
 
-        for try await _ in mergedSequence where !buffer.isEmpty {
-            await tick()
-        }
+        try await withThrowingTaskGroup { group in
+            group.addTask {
+                try await self.exporter.run()
+            }
 
-        logger.debug("Shutting down.")
-        try? await forceFlush()
-        await exporter.shutdown()
+            for try await _ in mergedSequence where !buffer.isEmpty {
+                await tick()
+            }
+
+            logger.debug("Shutting down.")
+            try? await forceFlush()
+            await exporter.shutdown()
+            try await group.waitForAll()
+        }
         logger.debug("Shut down.")
     }
 

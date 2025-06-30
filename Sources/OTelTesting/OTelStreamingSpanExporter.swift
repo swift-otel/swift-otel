@@ -30,6 +30,8 @@ package final actor OTelStreamingSpanExporter: OTelSpanExporter {
         errorDuringNextExport = error
     }
 
+    package func run() async throws {}
+
     package func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
         batchContinuation.yield(Array(batch))
         if let errorDuringNextExport {

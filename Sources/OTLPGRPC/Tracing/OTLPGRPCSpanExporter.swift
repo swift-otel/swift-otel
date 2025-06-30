@@ -26,6 +26,10 @@ package final class OTLPGRPCSpanExporter: OTelSpanExporter {
         client = try OTLPGRPCExporter(configuration: configuration)
     }
 
+    package func run() async throws {
+        try await client.run()
+    }
+
     package func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
         let request = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest.with { request in
             request.resourceSpans = [Opentelemetry_Proto_Trace_V1_ResourceSpans(batch)]

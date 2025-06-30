@@ -26,6 +26,8 @@ package final actor OTelStreamingLogRecordExporter: OTelLogRecordExporter {
         (batches, batchContinuation) = AsyncStream<[OTelLogRecord]>.makeStream()
     }
 
+    package func run() async throws {}
+
     package func setErrorDuringNextExport(_ error: some Error) {
         errorDuringNextExport = error
     }

@@ -16,6 +16,10 @@ package struct OTelNoOpSpanExporter: OTelSpanExporter {
     /// Initialize a no-op span exporter.
     package init() {}
 
+    package func run() async throws {
+        // no-op
+    }
+
     package func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
         // no-op
     }

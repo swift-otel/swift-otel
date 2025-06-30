@@ -11,10 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+import ServiceLifecycle
+
 /// Exports a batch of metrics.
 ///
 /// - Seealso: [OTel Specification for Metric Exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/metrics/sdk.md#metricexporter)
-package protocol OTelMetricExporter: Sendable {
+package protocol OTelMetricExporter: Service, Sendable {
     /// Export the given batch of metrics.
     ///
     /// - Parameter batch: A batch of metrics to export.

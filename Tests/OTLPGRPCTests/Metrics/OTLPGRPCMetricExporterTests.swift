@@ -28,17 +28,29 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
         backgroundActivityLogger = Logger(label: "backgroundActivityLogger")
     }
 
+    fileprivate func withExporter<Result>(
+        configuration: OTel.Configuration.OTLPExporterConfiguration,
+        operation: (OTLPGRPCMetricExporter) async throws -> Result
+    ) async throws -> Result {
+        try await withThrowingTaskGroup { group in
+            let exporter = try OTLPGRPCMetricExporter(configuration: configuration)
+            group.addTask { try await exporter.run() }
+            let result = try await operation(exporter)
+            await exporter.shutdown()
+            try await group.waitForAll()
+            return result
+        }
+    }
+
     func test_export_whenConnected_withInsecureConnection_sendsExportRequestToCollector() async throws {
         try await OTLPGRPCMockCollector.withInsecureServer { collector, endpoint in
             var configuration = OTel.Configuration.OTLPExporterConfiguration.default
             configuration.protocol = .grpc
             configuration.endpoint = endpoint
-            let exporter = try OTLPGRPCMetricExporter(configuration: configuration)
-
-            let metrics = OTelResourceMetrics(scopeMetrics: [])
-            try await exporter.export([metrics])
-
-            await exporter.shutdown()
+            try await withExporter(configuration: configuration) { exporter in
+                let metrics = OTelResourceMetrics(scopeMetrics: [])
+                try await exporter.export([metrics])
+            }
 
             XCTAssertEqual(collector.metricsProvider.requests.count, 1)
             let request = try XCTUnwrap(collector.metricsProvider.requests.first)
@@ -56,12 +68,10 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
             configuration.protocol = .grpc
             configuration.endpoint = endpoint
             configuration.certificateFilePath = trustRootsPath
-            let exporter = try OTLPGRPCMetricExporter(configuration: configuration)
-
-            let metrics = OTelResourceMetrics(scopeMetrics: [])
-            try await exporter.export([metrics])
-
-            await exporter.shutdown()
+            try await withExporter(configuration: configuration) { exporter in
+                let metrics = OTelResourceMetrics(scopeMetrics: [])
+                try await exporter.export([metrics])
+            }
 
             XCTAssertEqual(collector.metricsProvider.requests.count, 1)
             let request = try XCTUnwrap(collector.metricsProvider.requests.first)
@@ -110,11 +120,9 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
                 ("key1", "42"),
                 ("key2", "84"),
             ]
-            let exporter = try OTLPGRPCMetricExporter(configuration: configuration)
-
-            try await exporter.export([resourceMetricsToExport])
-
-            await exporter.shutdown()
+            try await withExporter(configuration: configuration) { exporter in
+                try await exporter.export([resourceMetricsToExport])
+            }
 
             XCTAssertEqual(collector.metricsProvider.requests.count, 1)
             let request = try XCTUnwrap(collector.metricsProvider.requests.first)

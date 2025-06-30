@@ -302,6 +302,8 @@ final class MockMetricExporter: Sendable, OTelMetricExporter {
         self.behavior = behavior
     }
 
+    func run() async throws {}
+
     func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
         switch behavior {
         case .sleep:

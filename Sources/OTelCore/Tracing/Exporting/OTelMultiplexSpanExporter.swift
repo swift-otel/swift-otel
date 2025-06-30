@@ -22,6 +22,17 @@ package struct OTelMultiplexSpanExporter: OTelSpanExporter {
         self.exporters = exporters
     }
 
+    package func run() async throws {
+        try await withThrowingTaskGroup { group in
+            for exporter in exporters {
+                group.addTask {
+                    try await exporter.run()
+                }
+            }
+            try await group.waitForAll()
+        }
+    }
+
     package func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for exporter in exporters {
