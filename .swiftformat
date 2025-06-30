@@ -1,6 +1,6 @@
 # file options
 
---swiftversion 5.9
+--swiftversion 6.1
 --exclude .build
 --exclude **/*.pb.swift
 --exclude **/*.grpc.swift
