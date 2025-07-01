@@ -66,7 +66,6 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
 
     func test_export_whenConnected_withSecureConnection_sendsExportRequestToCollector() async throws {
         try await OTLPGRPCMockCollector.withSecureServer { collector, endpoint, trustRootsPath in
-            print("test: endpoint: \(endpoint)")
             var configuration = OTel.Configuration.OTLPExporterConfiguration.default
             configuration.protocol = .grpc
             configuration.endpoint = endpoint
