@@ -14,7 +14,7 @@
 import Logging
 import NIO
 import NIOSSL
-import OTelCore
+package import OTelCore
 import OTLPCore
 
 package final class OTLPGRPCLogRecordExporter: OTelLogRecordExporter {
