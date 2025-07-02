@@ -12,8 +12,8 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(XCTest)
-import NIOConcurrencyHelpers
-import OTelCore
+package import NIOConcurrencyHelpers
+package import OTelCore
 import XCTest
 
 package struct RecordingMetricExporter: OTelMetricExporter {

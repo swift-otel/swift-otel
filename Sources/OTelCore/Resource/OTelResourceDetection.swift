@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
+package import Logging
 import Tracing
 
 /// A type facilitating the resource detection process using a configurable set of resource detectors.

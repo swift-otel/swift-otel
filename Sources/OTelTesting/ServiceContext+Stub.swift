@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
+package import ServiceContextModule
 
 private enum StubContextKey: ServiceContextKey {
     typealias Value = Int

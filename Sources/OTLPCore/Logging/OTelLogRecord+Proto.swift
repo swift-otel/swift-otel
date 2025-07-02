@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-import OTelCore
+package import OTelCore
 
 extension Opentelemetry_Proto_Logs_V1_LogRecord {
     package init(_ logRecord: OTelLogRecord) {

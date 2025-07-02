@@ -11,9 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTelCore
-import Tracing
-import W3CTraceContext
+package import OTelCore
+package import Tracing
+package import W3CTraceContext
 
 package struct OTelInlineSampler: OTelSampler {
     private let onSamplingResult: @Sendable (

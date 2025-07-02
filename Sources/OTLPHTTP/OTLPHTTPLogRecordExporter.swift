@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-import OTelCore
+package import OTelCore
 import OTLPCore
 
 package final class OTLPHTTPLogRecordExporter: OTelLogRecordExporter {

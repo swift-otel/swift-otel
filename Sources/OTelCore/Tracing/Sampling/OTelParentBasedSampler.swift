@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Tracing
-import W3CTraceContext
+package import Tracing
+package import W3CTraceContext
 
 /// A sampler relaying a sampling decision to any of the configured samplers,
 /// based on whether a given span has a remote and/or sampled parent.

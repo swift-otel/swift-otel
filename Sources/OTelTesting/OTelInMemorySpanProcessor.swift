@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTelCore
-import ServiceContextModule
+package import OTelCore
+package import ServiceContextModule
 
 /// An in-memory span processor, collecting started spans into ``OTelInMemorySpanProcessor/startedSpans``
 /// and finished spans into ``OTelInMemorySpanProcessor/finishedSpans``.

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
+public import Logging
 
 extension OTel {
     /// Configuration that controls telemetry collection and export behavior.

@@ -11,9 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTelCore
-import Tracing
-import W3CTraceContext
+@testable package import OTelCore
+package import Tracing
+package import W3CTraceContext
 
 extension OTelFinishedSpan {
     /// A finished span stub.

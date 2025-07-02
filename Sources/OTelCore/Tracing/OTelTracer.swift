@@ -14,7 +14,7 @@
 import Logging
 import NIOConcurrencyHelpers
 import ServiceLifecycle
-import Tracing
+package import Tracing
 import W3CTraceContext
 
 /// An OpenTelemetry tracer implementing the Swift Distributed Tracing `Tracer` protocol.

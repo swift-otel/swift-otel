@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTelCore
-import W3CTraceContext
+package import OTelCore
+package import W3CTraceContext
 
 extension OTelSpanContext {
     /// A local span context stub.

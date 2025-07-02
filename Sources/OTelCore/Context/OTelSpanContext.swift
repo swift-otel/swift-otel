@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import W3CTraceContext
+package import W3CTraceContext
 
 /// Represents the portion of an ``OTelSpan`` which must be serialized and propagated across asynchronous boundaries.
 ///

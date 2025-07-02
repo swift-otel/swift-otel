@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
+package import ServiceContextModule
 
 /// A span processor that ignores all operations, used when no spans should be processed.
 package struct OTelNoOpSpanProcessor: OTelSpanProcessor, CustomStringConvertible {

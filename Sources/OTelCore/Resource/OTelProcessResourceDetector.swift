@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Foundation
-import Logging
+import class Foundation.ProcessInfo
+package import Logging
 import Tracing
 
 /// A resource detector retrieving process-related attributes.

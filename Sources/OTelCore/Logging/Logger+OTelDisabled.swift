@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
+package import Logging
 
 extension Logger {
     package static let _otelDisabled = Logger(

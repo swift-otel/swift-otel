@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import W3CTraceContext
+package import W3CTraceContext
 
 extension TraceID {
     /// A trace ID stub with bytes from one to sixteen.

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import Logging
+@testable package import Logging
 
 extension LoggingSystem {
     /// Bootstraps the logging system for testing with a minimum log level.

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceLifecycle
+package import ServiceLifecycle
 
 /// Exports a batch of metrics.
 ///

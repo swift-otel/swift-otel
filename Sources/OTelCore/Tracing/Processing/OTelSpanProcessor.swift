@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
-import ServiceLifecycle
+package import ServiceContextModule
+package import ServiceLifecycle
 
 /// Span processor allow for processing spans throught their lifetime via ``onStart(_:parentContext:)`` and ``onEnd(_:)`` calls.
 /// Usually, span processors will forward ended spans to a configurable ``OTelSpanExporter``.

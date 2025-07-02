@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import W3CTraceContext
+package import W3CTraceContext
 
 extension SpanID {
     /// A stub span ID for testing with bytes from one to eight.

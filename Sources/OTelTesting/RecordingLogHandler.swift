@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
-import NIOConcurrencyHelpers
+package import Logging
+package import NIOConcurrencyHelpers
 
 package struct RecordingLogHandler: LogHandler {
     package typealias LogFunctionCall = (level: Logger.Level, message: Logger.Message, metadata: Logger.Metadata?)
