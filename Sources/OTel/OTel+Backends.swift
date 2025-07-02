@@ -24,6 +24,91 @@ import OTLPHTTP
 #endif
 
 extension OTel {
+    /// Create a logging backend with an OTLP exporter.
+    ///
+    /// - Parameter configuration: Configuration for the logging backend.
+    ///
+    ///   This value can be used to configure the logging backend and defaults to `OTel.Configuration.default`, which
+    ///   creates a backend with the default configuration defined in the OpenTelemetry specification.
+    ///
+    ///   Configuration can also be provided at runtime with environment variable overrides.
+    ///
+    /// - Returns: A tuple containing the logging factory and background service:
+    ///
+    ///   - `factory`: A factory that can be used to bootstrap the process-global `LoggingSystem`.
+    ///
+    ///   - `service`: A service that manages the background work, and graceful shutdown of exporters and processors.
+    ///
+    ///   > Important: The factory has NOT been bootstrapped with the `LoggingSystem` and must be manually registered or
+    ///     composed with other logging backends.
+    ///
+    ///   > Important: You must run the returned service in a `ServiceGroup` alongside your application services for log
+    ///     records to be exported.
+    ///
+    /// > Note: Use this API only if you need combine the logging backend with other functionality or control the
+    ///   bootstrap of the logging subsystem. If you do not need this level of control, use
+    ///   `OTel.bootstrap(configuration:)`. You do not need to use this API to bootstrap just a subset of observability
+    ///   subsystems, which is supported by `OTel.bootstrap(configuration:)`.
+    ///
+    /// This API creates a factory that can be used to manually bootstrap the process-global logging subsystem.
+    ///
+    /// This API supports overriding the configuration using environment variables defined in the OpenTelemetry
+    /// specification. This enables operators to customize the observability of your application during deployment.
+    /// For more details on the configuration options, their defaults, and their associated environment variables, see
+    /// `OTel.Configuration`.
+    ///
+    /// > Warning: Attempting to bootstrap the global `LoggingSystem` multiple times will result in a
+    ///   fatal error. Ensure you only bootstrap once per process, either using `OTel.bootstrap(configuration:)` or
+    ///   by manually calling `LoggingSystem.bootstrap(_:)` with a backend created by this function.
+    ///
+    /// ## Example usage
+    ///
+    /// ### Create and bootstrap the logging backend manually
+    ///
+    /// ```swift
+    /// // Create the logging backend without bootstrapping.
+    /// let loggingBackend = try OTel.makeLoggingBackend()
+    ///
+    /// // Manually bootstrap the logging subsystem.
+    /// LoggingSystem.bootstrap(loggingBackend.factory)
+    ///
+    /// // Run the background service alongside your application.
+    /// let server = MockService(name: "AdopterServer")
+    /// let serviceGroup = ServiceGroup(
+    ///     services: [loggingBackend.service, server],
+    ///     logger: .init(label: "ServiceGroup")
+    /// )
+    /// try await serviceGroup.run()
+    /// ```
+    ///
+    /// ### Multiplex with other logging backends
+    ///
+    /// ```swift
+    /// // Create the logging backend without bootstrapping.
+    /// let otelBackend = try OTel.makeLoggingBackend()
+    ///
+    /// // Manually bootstrap the logging subsystem with a multiplex handler.
+    /// LoggingSystem.bootstrap({ label in
+    ///     MultiplexLogHandler([
+    ///        otelBackend.factory(label),
+    ///        SwiftLogNoOpLogHandler(label)
+    ///     ])
+    /// })
+    ///
+    /// // Run the background service alongside your application.
+    /// let server = MockService(name: "AdopterServer")
+    /// let serviceGroup = ServiceGroup(
+    ///     services: [otelBackend.service, server],
+    ///     logger: .init(label: "ServiceGroup")
+    /// )
+    /// try await serviceGroup.run()
+    /// ```
+    ///
+    /// - SeeAlso:
+    ///   - `OTel.bootstrap(configuration:)` for simple, all-in-one observability setup
+    ///   - `OTel.makeMetricsBackend(configuration:)` for metrics backend creation
+    ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
+    ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeLoggingBackend(configuration: OTel.Configuration = .default) throws -> (factory: @Sendable (String) -> any LogHandler, service: some Service) {
         throw NotImplementedError()
         // The following placeholder code exists only to type check the opaque return type.
@@ -32,6 +117,91 @@ extension OTel {
         return (factory, service)
     }
 
+    /// Create a metrics backend with an OTLP exporter.
+    ///
+    /// - Parameter configuration: Configuration for the metrics backend.
+    ///
+    ///   This value can be used to configure the metrics backend and defaults to `OTel.Configuration.default`, which
+    ///   creates a backend with the default configuration defined in the OpenTelemetry specification.
+    ///
+    ///   Configuration can also be provided at runtime with environment variable overrides.
+    ///
+    /// - Returns: A tuple containing the metrics factory and background service:
+    ///
+    ///   - `factory`: A factory that can be used to bootstrap the process-global `MetricsSystem`.
+    ///
+    ///   - `service`: A service that manages the background work, and graceful shutdown of exporters and processors.
+    ///
+    ///   > Important: The factory has NOT been bootstrapped with the `MetricsSystem` and must be manually
+    ///     registered or composed with other metrics backends.
+    ///
+    ///   > Important: You must run the returned service in a `ServiceGroup` alongside your application
+    ///     services for metrics to be exported.
+    ///
+    /// > Note: Use this API only if you need combine the metrics backend with other functionality or control the
+    ///   bootstrap of the metrics subsystem. If you do not need this level of control, use
+    ///   `OTel.bootstrap(configuration:)`. You do not need to use this API to bootstrap just a subset of observability
+    ///   subsystems, which is supported by `OTel.bootstrap(configuration:)`.
+    ///
+    /// This API creates a factory that can be used to manually bootstrap the process-global metrics subsystem.
+    ///
+    /// This API supports overriding the configuration using environment variables defined in the OpenTelemetry
+    /// specification. This enables operators to customize the observability of your application during deployment.
+    /// For more details on the configuration options, their defaults, and their associated environment variables, see
+    /// `OTel.Configuration`.
+    ///
+    /// > Warning: Attempting to bootstrap the global `MetricsSystem` multiple times will result in a
+    ///   fatal error. Ensure you only bootstrap once per process, either using `OTel.bootstrap(configuration:)` or
+    ///   by manually calling `MetricsSystem.bootstrap(_:)` with a backend created by this function.
+    ///
+    /// ## Example usage
+    ///
+    /// ### Create and bootstrap the metrics backend manually
+    ///
+    /// ```swift
+    /// // Create the metrics backend without bootstrapping.
+    /// let metricsBackend = try OTel.makeMetricsBackend()
+    ///
+    /// // Manually bootstrap the metrics subsystem.
+    /// MetricsSystem.bootstrap(metricsBackend.factory)
+    ///
+    /// // Run the background service alongside your application.
+    /// let server = MockService(name: "AdopterServer")
+    /// let serviceGroup = ServiceGroup(
+    ///     services: [metricsBackend.service, server],
+    ///     logger: .init(label: "ServiceGroup")
+    /// )
+    /// try await serviceGroup.run()
+    /// ```
+    ///
+    /// ### Multiplex with other metrics backends
+    ///
+    /// ```swift
+    /// // Create the metrics backend without bootstrapping.
+    /// let otelBackend = try OTel.makeMetricsBackend()
+    ///
+    /// // Manually bootstrap the metrics subsystem with a multiplex handler.
+    /// MetricsSystem.bootstrap({ label in
+    ///     MultiplexMetricsHandler([
+    ///        otelBackend.factory(label),
+    ///        NOOPMetricsHandler.instance
+    ///     ])
+    /// })
+    ///
+    /// // Run the background service alongside your application.
+    /// let server = MockService(name: "AdopterServer")
+    /// let serviceGroup = ServiceGroup(
+    ///     services: [otelBackend.service, server],
+    ///     logger: .init(label: "ServiceGroup")
+    /// )
+    /// try await serviceGroup.run()
+    /// ```
+    ///
+    /// - SeeAlso:
+    ///   - `OTel.bootstrap(configuration:)` for simple, all-in-one observability setup
+    ///   - `OTel.makeLoggingBackend(configuration:)` for logging backend creation
+    ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
+    ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeMetricsBackend(configuration: OTel.Configuration = .default) throws -> (factory: any MetricsFactory, service: some Service) {
         let resource = OTelResource(configuration: configuration)
         let registry = OTelMetricRegistry()
@@ -65,6 +235,91 @@ extension OTel {
         return (OTLPMetricsFactory(registry: registry), reader)
     }
 
+    /// Create a tracing backend with an OTLP exporter.
+    ///
+    /// - Parameter configuration: Configuration for the tracing backend.
+    ///
+    ///   This value can be used to configure the tracing backend and defaults to `OTel.Configuration.default`, which
+    ///   creates a backend with the default configuration defined in the OpenTelemetry specification.
+    ///
+    ///   Configuration can also be provided at runtime with environment variable overrides.
+    ///
+    /// - Returns: A tuple containing the tracing factory and background service:
+    ///
+    ///   - `factory`: A factory that can be used to bootstrap the process-global `InstrumentationSystem`.
+    ///
+    ///   - `service`: A service that manages the background work, and graceful shutdown of exporters and processors.
+    ///
+    ///   > Important: The factory has NOT been bootstrapped with the `InstrumentationSystem` and must be manually
+    ///     registered or composed with other tracing backends.
+    ///
+    ///   > Important: You must run the returned service in a `ServiceGroup` alongside your application
+    ///     services for traces to be exported.
+    ///
+    /// > Note: Use this API only if you need combine the tracing backend with other functionality or control the
+    ///   bootstrap of the tracing subsystem. If you do not need this level of control, use
+    ///   `OTel.bootstrap(configuration:)`. You do not need to use this API to bootstrap just a subset of observability
+    ///   subsystems, which is supported by `OTel.bootstrap(configuration:)`.
+    ///
+    /// This API creates a factory that can be used to manually bootstrap the process-global tracing subsystem.
+    ///
+    /// This API supports overriding the configuration using environment variables defined in the OpenTelemetry
+    /// specification. This enables operators to customize the observability of your application during deployment.
+    /// For more details on the configuration options, their defaults, and their associated environment variables, see
+    /// `OTel.Configuration`.
+    ///
+    /// > Warning: Attempting to bootstrap the global `InstrumentationSystem` multiple times will result in a
+    ///   fatal error. Ensure you only bootstrap once per process, either using `OTel.bootstrap(configuration:)` or
+    ///   by manually calling `InstrumentationSystem.bootstrap(_:)` with a backend created by this function.
+    ///
+    /// ## Example usage
+    ///
+    /// ### Create and bootstrap the tracing backend manually
+    ///
+    /// ```swift
+    /// // Create the tracing backend without bootstrapping.
+    /// let tracingBackend = try OTel.makeTracingBackend()
+    ///
+    /// // Manually bootstrap the tracing subsystem.
+    /// InstrumentationSystem.bootstrap(tracingBackend.factory)
+    ///
+    /// // Run the background service alongside your application.
+    /// let server = MockService(name: "AdopterServer")
+    /// let serviceGroup = ServiceGroup(
+    ///     services: [tracingBackend.service, server],
+    ///     logger: .init(label: "ServiceGroup")
+    /// )
+    /// try await serviceGroup.run()
+    /// ```
+    ///
+    /// ### Multiplex with other tracing backends
+    ///
+    /// ```swift
+    /// // Create the tracing backend without bootstrapping.
+    /// let otelBackend = try OTel.makeTracingBackend()
+    ///
+    /// // Manually bootstrap the tracing subsystem with a multiplex handler.
+    /// InstrumentationSystem.bootstrap({ label in
+    ///     MultiplexInstrument([
+    ///        otelBackend.factory(label),
+    ///        NoOpTracer()
+    ///     ])
+    /// })
+    ///
+    /// // Run the background service alongside your application.
+    /// let server = MockService(name: "AdopterServer")
+    /// let serviceGroup = ServiceGroup(
+    ///     services: [otelBackend.service, server],
+    ///     logger: .init(label: "ServiceGroup")
+    /// )
+    /// try await serviceGroup.run()
+    /// ```
+    ///
+    /// - SeeAlso:
+    ///   - `OTel.bootstrap(configuration:)` for simple, all-in-one observability setup
+    ///   - `OTel.makeLoggingBackend(configuration:)` for logging backend creation
+    ///   - `OTel.makeMetricsBackend(configuration:)` for metrics backend creation
+    ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeTracingBackend(configuration: OTel.Configuration = .default) throws -> (factory: any Tracer, service: some Service) {
         /// This dance is necessary if we want to continue to return `some Service` (vs. returning `any Service`).
         ///
