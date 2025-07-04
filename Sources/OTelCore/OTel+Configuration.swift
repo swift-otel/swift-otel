@@ -177,6 +177,7 @@ extension OTel.Configuration {
             case warning
             case info
             case debug
+            case trace
         }
 
         package var backing: Backing
@@ -192,6 +193,9 @@ extension OTel.Configuration {
 
         /// Debug log level - all messages including debug information are logged.
         public static let debug: Self = .init(backing: .debug)
+
+        /// Trace log level - all messages including fine-grained debug information are logged.
+        public static let trace: Self = .init(backing: .trace)
     }
 }
 
@@ -337,6 +341,11 @@ extension OTel.Configuration {
         /// - Default value: `true`.
         public var enabled: Bool
 
+        /// Default log level for loggers returned by the logging backend factory.
+        ///
+        /// - Default value: `.info`
+        public var level: LogLevel
+
         /// Configuration for the batch log record processor.
         ///
         /// - Default value: `.default`.
@@ -359,6 +368,7 @@ extension OTel.Configuration {
         /// where possible.
         public static let `default`: Self = .init(
             enabled: true,
+            level: .info,
             batchLogRecordProcessor: .default,
             exporter: .otlp,
             otlpExporter: .default
