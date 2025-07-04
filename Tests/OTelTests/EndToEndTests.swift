@@ -23,6 +23,10 @@ import Testing
 import Tracing
 
 @Suite(.serialized) struct EndToEndTests {
+    init() {
+        Testing.Test.workaround_SwiftTesting_1200()
+    }
+
     @Test func testTracesProtobufExportUsingBootstrap() async throws {
         /// Note: It's easier to debug this test by commenting out the surrounding `#expect(procesExitsWith:_:)`.
         await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {

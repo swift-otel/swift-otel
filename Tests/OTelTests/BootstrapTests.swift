@@ -19,6 +19,10 @@ import Testing
 import Tracing
 
 @Suite struct OTelBootstrapTests {
+    init() {
+        Testing.Test.workaround_SwiftTesting_1200()
+    }
+
     @Test func testMakeLoggingBackend() async throws {
         await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
             let (factory, _) = try OTel.makeLoggingBackend()
