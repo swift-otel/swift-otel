@@ -12,45 +12,103 @@
 //===----------------------------------------------------------------------===//
 
 import struct Foundation.URLComponents
-import GRPC
+import GRPCCore
+import GRPCNIOTransportHTTP2
 import Logging
-import NIO
-import NIOHPACK
-import NIOSSL
 import OTelCore
 
 /// Unifying protocol for shared OTLP/gRPC exporter across signals.
-///
-/// NOTE: This is a temporary measure and this type will be overhauled as we migrate to gRPC Swift v2.
-protocol OTLPGRPCClient<Request, Response, Interceptors>: GRPCClient {
+protocol OTLPGRPCClient<Transport, Request, Response> where Response: Sendable, Transport: ClientTransport {
+    associatedtype Transport
     associatedtype Request
     associatedtype Response
-    associatedtype Interceptors
-    func export(_ request: Request, callOptions: CallOptions?) async throws -> Response
 
-    init(
-        channel: GRPCChannel,
-        defaultCallOptions: CallOptions,
-        interceptors: Interceptors?
-    )
+    init(wrapping client: GRPCClient<Transport>)
+
+    func export<Result>(
+        _ message: Request,
+        metadata: Metadata,
+        options: CallOptions,
+        onResponse handleResponse: @Sendable @escaping (ClientResponse<Response>) async throws -> Result
+    ) async throws -> Result where Result: Sendable
 }
 
-extension Opentelemetry_Proto_Collector_Trace_V1_TraceServiceAsyncClient: OTLPGRPCClient {}
-extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient: OTLPGRPCClient {}
-extension Opentelemetry_Proto_Collector_Logs_V1_LogsServiceAsyncClient: OTLPGRPCClient {}
+extension Opentelemetry_Proto_Collector_Logs_V1_LogsService.Client: OTLPGRPCClient {}
+extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Client: OTLPGRPCClient {}
+extension Opentelemetry_Proto_Collector_Trace_V1_TraceService.Client: OTLPGRPCClient {}
 
-final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sendable {
-    private let connection: ClientConnection
-    private let client: Client
+final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client.Transport == HTTP2ClientTransport.Posix {
     private let logger = Logger(label: "OTLPGRPCExporter")
+    private let client: GRPCClient<HTTP2ClientTransport.Posix>
+    private let metadata: Metadata
+    private let callOptions: CallOptions
 
     init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
-        let group = MultiThreadedEventLoopGroup.singleton
-
         guard configuration.protocol == .grpc else {
             throw OTLPGRPCExporterError.invalidProtocol
         }
+        self.client = try GRPCClient(transport: HTTP2ClientTransport.Posix(configuration))
+        self.metadata = Metadata(configuration)
+        self.callOptions = CallOptions(configuration)
+    }
 
+    func run() async throws {
+        try await client.runConnections()
+    }
+
+    func export(_ request: Client.Request) async throws -> Client.Response {
+        do {
+            return try await Client(wrapping: client).export(request, metadata: metadata, options: callOptions) { response in
+                try response.message
+            }
+        } catch let error as GRPCCore.RuntimeError where error.code == .clientIsStopped {
+            throw OTLPGRPCExporterError.exporterAlreadyShutDown
+        } catch {
+            throw error
+        }
+    }
+
+    func forceFlush() async throws {
+        // This exporter is a "push exporter" and so the OTel spec says that force flush should do nothing.
+    }
+
+    func shutdown() async {
+        client.beginGracefulShutdown()
+    }
+}
+
+enum OTLPGRPCExporterError: Swift.Error {
+    case invalidEndpoint(String)
+    case partialMTLSdConfiguration
+    case exporterAlreadyShutDown
+    case invalidProtocol
+}
+
+extension HTTP2ClientTransport.Posix.Config {
+    init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) {
+        self = .defaults
+        switch configuration.compression.backing {
+        case .gzip: self.compression = .init(algorithm: .gzip, enabledAlgorithms: [.gzip])
+        case .none: self.compression = .init(algorithm: .none, enabledAlgorithms: [.none])
+        }
+    }
+}
+
+extension CallOptions {
+    init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) {
+        self = .defaults
+        self.timeout = configuration.timeout
+        // TODO: we're setting compression here and in the transport config; do we need both?
+        self.compression = switch configuration.compression.backing {
+        case .gzip: .gzip
+        case .none: CompressionAlgorithm.none
+        }
+        // TODO: retry/backoff policy here
+    }
+}
+
+extension HTTP2ClientTransport.Posix {
+    init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
         guard
             let endpointComponents = URLComponents(string: configuration.endpoint),
             let host = endpointComponents.host,
@@ -70,15 +128,14 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sen
         default: configuration.insecure
         }
 
+        let security: HTTP2ClientTransport.Posix.TransportSecurity
         if insecure {
-            self.connection = ClientConnection.insecure(group: group).connect(host: host, port: port)
+            security = .plaintext
         } else {
-            let builder = ClientConnection.usingTLSBackedByNIOSSL(on: group)
             // TLS
+            var tlsConfig = HTTP2ClientTransport.Posix.TransportSecurity.TLS.defaults
             if let certPath = configuration.certificateFilePath {
-                builder.withTLS(trustRoots: .file(certPath))
-            } else {
-                builder.withTLS(trustRoots: .default)
+                tlsConfig.trustRoots = .certificates([.file(path: certPath, format: .pem)])
             }
             // mTLS
             switch (configuration.clientCertificateFilePath, configuration.clientKeyFilePath) {
@@ -87,54 +144,27 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sen
             case (.some, .none), (.none, .some):
                 throw OTLPGRPCExporterError.partialMTLSdConfiguration
             case (.some(let clientCertPath), .some(let clientKeyPath)):
-                try builder
-                    .withTLS(certificateChain: NIOSSLCertificate.fromPEMFile(clientCertPath))
-                    .withTLS(privateKey: NIOSSLPrivateKey(file: clientKeyPath, format: .pem))
+                tlsConfig.certificateChain = [.file(path: clientCertPath, format: .pem)]
+                tlsConfig.privateKey = .file(path: clientKeyPath, format: .pem)
             }
-            self.connection = builder.connect(host: host, port: port)
+            security = .tls(tlsConfig)
         }
 
-        var headers = HPACKHeaders(configuration.headers)
-        if !headers.isEmpty {
-            logger.trace("Configured custom request headers.", metadata: [
-                "keys": .array(headers.map { .string($0.name) }),
-            ])
-        }
-        headers.replaceOrAdd(name: "User-Agent", value: "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)")
-
-        self.client = Client(
-            channel: connection,
-            defaultCallOptions: .init(customMetadata: headers, logger: ._otelDisabled),
-            interceptors: nil
+        try self.init(
+            target: .dns(host: host, port: port),
+            transportSecurity: security,
+            config: Config(configuration)
         )
-    }
-
-    func run() async throws {
-        // Nothing to do right now, but will be important for gRPC v2.
-    }
-
-    func export(_ request: Client.Request) async throws -> Client.Response {
-        if case .shutdown = connection.connectivity.state {
-            logger.error("Attempted to export while already being shut down.")
-            throw OTLPGRPCExporterError.exporterAlreadyShutDown
-        }
-        return try await client.export(request, callOptions: nil)
-    }
-
-    func forceFlush() async throws {
-        // This exporter is a "push exporter" and so the OTel spec says that force flush should do nothing.
-    }
-
-    func shutdown() async {
-        let promise = connection.eventLoop.makePromise(of: Void.self)
-        connection.closeGracefully(deadline: .now() + .milliseconds(500), promise: promise)
-        try? await promise.futureResult.get()
     }
 }
 
-enum OTLPGRPCExporterError: Swift.Error {
-    case invalidEndpoint(String)
-    case partialMTLSdConfiguration
-    case exporterAlreadyShutDown
-    case invalidProtocol
+extension Metadata {
+    init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) {
+        self.init()
+        self.reserveCapacity(configuration.headers.count)
+        for (key, value) in configuration.headers {
+            self.addString(value, forKey: key)
+        }
+        self.replaceOrAddString("OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)", forKey: "User-Agent")
+    }
 }

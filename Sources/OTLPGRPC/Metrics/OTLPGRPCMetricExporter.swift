@@ -11,15 +11,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
-import NIO
-import NIOSSL
+import GRPCNIOTransportHTTP2
 package import OTelCore
 import OTLPCore
 
 /// A metrics exporter emitting metric batches to an OTel collector via gRPC.
 package final class OTLPGRPCMetricExporter: OTelMetricExporter {
-    typealias Client = Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncClient
+    typealias Client = Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Client<HTTP2ClientTransport.Posix>
     private let client: OTLPGRPCExporter<Client>
 
     package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {

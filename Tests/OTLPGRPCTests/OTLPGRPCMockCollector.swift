@@ -11,40 +11,33 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Dispatch
-import GRPC
-import Logging
-import NIO
+import GRPCCore
+import GRPCNIOTransportHTTP2Posix
 import NIOConcurrencyHelpers
-import NIOHPACK
-import NIOSSL
 import OTLPGRPC
+import SwiftProtobuf
 import XCTest
 
 final class OTLPGRPCMockCollector: Sendable {
-    let metricsProvider = MetricsServiceProvider()
-    let traceProvider = TraceServiceProvider()
+    let recordingMetricsService = RecordingMetricsService()
+    let recordingTraceService = RecordingTraceService()
 
     @discardableResult
     static func withInsecureServer<T>(operation: (_ collector: OTLPGRPCMockCollector, _ endpoint: String) async throws -> T) async throws -> T {
         let collector = self.init()
-        let server = try await Server.insecure(group: MultiThreadedEventLoopGroup.singleton)
-            .withLogger(Logger(label: String(describing: type(of: self))))
-            .withServiceProviders([
-                collector.metricsProvider,
-                collector.traceProvider,
-            ])
-            .bind(host: "localhost", port: 0)
-            .get()
+        let server = GRPCServer(
+            transport: .http2NIOPosix(address: .ipv4(host: "127.0.0.1", port: 0), transportSecurity: .plaintext),
+            services: [collector.recordingMetricsService, collector.recordingTraceService]
+        )
 
-        do {
-            let port = try XCTUnwrap(server.channel.localAddress?.port)
+        return try await withThrowingTaskGroup { group in
+            group.addTask { try await server.serve() }
+            let address = try await server.listeningAddress
+            let port = try XCTUnwrap(address?.ipv4?.port)
             let result = try await operation(collector, "http://localhost:\(port)")
-            try await server.close().get()
+            server.beginGracefulShutdown()
+            try await group.waitForAll()
             return result
-        } catch {
-            try await server.close().get()
-            throw error
         }
     }
 
@@ -59,70 +52,64 @@ final class OTLPGRPCMockCollector: Sendable {
             try Data(exampleServerCert.utf8).write(to: certificatePath)
             let privateKeyPath = tempDir.appendingPathComponent("server_key.pem")
             try Data(exampleServerKey.utf8).write(to: privateKeyPath)
-            let collector = self.init()
-            let server = try await Server
-                .usingTLSBackedByNIOSSL(
-                    on: MultiThreadedEventLoopGroup.singleton,
-                    certificateChain: [.init(file: certificatePath.path(), format: .pem)],
-                    privateKey: .init(file: privateKeyPath.path(), format: .pem)
-                )
-                .withLogger(Logger(label: String(describing: type(of: self))))
-                .withTLS(trustRoots: .file(trustRootsPath.path()))
-                .withServiceProviders([
-                    collector.metricsProvider,
-                    collector.traceProvider,
-                ])
-                .bind(host: "localhost", port: 0)
-                .get()
 
-            do {
-                let port = try XCTUnwrap(server.channel.localAddress?.port)
+            let transportSecurity: HTTP2ServerTransport.Posix.TransportSecurity = .tls(
+                certificateChain: [.file(path: certificatePath.path(), format: .pem)],
+                privateKey: .file(path: privateKeyPath.path(), format: .pem)
+            )
+
+            let collector = self.init()
+            let server = GRPCServer(
+                transport: .http2NIOPosix(address: .ipv4(host: "127.0.0.1", port: 0), transportSecurity: transportSecurity),
+                services: [collector.recordingMetricsService, collector.recordingTraceService]
+            )
+            return try await withThrowingTaskGroup { group in
+                group.addTask { try await server.serve() }
+                let address = try await server.listeningAddress
+                let port = try XCTUnwrap(address?.ipv4?.port)
                 let result = try await operation(collector, "https://localhost:\(port)", trustRootsPath.path())
-                try await server.close().get()
+                server.beginGracefulShutdown()
+                try await group.waitForAll()
                 return result
-            } catch {
-                try await server.close().get()
-                throw error
             }
         }
     }
 }
 
-struct RecordedRequest<ExportRequest>: Sendable where ExportRequest: Sendable {
-    let exportRequest: ExportRequest
-    let context: GRPCAsyncServerCallContext
-    var headers: HPACKHeaders { context.request.headers }
-}
+final class RecordingService<Request, Response>: Sendable where Request: Message, Response: Message {
+    struct RecordedRequest {
+        var message: Request
+        var context: ServerContext
+        var metadata: Metadata
+    }
 
-final class TraceServiceProvider: Sendable, Opentelemetry_Proto_Collector_Trace_V1_TraceServiceAsyncProvider {
-    typealias ExportRequest = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest
-    typealias ExportResponse = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse
-
-    private let recordedRequestsBox: NIOLockedValueBox<[RecordedRequest<ExportRequest>]> = .init([])
-    var requests: [RecordedRequest<ExportRequest>] {
+    private let recordedRequestsBox = NIOLockedValueBox<[RecordedRequest]>([])
+    var requests: [RecordedRequest] {
         get { recordedRequestsBox.withLockedValue { $0 } }
         set { recordedRequestsBox.withLockedValue { $0 = newValue } }
     }
 
-    func export(request: ExportRequest, context: GRPCAsyncServerCallContext) async throws -> ExportResponse {
-        requests.append(RecordedRequest(exportRequest: request, context: context))
-        return ExportResponse()
+    func export(request: ServerRequest<Request>, context: ServerContext) async throws -> ServerResponse<Response> {
+        requests.append(RecordedRequest(message: request.message, context: context, metadata: request.metadata))
+        return ServerResponse(message: Response())
     }
 }
 
-final class MetricsServiceProvider: Sendable, Opentelemetry_Proto_Collector_Metrics_V1_MetricsServiceAsyncProvider {
-    typealias ExportRequest = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest
-    typealias ExportResponse = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse
-
-    private let recordedRequestsBox: NIOLockedValueBox<[RecordedRequest<ExportRequest>]> = .init([])
-    var requests: [RecordedRequest<ExportRequest>] {
-        get { recordedRequestsBox.withLockedValue { $0 } }
-        set { recordedRequestsBox.withLockedValue { $0 = newValue } }
+final class RecordingTraceService: Opentelemetry_Proto_Collector_Trace_V1_TraceService.ServiceProtocol {
+    typealias Request = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest
+    typealias Response = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse
+    let recordingService = RecordingService<Request, Response>()
+    func export(request: ServerRequest<Request>, context: ServerContext) async throws -> ServerResponse<Response> {
+        try await recordingService.export(request: request, context: context)
     }
+}
 
-    func export(request: ExportRequest, context: GRPCAsyncServerCallContext) async throws -> ExportResponse {
-        requests.append(RecordedRequest(exportRequest: request, context: context))
-        return ExportResponse()
+final class RecordingMetricsService: Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.ServiceProtocol {
+    typealias Request = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest
+    typealias Response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse
+    let recordingService = RecordingService<Request, Response>()
+    func export(request: ServerRequest<Request>, context: ServerContext) async throws -> ServerResponse<Response> {
+        try await recordingService.export(request: request, context: context)
     }
 }
 

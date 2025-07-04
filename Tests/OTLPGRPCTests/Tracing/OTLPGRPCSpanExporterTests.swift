@@ -11,7 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-import GRPC
 @testable import Logging
 import NIO
 @testable import OTelCore
@@ -54,11 +53,11 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
                 try await exporter.export([span])
             }
 
-            XCTAssertEqual(collector.traceProvider.requests.count, 1)
-            let request = try XCTUnwrap(collector.traceProvider.requests.first)
+            XCTAssertEqual(collector.recordingTraceService.recordingService.requests.count, 1)
+            let request = try XCTUnwrap(collector.recordingTraceService.recordingService.requests.first)
 
             XCTAssertEqual(
-                request.headers.first(name: "user-agent"),
+                request.metadata.first(where: { $0.key == "user-agent" })?.value,
                 "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)"
             )
         }
@@ -75,11 +74,11 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
                 try await exporter.export([span])
             }
 
-            XCTAssertEqual(collector.traceProvider.requests.count, 1)
-            let request = try XCTUnwrap(collector.traceProvider.requests.first)
+            XCTAssertEqual(collector.recordingTraceService.recordingService.requests.count, 1)
+            let request = try XCTUnwrap(collector.recordingTraceService.recordingService.requests.first)
 
             XCTAssertEqual(
-                request.headers.first(name: "user-agent"),
+                request.metadata.first(where: { $0.key == "user-agent" })?.value,
                 "OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)"
             )
         }
@@ -100,11 +99,11 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
                 try await exporter.export([span])
             }
 
-            XCTAssertEqual(collector.traceProvider.requests.count, 1)
-            let request = try XCTUnwrap(collector.traceProvider.requests.first)
+            XCTAssertEqual(collector.recordingTraceService.recordingService.requests.count, 1)
+            let request = try XCTUnwrap(collector.recordingTraceService.recordingService.requests.first)
 
-            XCTAssertEqual(request.exportRequest.resourceSpans.count, 1)
-            let resourceSpans = try XCTUnwrap(request.exportRequest.resourceSpans.first)
+            XCTAssertEqual(request.message.resourceSpans.count, 1)
+            let resourceSpans = try XCTUnwrap(request.message.resourceSpans.first)
             XCTAssertEqual(resourceSpans.resource, .with {
                 $0.attributes = .init(["service.name": "test"])
             })
@@ -116,8 +115,8 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
             })
             XCTAssertEqual(scopeSpans.spans, [.init(span)])
 
-            XCTAssertEqual(request.headers.first(name: "key1"), "42")
-            XCTAssertEqual(request.headers.first(name: "key2"), "84")
+            XCTAssertEqual(request.metadata.first(where: { $0.key == "key1" })?.value, "42")
+            XCTAssertEqual(request.metadata.first(where: { $0.key == "key2" })?.value, "84")
         }
     }
 

@@ -11,14 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
-import NIO
-import NIOSSL
+import GRPCNIOTransportHTTP2
 package import OTelCore
 import OTLPCore
 
 package final class OTLPGRPCLogRecordExporter: OTelLogRecordExporter {
-    typealias Client = Opentelemetry_Proto_Collector_Logs_V1_LogsServiceAsyncClient
+    typealias Client = Opentelemetry_Proto_Collector_Logs_V1_LogsService.Client<HTTP2ClientTransport.Posix>
     private let client: OTLPGRPCExporter<Client>
 
     package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
