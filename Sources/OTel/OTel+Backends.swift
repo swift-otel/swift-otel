@@ -128,7 +128,7 @@ extension OTel {
                 let processor = OTelBatchLogRecordProcessor(exporter: exporter, configuration: .init(configuration: configuration.logs.batchLogRecordProcessor))
                 let handler = OTelLogHandler(
                     processor: processor,
-                    logLevel: .debug, // um.... wat?
+                    logLevel: Logger.Level(configuration.logs.level),
                     resource: resource
                 )
                 return ({ _ in handler }, Wrapper(wrapped: processor))
@@ -144,7 +144,7 @@ extension OTel {
                 )
                 let handler = OTelLogHandler(
                     processor: processor,
-                    logLevel: .debug, // um.... wat?
+                    logLevel: Logger.Level(configuration.logs.level),
                     resource: resource
                 )
                 return ({ _ in handler }, Wrapper(wrapped: processor))

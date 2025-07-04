@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Logging
 import Tracing
 
 extension OTelResource {
@@ -51,5 +52,17 @@ extension OTelBatchSpanProcessorConfiguration {
             maximumExportBatchSize: UInt(configuration.maxExportBatchSize),
             exportTimeout: configuration.exportTimeout
         )
+    }
+}
+
+extension Logging.Logger.Level {
+    package init(_ level: OTel.Configuration.LogLevel) {
+        switch level.backing {
+        case .error: self = .error
+        case .warning: self = .warning
+        case .info: self = .info
+        case .debug: self = .debug
+        case .trace: self = .trace
+        }
     }
 }
