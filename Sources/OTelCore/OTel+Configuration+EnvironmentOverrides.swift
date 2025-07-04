@@ -21,8 +21,8 @@ extension OTel.Configuration {
         if let serviceName = environment.getStringValue(.serviceName) {
             self.serviceName = serviceName
         }
-        if let logLevel = environment.getEnumValue(of: OTel.Configuration.LogLevel.Backing.self, .logLevel) {
-            self.logLevel = .init(backing: logLevel)
+        if let diagnosticLogLevel = environment.getEnumValue(of: OTel.Configuration.LogLevel.Backing.self, .logLevel) {
+            self.diagnosticLogLevel = .init(backing: diagnosticLogLevel)
         }
         if let propagators = environment.getStringValue(.propagators) {
             self.propagators.removeAll()
