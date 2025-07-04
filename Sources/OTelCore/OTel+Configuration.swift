@@ -83,7 +83,7 @@ extension OTel {
         /// does not affect application logging or log signal collection.
         ///
         /// - Default value: `.console`.
-        public var logger: LoggerSelection
+        public var diagnosticLogger: DiagnosticLoggerSelection
 
         /// The minimum log level for internal diagnostic messages.
         ///
@@ -92,7 +92,7 @@ extension OTel {
         ///
         /// - Environment variable(s): `OTEL_LOG_LEVEL`.
         /// - Default value: `.info`.
-        public var logLevel: LogLevel
+        public var diagnosticLogLevel: LogLevel
 
         /// The list of propagators used for context propagation across service boundaries.
         ///
@@ -135,8 +135,8 @@ extension OTel {
         public static let `default`: Self = .init(
             serviceName: "unknown_service",
             resourceAttributes: [:],
-            logger: .console,
-            logLevel: .info,
+            diagnosticLogger: .console,
+            diagnosticLogLevel: .info,
             propagators: [.traceContext, .baggage],
             traces: .default,
             metrics: .default,
@@ -147,7 +147,7 @@ extension OTel {
 
 extension OTel.Configuration {
     /// Logger to use for internal diagnostics.
-    public struct LoggerSelection: Sendable {
+    public struct DiagnosticLoggerSelection: Sendable {
         package enum Backing: Sendable {
             case console
             case custom(Logger)
