@@ -271,6 +271,7 @@ import Tracing
                     var config = OTel.Configuration.default
                     config.metrics.enabled = false
                     config.traces.enabled = false
+                    config.logs.level = .debug
                     config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.logs.otlpExporter.protocol = .httpProtobuf
                     let observability = try OTel.bootstrap(configuration: config)
@@ -333,6 +334,7 @@ import Tracing
                     var config = OTel.Configuration.default
                     config.metrics.enabled = false
                     config.traces.enabled = false
+                    config.logs.level = .debug
                     config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.logs.otlpExporter.protocol = .httpJSON
                     let observability = try OTel.bootstrap(configuration: config)
