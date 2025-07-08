@@ -37,9 +37,10 @@ extension Opentelemetry_Proto_Collector_Logs_V1_LogsService.Client: OTLPGRPCClie
 extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Client: OTLPGRPCClient {}
 extension Opentelemetry_Proto_Collector_Trace_V1_TraceService.Client: OTLPGRPCClient {}
 
-final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client.Transport == HTTP2ClientTransport.Posix {
+final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sendable, Client.Transport == HTTP2ClientTransport.Posix {
     private let logger = Logger(label: "OTLPGRPCExporter")
-    private let client: GRPCClient<HTTP2ClientTransport.Posix>
+    private let underlyingClient: GRPCClient<Client.Transport>
+    private let client: Client
     private let metadata: Metadata
     private let callOptions: CallOptions
 
@@ -47,18 +48,19 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client.Tran
         guard configuration.protocol == .grpc else {
             throw OTLPGRPCExporterError.invalidProtocol
         }
-        self.client = try GRPCClient(transport: HTTP2ClientTransport.Posix(configuration))
+        self.underlyingClient = try GRPCClient(transport: HTTP2ClientTransport.Posix(configuration))
+        self.client = Client(wrapping: underlyingClient)
         self.metadata = Metadata(configuration)
         self.callOptions = CallOptions(configuration)
     }
 
     func run() async throws {
-        try await client.runConnections()
+        try await underlyingClient.runConnections()
     }
 
     func export(_ request: Client.Request) async throws -> Client.Response {
         do {
-            return try await Client(wrapping: client).export(request, metadata: metadata, options: callOptions) { response in
+            return try await client.export(request, metadata: metadata, options: callOptions) { response in
                 try response.message
             }
         } catch let error as GRPCCore.RuntimeError where error.code == .clientIsStopped {
@@ -73,7 +75,7 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client.Tran
     }
 
     func shutdown() async {
-        client.beginGracefulShutdown()
+        underlyingClient.beginGracefulShutdown()
     }
 }
 
