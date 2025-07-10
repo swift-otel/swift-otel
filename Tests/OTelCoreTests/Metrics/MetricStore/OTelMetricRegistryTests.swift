@@ -446,6 +446,16 @@ final class DuplicateRegistrationHandlerTests: XCTestCase {
 }
 
 extension OTelMetricRegistry {
+    // Overload with logging disabled.
+    convenience init(duplicateRegistrationHandler: some DuplicateRegistrationHandler) {
+        self.init(duplicateRegistrationHandler: duplicateRegistrationHandler, logger: ._otelDisabled)
+    }
+
+    // Overload with logging disabled.
+    convenience init(onDuplicateRegistration: DuplicateRegistrationBehavior = .warn) {
+        self.init(onDuplicateRegistration: onDuplicateRegistration, logger: ._otelDisabled)
+    }
+
     var numDistinctInstruments: Int {
         let metrics = storage.withLockedValue { $0 }
         let x: [Int] = [

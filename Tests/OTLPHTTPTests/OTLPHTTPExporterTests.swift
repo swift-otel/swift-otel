@@ -254,3 +254,24 @@ import Tracing
         }
     }
 }
+
+extension OTLPHTTPLogRecordExporter {
+    // Overload with logging disabled.
+    convenience init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+        try self.init(configuration: configuration, logger: ._otelDisabled)
+    }
+}
+
+extension OTLPHTTPMetricExporter {
+    // Overload with logging disabled.
+    convenience init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+        try self.init(configuration: configuration, logger: ._otelDisabled)
+    }
+}
+
+extension OTLPHTTPSpanExporter {
+    // Overload with logging disabled.
+    convenience init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+        try self.init(configuration: configuration, logger: ._otelDisabled)
+    }
+}

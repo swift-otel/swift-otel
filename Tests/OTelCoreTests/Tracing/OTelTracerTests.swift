@@ -443,3 +443,27 @@ final class OTelTracerTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["test"])
     }
 }
+
+extension OTelTracer {
+    // Overload with logging disabled.
+    fileprivate convenience init(
+        idGenerator: IDGenerator,
+        sampler: Sampler,
+        propagator: Propagator,
+        processor: Processor,
+        environment: OTelEnvironment,
+        resource: OTelResource,
+        clock: Clock = .continuous
+    ) {
+        self.init(
+            idGenerator: idGenerator,
+            sampler: sampler,
+            propagator: propagator,
+            processor: processor,
+            environment: environment,
+            resource: resource,
+            logger: ._otelDisabled,
+            clock: clock
+        )
+    }
+}

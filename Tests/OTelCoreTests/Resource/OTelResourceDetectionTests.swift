@@ -174,3 +174,10 @@ private struct SleepingResourceDetector: OTelResourceDetector {
 }
 
 private struct TestError: Error {}
+
+extension OTelResourceDetection {
+    // Overload with logging disabled.
+    func resource(environment: OTelEnvironment, logLevel: Logger.Level = .info) async -> OTelResource {
+        await resource(environment: environment, logger: ._otelDisabled, logLevel: .trace)
+    }
+}

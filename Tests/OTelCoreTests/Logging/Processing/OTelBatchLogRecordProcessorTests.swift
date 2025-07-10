@@ -301,3 +301,10 @@ private struct ShutdownTrigger: Service {
         await iterator.next()
     }
 }
+
+extension OTelBatchLogRecordProcessor {
+    // Overload with logging disabled.
+    init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, clock: Clock = .continuous) {
+        self.init(exporter: exporter, configuration: configuration, logger: ._otelDisabled, clock: clock)
+    }
+}

@@ -328,3 +328,23 @@ final class MockMetricExporter: Sendable, OTelMetricExporter {
         shutdownCount.withLockedValue { $0 += 1 }
     }
 }
+
+extension OTelPeriodicExportingMetricsReader {
+    // Overload with logging disabled.
+    init(
+        resource: OTelResource,
+        producer: OTelMetricProducer,
+        exporter: OTelMetricExporter,
+        configuration: OTelPeriodicExportingMetricsReaderConfiguration,
+        clock: Clock = .continuous
+    ) {
+        self.init(
+            resource: resource,
+            producer: producer,
+            exporter: exporter,
+            configuration: configuration,
+            logger: ._otelDisabled,
+            clock: clock
+        )
+    }
+}

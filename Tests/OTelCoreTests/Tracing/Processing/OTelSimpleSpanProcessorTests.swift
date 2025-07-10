@@ -68,3 +68,10 @@ final class OTelSimpleSpanProcessorTests: XCTestCase {
         XCTAssertEqual(numberOfShutdowns, 1)
     }
 }
+
+extension OTelSimpleSpanProcessor {
+    // Overload with logging disabled.
+    init(exporter: Exporter) {
+        self.init(exporter: exporter, logger: ._otelDisabled)
+    }
+}

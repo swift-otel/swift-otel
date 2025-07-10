@@ -183,3 +183,10 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
         }
     }
 }
+
+extension OTLPGRPCMetricExporter {
+    // Overload with logging disabled.
+    convenience init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+        try self.init(configuration: configuration, logger: ._otelDisabled)
+    }
+}

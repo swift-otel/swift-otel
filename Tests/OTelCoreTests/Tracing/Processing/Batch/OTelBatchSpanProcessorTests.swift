@@ -256,3 +256,10 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         XCTAssertEqual(numberOfExporterShutdowns, 1)
     }
 }
+
+extension OTelBatchSpanProcessor {
+    // Overload with logging disabled.
+    init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, clock: Clock) {
+        self.init(exporter: exporter, configuration: configuration, logger: ._otelDisabled, clock: clock)
+    }
+}
