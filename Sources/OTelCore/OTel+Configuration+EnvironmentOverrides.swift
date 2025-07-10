@@ -10,275 +10,99 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+package import Logging
 
 extension OTel.Configuration {
-    package mutating func applyEnvironmentOverrides(environment: [String: String]) {
-        if let sdkDisabled = environment.getBoolValue(.sdkDisabled), sdkDisabled {
-            logs.enabled = false
-            metrics.enabled = false
-            traces.enabled = false
-        }
-        if let resourceAttributes = environment.getHeadersValue(.resourceAttributes) {
-            // https://opentelemetry.io/docs/specs/otel/resource/sdk/#specifying-resource-information-via-an-environment-variable
-            let incomingAttributes = Dictionary(resourceAttributes, uniquingKeysWith: { _, second in second })
-            self.resourceAttributes.merge(incomingAttributes, uniquingKeysWith: { current, _ in current })
-        }
-        if let serviceName = environment.getStringValue(.serviceName) {
-            self.serviceName = serviceName
-        }
-        if let diagnosticLogLevel = environment.getEnumValue(of: OTel.Configuration.LogLevel.Backing.self, .logLevel) {
-            self.diagnosticLogLevel = .init(backing: diagnosticLogLevel)
-        }
-        if let propagators = environment.getStringValue(.propagators) {
-            self.propagators.removeAll()
-            for propagator in propagators.split(separator: ",") {
-                switch propagator {
-                case "tracecontext":
-                    self.propagators.append(.traceContext)
-                case "baggage":
-                    self.propagators.append(.baggage)
-                case "b3":
-                    self.propagators.append(.b3)
-                case "b3multi":
-                    self.propagators.append(.b3Multi)
-                case "jaeger":
-                    self.propagators.append(.jaeger)
-                case "xray":
-                    self.propagators.append(.xray)
-                case "ottrace":
-                    self.propagators.append(.otTrace)
-                case "none":
-                    self.propagators.removeAll()
-                default:
-                    continue
-                }
-            }
-        }
-        traces.applyEnvironmentOverrides(environment: environment)
-        metrics.applyEnvironmentOverrides(environment: environment)
-        logs.applyEnvironmentOverrides(environment: environment)
+    package mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+        logs.disabled.override(using: .sdkDisabled, from: environment, logger: logger)
+        metrics.disabled.override(using: .sdkDisabled, from: environment, logger: logger)
+        traces.disabled.override(using: .sdkDisabled, from: environment, logger: logger)
+        resourceAttributes.merge(using: .resourceAttributes, from: environment, logger: logger)
+        serviceName.override(using: .serviceName, from: environment, logger: logger)
+        diagnosticLogLevel.override(using: .logLevel, from: environment, logger: logger)
+        propagators.override(using: .propagators, from: environment, logger: logger)
+        traces.applyEnvironmentOverrides(environment: environment, logger: logger)
+        metrics.applyEnvironmentOverrides(environment: environment, logger: logger)
+        logs.applyEnvironmentOverrides(environment: environment, logger: logger)
     }
 }
 
 extension OTel.Configuration.TracesConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
-        sampler.applyEnvironmentOverrides(environment: environment)
-        batchSpanProcessor.applyEnvironmentOverrides(environment: environment)
-        if let tracesExporter = environment.getStringValue(.tracesExporter) {
-            switch tracesExporter {
-            case "none":
-                enabled = false
-            case "jaeger":
-                exporter = .jaeger
-            case "zipkin":
-                exporter = .zipkin
-            case "console":
-                exporter = .console
-            case "otlp":
-                exporter = .otlp
-            default:
-                exporter = .otlp
-            }
-        }
-        otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .traces)
+    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+        sampler.applyEnvironmentOverrides(environment: environment, logger: logger)
+        batchSpanProcessor.applyEnvironmentOverrides(environment: environment, logger: logger)
+        exporter.override(using: .tracesExporter, from: environment, logger: logger)
+        if exporter.backing == .none { enabled = false }
+        otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .traces, logger: logger)
     }
 }
 
 extension OTel.Configuration.MetricsConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
-        if let metricExportInterval = environment.getDurationValue(.metricExportInterval) {
-            exportInterval = metricExportInterval
-        }
-        if let metricExportTimeout = environment.getDurationValue(.metricExportTimeout) {
-            exportTimeout = metricExportTimeout
-        }
-        if let metricsExporter = environment.getStringValue(.metricsExporter) {
-            switch metricsExporter {
-            case "none":
-                enabled = false
-            case "prometheus":
-                exporter = .prometheus
-            case "console":
-                exporter = .console
-            case "otlp":
-                exporter = .otlp
-            default:
-                exporter = .otlp
-            }
-        }
-        otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .metrics)
+    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+        exportInterval.override(using: .metricExportInterval, from: environment, logger: logger)
+        exportTimeout.override(using: .metricExportTimeout, from: environment, logger: logger)
+        exporter.override(using: .metricsExporter, from: environment, logger: logger)
+        if exporter.backing == .none { enabled = false }
+        otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .metrics, logger: logger)
     }
 }
 
 extension OTel.Configuration.LogsConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
-        batchLogRecordProcessor.applyEnvironmentOverrides(environment: environment)
-        if let logsExporter = environment.getStringValue(.logsExporter) {
-            switch logsExporter {
-            case "none":
-                enabled = false
-            case "console":
-                exporter = .console
-            case "otlp":
-                exporter = .otlp
-            default:
-                exporter = .otlp
-            }
-        }
-        otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .logs)
+    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+        batchLogRecordProcessor.applyEnvironmentOverrides(environment: environment, logger: logger)
+        exporter.override(using: .logsExporter, from: environment, logger: logger)
+        if exporter.backing == .none { enabled = false }
+        otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .logs, logger: logger)
     }
 }
 
 extension OTel.Configuration.TracesConfiguration.SamplerConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
-        if let sampler = environment.getStringValue(.sampler) {
-            switch sampler {
-            case "always_on": self = .alwaysOn
-            case "always_off": self = .alwaysOff
-            case "traceidratio": backing = .traceIDRatio
-            case "parentbased_always_on": self = .parentBasedAlwaysOn
-            case "parentbased_always_off": self = .parentBasedAlwaysOff
-            case "parentbased_traceidratio": backing = .parentBasedTraceIDRatio
-            case "parentbased_jaeger_remote": self = .parentBasedJaegerRemote
-            case "jaeger_remote": self = .jaegerRemote
-            case "xray": self = .xray
-            default: self = .parentBasedAlwaysOn
-            }
-        }
-        if let samplerArgument = environment.getStringValue(.samplerArgument) {
-            switch backing {
-            case .traceIDRatio, .parentBasedTraceIDRatio:
-                guard let samplingProbability = Double(samplerArgument) else { break }
-                argument = .traceIDRatio(samplingProbability: samplingProbability)
-            case .jaegerRemote, .parentBasedJaegerRemote:
-                // Example: endpoint=http://localhost:14250,pollingIntervalMs=5000,initialSamplingRate=0.25
-                let parameters = samplerArgument.split(separator: ",", maxSplits: 3).map { $0.split(separator: "=", maxSplits: 2) }
-                guard
-                    parameters.count == 3, parameters.allSatisfy({ $0.count == 2 }),
-                    parameters[0][0] == "endpoint",
-                    let endpoint = String(parameters[0][1]) as String?,
-                    parameters[1][0] == "pollingIntervalMs",
-                    let pollingIntervalMilliseconds = Int(parameters[1][1]),
-                    parameters[2][0] == "initialSamplingRate",
-                    let initialSamplingRate = Double(parameters[2][1])
-                else { break }
-                argument = .jaegerRemote(
-                    endpoint: endpoint,
-                    pollingInterval: .milliseconds(pollingIntervalMilliseconds),
-                    initialSamplingRate: initialSamplingRate
-                )
-            default:
-                break
-            }
-        }
+    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+        backing.override(using: .sampler, from: environment, logger: logger)
+        argument.override(for: backing, using: .samplerArgument, from: environment, logger: logger)
     }
 }
 
 extension OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
-        if let scheduleDelay = environment.getDurationValue(.batchSpanProcessorScheduleDelay) {
-            self.scheduleDelay = scheduleDelay
-        }
-        if let exportTimeout = environment.getTimeoutValue(.batchSpanProcessorExportTimeout) {
-            self.exportTimeout = exportTimeout
-        }
-        if let maxQueueSize = environment.getIntegerValue(.batchSpanProcessorMaxQueueSize) {
-            self.maxQueueSize = maxQueueSize
-        }
-        if let exportBatchSize = environment.getIntegerValue(.batchSpanProcessorExportBatchSize) {
-            maxExportBatchSize = exportBatchSize
-        }
+    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+        scheduleDelay.override(using: .batchSpanProcessorScheduleDelay, from: environment, logger: logger)
+        exportTimeout.override(using: .batchSpanProcessorExportTimeout, from: environment, logger: logger)
+        maxQueueSize.override(using: .batchSpanProcessorMaxQueueSize, from: environment, logger: logger)
+        maxExportBatchSize.override(using: .batchSpanProcessorExportBatchSize, from: environment, logger: logger)
     }
 }
 
 extension OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
-        if let scheduleDelay = environment.getDurationValue(.batchLogRecordProcessorScheduleDelay) {
-            self.scheduleDelay = scheduleDelay
-        }
-        if let exportTimeout = environment.getTimeoutValue(.batchLogRecordProcessorExportTimeout) {
-            self.exportTimeout = exportTimeout
-        }
-        if let maxQueueSize = environment.getIntegerValue(.batchLogRecordProcessorMaxQueueSize) {
-            self.maxQueueSize = maxQueueSize
-        }
-        if let exportBatchSize = environment.getIntegerValue(.batchLogRecordProcessorExportBatchSize) {
-            maxExportBatchSize = exportBatchSize
-        }
+    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+        scheduleDelay.override(using: .batchLogRecordProcessorScheduleDelay, from: environment, logger: logger)
+        exportTimeout.override(using: .batchLogRecordProcessorExportTimeout, from: environment, logger: logger)
+        maxQueueSize.override(using: .batchLogRecordProcessorMaxQueueSize, from: environment, logger: logger)
+        maxExportBatchSize.override(using: .batchLogRecordProcessorExportBatchSize, from: environment, logger: logger)
     }
 }
 
 extension OTel.Configuration.OTLPExporterConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String], signal: OTel.Configuration.Key.Signal) {
-        if let `protocol` = environment.getStringValue(.otlpExporterProtocol, signal: signal) {
-            switch `protocol` {
-            case "http/json":
-                #if OTLPHTTP
-                self.protocol = .httpJSON
-                #else // OTLPHTTP
-                fatalError("Using the OTLP/HTTP + JSON exporter requires the `OTLPHTTP` trait enabled.")
-                #endif
-            case "grpc":
-                #if OTLPGRPC
-                self.protocol = .grpc
-                #else // OTLPGRPC
-                fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
-                #endif
-            case "http/protobuf":
-                #if OTLPHTTP
-                self.protocol = .httpProtobuf
-                #else // OTLPHTTP
-                fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
-                #endif
-            default:
-                #if OTLPHTTP
-                self.protocol = .httpProtobuf
-                #else // OTLPHTTP
-                fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
-                #endif
-            }
-        }
+    internal mutating func applyEnvironmentOverrides(environment: [String: String], signal: OTel.Configuration.Key.Signal, logger: Logger) {
+        let previousValue = self
+        self.protocol.override(using: .otlpExporterProtocol, for: signal, from: environment, logger: logger)
+        endpoint.override(using: .otlpExporterEndpoint, for: signal, from: environment, logger: logger)
         let key = OTel.Configuration.Key.SignalSpecificKey.otlpExporterEndpoint
         let signalSpecificKey = switch signal {
         case .traces: key.traces
         case .metrics: key.metrics
         case .logs: key.logs
         }
-        if let sharedEndpoint = environment[key.shared] {
-            endpoint = sharedEndpoint
-            endpointHasBeenExplicitlySet = false
+        switch (environment[key.shared], environment[signalSpecificKey]) {
+        case (.some, .none): endpointHasBeenExplicitlySet = false
+        case (_, .some): endpointHasBeenExplicitlySet = true
+        case (.none, .none): endpointHasBeenExplicitlySet = previousValue.endpointHasBeenExplicitlySet
         }
-        if let signalSpecificEndpoint = environment[signalSpecificKey] {
-            endpoint = signalSpecificEndpoint
-            endpointHasBeenExplicitlySet = true
-        }
-        if let insecure = environment.getBoolValue(.otlpExporterInsecure, signal: signal) {
-            self.insecure = insecure
-        }
-        if let certificateFilePath = environment.getStringValue(.otlpExporterCertificate, signal: signal) {
-            self.certificateFilePath = certificateFilePath
-        }
-        if let clientKeyFilePath = environment.getStringValue(.otlpExporterClientKey, signal: signal) {
-            self.clientKeyFilePath = clientKeyFilePath
-        }
-        if let clientCertificateFilePath = environment.getStringValue(.otlpExporterClientCertificate, signal: signal) {
-            self.clientCertificateFilePath = clientCertificateFilePath
-        }
-        if let headers = environment.getHeadersValue(.otlpExporterHeaders, signal: signal) {
-            self.headers = headers
-        }
-        if let compression = environment.getStringValue(.otlpExporterCompression, signal: signal) {
-            switch compression {
-            case "gzip":
-                self.compression = .gzip
-            case "none":
-                self.compression = .none
-            default:
-                self.compression = .none
-            }
-        }
-        if let timeout = environment.getTimeoutValue(.otlpExporterTimeout, signal: signal) {
-            self.timeout = timeout
-        }
+        insecure.override(using: .otlpExporterInsecure, for: signal, from: environment, logger: logger)
+        certificateFilePath.override(using: .otlpExporterCertificate, for: signal, from: environment, logger: logger)
+        clientKeyFilePath.override(using: .otlpExporterClientKey, for: signal, from: environment, logger: logger)
+        clientCertificateFilePath.override(using: .otlpExporterClientCertificate, for: signal, from: environment, logger: logger)
+        headers.override(using: .otlpExporterHeaders, for: signal, from: environment, logger: logger)
+        compression.override(using: .otlpExporterCompression, for: signal, from: environment, logger: logger)
+        timeout.override(using: .otlpExporterTimeout, for: signal, from: environment, logger: logger)
     }
 }

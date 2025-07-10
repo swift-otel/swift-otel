@@ -32,6 +32,19 @@ extension OTel.Configuration {
             var metrics: String
             var logs: String
         }
+
+        var environmentVariableName: String {
+            switch self {
+            case .single(let generalKey):
+                generalKey.key
+            case .signalSpecific(let signalSpecificKey, let signal):
+                switch signal {
+                case .logs: signalSpecificKey.logs
+                case .metrics: signalSpecificKey.metrics
+                case .traces: signalSpecificKey.traces
+                }
+            }
+        }
     }
 }
 
@@ -83,64 +96,12 @@ extension [String: String] {
     func getStringValue(_ lookup: OTel.Configuration.Key) -> String? {
         switch lookup {
         case .single(let generalKey):
-            self.getStringValue(generalKey)
+            getStringValue(generalKey)
         case .signalSpecific(let signalSpecificKey, let signal):
-            self.getStringValue(signalSpecificKey, signal: signal)
+            getStringValue(signalSpecificKey, signal: signal)
         }
     }
 
-    func getBoolValue(_ key: OTel.Configuration.Key) -> Bool? {
-        // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#boolean
-        getStringValue(key)?.lowercased() == "true"
-    }
-
-    func getIntegerValue(_ key: OTel.Configuration.Key) -> Int? {
-        // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#integer
-        guard let value = getStringValue(key).flatMap(Int.init), value >= 0 else {
-            return nil
-        }
-        return value
-    }
-
-    func getDurationValue(_ key: OTel.Configuration.Key) -> Duration? {
-        // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#duration
-        guard let value = getIntegerValue(key) else {
-            return nil
-        }
-        return .milliseconds(value)
-    }
-
-    func getTimeoutValue(_ key: OTel.Configuration.Key) -> Duration? {
-        // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#timeout
-        let value = getDurationValue(key)
-        if value == .zero {
-            return .seconds(Int.max)
-        }
-        return value
-    }
-
-    func getHeadersValue(_ key: OTel.Configuration.Key) -> [(String, String)]? {
-        // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specifying-headers-via-environment-variables
-        guard let value = getStringValue(key) else { return nil }
-        let headers = value.utf8.split(separator: .init(ascii: ","))
-        return headers.compactMap { header in
-            let pair = header.split(separator: .init(ascii: "="), maxSplits: 1, omittingEmptySubsequences: true)
-            guard let key = pair.first, let value = pair.dropFirst().first else { return nil }
-            return (
-                String(decoding: key, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines),
-                String(decoding: value, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
-            )
-        }
-    }
-
-    func getEnumValue<E: RawRepresentable<String>>(of type: E.Type = E.self, _ key: OTel.Configuration.Key) -> E? {
-        guard let rawValue = getStringValue(key) else { return nil }
-        return E(rawValue: rawValue)
-    }
-}
-
-/// Overloads for general and signal-specific keys to simplify lookups at the callsite.
-extension [String: String] {
     func getStringValue(_ key: OTel.Configuration.Key.GeneralKey) -> String? {
         self[key.key]
     }
@@ -151,53 +112,5 @@ extension [String: String] {
         case .metrics: self[key.metrics] ?? self[key.shared]
         case .logs: self[key.logs] ?? self[key.shared]
         }
-    }
-
-    func getBoolValue(_ key: OTel.Configuration.Key.GeneralKey) -> Bool? {
-        getBoolValue(.single(key))
-    }
-
-    func getBoolValue(_ key: OTel.Configuration.Key.SignalSpecificKey, signal: OTel.Configuration.Key.Signal) -> Bool? {
-        getBoolValue(.signalSpecific(key, signal))
-    }
-
-    func getIntegerValue(_ key: OTel.Configuration.Key.GeneralKey) -> Int? {
-        getIntegerValue(.single(key))
-    }
-
-    func getIntegerValue(_ key: OTel.Configuration.Key.SignalSpecificKey, signal: OTel.Configuration.Key.Signal) -> Int? {
-        getIntegerValue(.signalSpecific(key, signal))
-    }
-
-    func getDurationValue(_ key: OTel.Configuration.Key.GeneralKey) -> Duration? {
-        getDurationValue(.single(key))
-    }
-
-    func getDurationValue(_ key: OTel.Configuration.Key.SignalSpecificKey, signal: OTel.Configuration.Key.Signal) -> Duration? {
-        getDurationValue(.signalSpecific(key, signal))
-    }
-
-    func getTimeoutValue(_ key: OTel.Configuration.Key.GeneralKey) -> Duration? {
-        getDurationValue(.single(key))
-    }
-
-    func getTimeoutValue(_ key: OTel.Configuration.Key.SignalSpecificKey, signal: OTel.Configuration.Key.Signal) -> Duration? {
-        getDurationValue(.signalSpecific(key, signal))
-    }
-
-    func getHeadersValue(_ key: OTel.Configuration.Key.GeneralKey) -> [(String, String)]? {
-        getHeadersValue(.single(key))
-    }
-
-    func getHeadersValue(_ key: OTel.Configuration.Key.SignalSpecificKey, signal: OTel.Configuration.Key.Signal) -> [(String, String)]? {
-        getHeadersValue(.signalSpecific(key, signal))
-    }
-
-    func getEnumValue<E: RawRepresentable<String>>(of type: E.Type = E.self, _ key: OTel.Configuration.Key.GeneralKey) -> E? {
-        getEnumValue(of: type, .single(key))
-    }
-
-    func getEnumValue<E: RawRepresentable<String>>(of type: E.Type = E.self, _ key: OTel.Configuration.Key.SignalSpecificKey, signal: OTel.Configuration.Key.Signal) -> E? {
-        getEnumValue(of: type, .signalSpecific(key, signal))
     }
 }

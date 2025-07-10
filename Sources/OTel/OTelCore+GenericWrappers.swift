@@ -103,6 +103,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
             }
         case .console:
             throw NotImplementedError()
+        case .none: preconditionFailure()
         }
     }
 }
@@ -160,6 +161,7 @@ internal enum WrappedMetricExporter: OTelMetricExporter {
             }
         case .prometheus, .console:
             throw NotImplementedError()
+        case .none: preconditionFailure()
         }
     }
 }
@@ -217,6 +219,7 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
             }
         case .console, .jaeger, .zipkin:
             throw NotImplementedError()
+        case .none: preconditionFailure()
         }
     }
 }
@@ -264,5 +267,26 @@ internal enum WrappedSampler: OTelSampler {
         case .jaegerRemote: fatalError("Swift OTel does not support the Jaeger sampler")
         case .xray: fatalError("Swift OTel does not support the X-Ray sampler")
         }
+    }
+}
+
+extension OTelMultiplexPropagator {
+    init(configuration: OTel.Configuration) {
+        var propagators: [OTelPropagator] = []
+        loop: for propagatorConfigValue in configuration.propagators {
+            switch propagatorConfigValue.backing {
+            case .none:
+                propagators.removeAll()
+                break loop // If none is in the config, we'll assume that was deliberate and short-circuit here.
+            case .traceContext: propagators.append(OTelW3CPropagator())
+            case .baggage: fatalError("Swift OTel does not support the W3C Baggage propagator")
+            case .b3: fatalError("Swift OTel does not support the B3 Single propagator")
+            case .b3Multi: fatalError("Swift OTel does not support the B3 Multi propagator")
+            case .jaeger: fatalError("Swift OTel does not support the Jaeger propagator")
+            case .xray: fatalError("Swift OTel does not support the AWS X-Ray propagator")
+            case .otTrace: fatalError("Swift OTel does not support the OT Trace propagator")
+            }
+        }
+        self.init(propagators)
     }
 }

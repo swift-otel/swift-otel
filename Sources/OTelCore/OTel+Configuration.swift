@@ -100,8 +100,8 @@ extension OTel {
         /// to maintain trace continuity in distributed systems. Multiple propagators can be configured
         /// to support different propagation formats.
         ///
-        /// - Environment variable(s): `OTEL_PROPAGATORS` (example: `tracecontext,baggage`).
-        /// - Default value: `[.traceContext, .baggage]` (W3C Trace Context and W3C Baggage).
+        /// - Environment variable(s): `OTEL_PROPAGATORS` (example: `tracecontext`).
+        /// - Default value: `[.traceContext]` (W3C Trace Context).
         public var propagators: [Propagator]
 
         /// Configuration for distributed tracing functionality.
@@ -137,7 +137,7 @@ extension OTel {
             resourceAttributes: [:],
             diagnosticLogger: .console,
             diagnosticLogLevel: .info,
-            propagators: [.traceContext, .baggage],
+            propagators: [.traceContext],
             traces: .default,
             metrics: .default,
             logs: .default
@@ -172,7 +172,7 @@ extension OTel.Configuration {
     ///
     /// This option is ignored for custom loggers.
     public struct LogLevel: Sendable {
-        package enum Backing: String, Sendable {
+        package enum Backing: String, CaseIterable, Sendable {
             case error
             case warning
             case info
@@ -205,11 +205,11 @@ extension OTel.Configuration {
     /// Propagators handle the injection and extraction of trace context and baggage
     /// from carriers such as HTTP headers, enabling trace continuity in distributed systems.
     public struct Propagator: Sendable {
-        package enum Backing: Sendable {
-            case traceContext
+        package enum Backing: String, CaseIterable, Sendable {
+            case traceContext = "tracecontext"
             case baggage
             case b3
-            case b3Multi
+            case b3Multi = "b3multi"
             case jaeger
             case xray
             case otTrace
@@ -222,21 +222,27 @@ extension OTel.Configuration {
         public static let traceContext: Self = .init(backing: .traceContext)
 
         /// W3C Baggage propagator for cross-cutting concerns.
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let baggage: Self = .init(backing: .baggage)
 
         /// B3 single header propagator (Zipkin format).
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let b3: Self = .init(backing: .b3)
 
         /// B3 multi-header propagator (Zipkin format).
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let b3Multi: Self = .init(backing: .b3Multi)
 
         /// Jaeger propagator for Jaeger tracing systems.
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let jaeger: Self = .init(backing: .jaeger)
 
         /// AWS X-Ray propagator for AWS environments.
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let xray: Self = .init(backing: .xray)
 
         /// OpenTracing propagator for legacy OpenTracing systems.
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let otTrace: Self = .init(backing: .otTrace)
 
         /// No-op propagator that performs no context propagation.
@@ -252,9 +258,16 @@ extension OTel.Configuration {
     public struct TracesConfiguration: Sendable {
         /// Whether tracing is enabled.
         ///
-        /// - Environment variable(s): `OTEL_TRACES_ENABLED`.
+        /// - Environment variable(s): `OTEL_SDK_DISABLED`.
         /// - Default value: `true`.
+        /// - Notes: This value is influenced by a negative boolean, as defined by the OTel spec.
         public var enabled: Bool
+
+        /// This is here to support the `OTEL_SDK_DISABLED` inverted boolean environment variable from the OTel spec.
+        internal var disabled: Bool {
+            set { enabled = !newValue }
+            get { !enabled }
+        }
 
         /// Sampler to be used for traces.
         ///
@@ -297,9 +310,16 @@ extension OTel.Configuration {
     public struct MetricsConfiguration: Sendable {
         /// Whether metrics collection is enabled.
         ///
-        /// - Environment variable(s): `OTEL_METRICS_ENABLED`.
+        /// - Environment variable(s): `OTEL_SDK_DISABLED`.
         /// - Default value: `true`.
+        /// - Notes: This value is influenced by a negative boolean, as defined by the OTel spec.
         public var enabled: Bool
+
+        /// This is here to support the `OTEL_SDK_DISABLED` inverted boolean environment variable from the OTel spec.
+        internal var disabled: Bool {
+            set { enabled = !newValue }
+            get { !enabled }
+        }
 
         /// Interval between metric export attempts.
         ///
@@ -344,9 +364,16 @@ extension OTel.Configuration {
     public struct LogsConfiguration: Sendable {
         /// Whether log signal collection is enabled.
         ///
-        /// - Environment variable(s): `OTEL_LOGS_ENABLED`.
+        /// - Environment variable(s): `OTEL_SDK_DISABLED`.
         /// - Default value: `true`.
+        /// - Notes: This value is influenced by a negative boolean, as defined by the OTel spec.
         public var enabled: Bool
+
+        /// This is here to support the `OTEL_SDK_DISABLED` inverted boolean environment variable from the OTel spec.
+        internal var disabled: Bool {
+            set { enabled = !newValue }
+            get { !enabled }
+        }
 
         /// Default log level for loggers returned by the logging backend factory.
         ///
@@ -386,7 +413,7 @@ extension OTel.Configuration {
 extension OTel.Configuration.TracesConfiguration {
     /// Selection of traces sampler.
     public struct SamplerConfiguration: Sendable {
-        package enum Backing: String, Sendable {
+        package enum Backing: String, CaseIterable, Sendable {
             case alwaysOn = "always_on"
             case alwaysOff = "always_off"
             case traceIDRatio = "traceidratio"
@@ -414,9 +441,13 @@ extension OTel.Configuration.TracesConfiguration {
         public static let alwaysOff: Self = .init(backing: .alwaysOff)
 
         /// A sampler that records a span based on ratio-based probability.
-        ///
-        /// - TODO: This is still in Development status in the OTel spec; should it be included in our 1.0 API?
-        public static func traceIDRatio(ratio: Double = 1.0) -> Self { .init(backing: .traceIDRatio, argument: .traceIDRatio(samplingProbability: ratio)) }
+        public static func traceIDRatio(ratio: Double) -> Self? {
+            guard ratio >= 0.0, ratio <= 1.0 else { return nil }
+            return Self(backing: .traceIDRatio, argument: .traceIDRatio(samplingProbability: ratio))
+        }
+
+        /// A sampler that records a span based on ratio-based probability.
+        public static var traceIDRatio: Self { .traceIDRatio(ratio: 1.0)! }
 
         /// Inherits parent span's sampling decision; samples all root spans.
         public static let parentBasedAlwaysOn: Self = .init(backing: .parentBasedAlwaysOn)
@@ -425,15 +456,24 @@ extension OTel.Configuration.TracesConfiguration {
         public static let parentBasedAlwaysOff: Self = .init(backing: .parentBasedAlwaysOff)
 
         /// Inherits parent span's sampling decision; samples root spans by trace ID ratio.
-        public static func parentBasedTraceIDRatio(ratio: Double = 1.0) -> Self { .init(backing: .parentBasedTraceIDRatio, argument: .traceIDRatio(samplingProbability: ratio)) }
+        public static func parentBasedTraceIDRatio(ratio: Double) -> Self? {
+            guard ratio >= 0.0, ratio <= 1.0 else { return nil }
+            return Self(backing: .parentBasedTraceIDRatio, argument: .traceIDRatio(samplingProbability: ratio))
+        }
+
+        /// Inherits parent span's sampling decision; samples root spans by trace ID ratio.
+        public static var parentBasedTraceIDRatio: Self { .parentBasedTraceIDRatio(ratio: 1.0)! }
 
         /// Inherits parent span's sampling decision; uses Jaeger remote sampling for root spans.
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let parentBasedJaegerRemote: Self = .init(backing: .parentBasedJaegerRemote)
 
         /// Uses Jaeger agent's remote sampling configuration for all spans.
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let jaegerRemote: Self = .init(backing: .jaegerRemote)
 
         /// Uses AWS X-Ray's centralized sampling rules and decisions.
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let xray: Self = .init(backing: .xray)
     }
 }
@@ -488,11 +528,12 @@ extension OTel.Configuration.TracesConfiguration {
     ///
     /// Determines how completed spans are exported from the application to observability backends.
     public struct ExporterSelection: Sendable {
-        package enum Backing: Sendable {
+        package enum Backing: String, CaseIterable, Sendable {
             case otlp
             case jaeger
             case zipkin
             case console
+            case none
         }
 
         package var backing: Backing
@@ -501,12 +542,15 @@ extension OTel.Configuration.TracesConfiguration {
         public static let otlp: Self = .init(backing: .otlp)
 
         /// Jaeger exporter for traces.
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let jaeger: Self = .init(backing: .jaeger)
 
         /// Zipkin exporter for traces.
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let zipkin: Self = .init(backing: .zipkin)
 
         /// Console exporter for traces (development/debugging).
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let console: Self = .init(backing: .console)
     }
 }
@@ -516,10 +560,11 @@ extension OTel.Configuration.MetricsConfiguration {
     ///
     /// Determines how collected metrics are exported from the application to observability backends.
     public struct ExporterSelection: Sendable {
-        package enum Backing: Sendable {
+        package enum Backing: String, CaseIterable, Sendable {
             case otlp
             case prometheus
             case console
+            case none
         }
 
         package var backing: Backing
@@ -528,9 +573,11 @@ extension OTel.Configuration.MetricsConfiguration {
         public static let otlp: Self = .init(backing: .otlp)
 
         /// Prometheus exporter for metrics.
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let prometheus: Self = .init(backing: .prometheus)
 
         /// Console exporter for metrics (development/debugging).
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let console: Self = .init(backing: .console)
     }
 }
@@ -540,9 +587,10 @@ extension OTel.Configuration.LogsConfiguration {
     ///
     /// Determines how log records are exported from the application to observability backends.
     public struct ExporterSelection: Sendable {
-        package enum Backing: Sendable {
+        package enum Backing: String, CaseIterable, Sendable {
             case otlp
             case console
+            case none
         }
 
         package var backing: Backing
@@ -551,6 +599,7 @@ extension OTel.Configuration.LogsConfiguration {
         public static let otlp: Self = .init(backing: .otlp)
 
         /// Console exporter for logs (development/debugging).
+        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let console: Self = .init(backing: .console)
     }
 }
@@ -823,7 +872,7 @@ extension OTel.Configuration.OTLPExporterConfiguration {
     /// Controls whether and how telemetry data is compressed before transmission to reduce
     /// network bandwidth usage.
     public struct Compression: Sendable {
-        package enum Backing {
+        package enum Backing: String, CaseIterable {
             case gzip
             case none
         }
@@ -843,10 +892,10 @@ extension OTel.Configuration.OTLPExporterConfiguration {
     /// via the OpenTelemetry Protocol.
     // swiftformat:disable:next redundantBackticks
     public struct `Protocol`: Equatable, Sendable {
-        package enum Backing {
+        package enum Backing: String, CaseIterable {
             case grpc
-            case httpProtobuf
-            case httpJSON
+            case httpProtobuf = "http/protobuf"
+            case httpJSON = "http/json"
         }
 
         package var backing: Backing

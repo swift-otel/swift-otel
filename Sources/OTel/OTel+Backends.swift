@@ -312,12 +312,13 @@ extension OTel {
         let logger = configuration.makeDiagnosticLogger()
         let resource = OTelResource(configuration: configuration)
         let sampler = WrappedSampler(configuration: configuration)
+        let propagator = OTelMultiplexPropagator(configuration: configuration)
         let exporter = try WrappedSpanExporter(configuration: configuration, logger: logger)
         let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor), logger: logger)
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
             sampler: sampler,
-            propagator: OTelW3CPropagator(),
+            propagator: propagator,
             processor: processor,
             environment: .detected(),
             resource: resource,

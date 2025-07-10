@@ -39,6 +39,10 @@ import Testing
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_LOG_LEVEL": "trace",
         ]).diagnosticLogLevel.backing == .trace)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_LOG_LEVEL": "invalid",
+        ]).diagnosticLogLevel.backing == .info)
     }
 
     // OTEL_SERVICE_NAME
@@ -88,15 +92,19 @@ import Testing
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_propagators
     @Test func testPropagators() {
-        #expect(OTel.Configuration.default.propagators.map(\.backing) == [.traceContext, .baggage])
+        #expect(OTel.Configuration.default.propagators.map(\.backing) == [.traceContext])
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_PROPAGATORS": "b3,xray",
         ]).propagators.map(\.backing) == [.b3, .xray])
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_PROPAGATORS": "b3,xray,invalid",
+        ]).propagators.map(\.backing) == OTel.Configuration.default.propagators.map(\.backing))
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_PROPAGATORS": "none",
-        ]).propagators.map(\.backing) == [])
+        ]).propagators.map(\.backing) == [.none])
     }
 
     // OTEL_TRACES_SAMPLER and OTEL_TRACES_SAMPLER_ARG
@@ -126,6 +134,23 @@ import Testing
         ]) { config in
             #expect(config.traces.sampler.backing == .traceIDRatio)
             #expect(config.traces.sampler.argument == .traceIDRatio(samplingProbability: 0.25))
+        }
+
+        // TODO: this test needs some work (out of range probablilty)
+        OTel.Configuration.default.withEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "traceidratio",
+            "OTEL_TRACES_SAMPLER_ARG": "1.25",
+        ]) { config in
+            #expect(config.traces.sampler.backing == .traceIDRatio)
+            #expect(config.traces.sampler.argument == nil)
+        }
+
+        OTel.Configuration.default.withEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "traceidratio",
+            "OTEL_TRACES_SAMPLER_ARG": "-0.25",
+        ]) { config in
+            #expect(config.traces.sampler.backing == .traceIDRatio)
+            #expect(config.traces.sampler.argument == nil)
         }
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -162,6 +187,18 @@ import Testing
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_TRACES_SAMPLER": "xray",
         ]).traces.sampler.backing == .xray)
+
+        OTel.Configuration.default.with { _ in
+            typealias Sampler = OTel.Configuration.TracesConfiguration.SamplerConfiguration
+            #expect(Sampler.traceIDRatio.argument == .traceIDRatio(samplingProbability: 1.0))
+            #expect(Sampler.traceIDRatio(ratio: 0.25)?.argument == .traceIDRatio(samplingProbability: 0.25))
+            #expect(Sampler.traceIDRatio(ratio: 1.1) == nil)
+            #expect(Sampler.traceIDRatio(ratio: -0.25) == nil)
+            #expect(Sampler.parentBasedTraceIDRatio.argument == .traceIDRatio(samplingProbability: 1.0))
+            #expect(Sampler.parentBasedTraceIDRatio(ratio: 0.25)?.argument == .traceIDRatio(samplingProbability: 0.25))
+            #expect(Sampler.parentBasedTraceIDRatio(ratio: 1.1) == nil)
+            #expect(Sampler.parentBasedTraceIDRatio(ratio: -0.25) == nil)
+        }
     }
 
     // OTEL_BSP_SCHEDULE_DELAY
@@ -496,6 +533,16 @@ import Testing
         // OTLP/HTTP environment overrides.
         OTel.Configuration.default.with { config in
             config.traces.otlpExporter.protocol = .httpProtobuf
+
+            // Doesn't mess up the endpoint computation if no environment is set.
+            config.withEnvironmentOverrides(environment: [:]) { config in
+                #expect(config.logs.otlpExporter.endpoint == OTel.Configuration.default.metrics.otlpExporter.endpoint)
+                #expect(config.logs.otlpExporter.logsHTTPEndpoint == OTel.Configuration.default.metrics.otlpExporter.logsHTTPEndpoint)
+                #expect(config.metrics.otlpExporter.endpoint == OTel.Configuration.default.metrics.otlpExporter.endpoint)
+                #expect(config.metrics.otlpExporter.metricsHTTPEndpoint == OTel.Configuration.default.metrics.otlpExporter.metricsHTTPEndpoint)
+                #expect(config.traces.otlpExporter.endpoint == OTel.Configuration.default.metrics.otlpExporter.endpoint)
+                #expect(config.traces.otlpExporter.tracesHTTPEndpoint == OTel.Configuration.default.metrics.otlpExporter.tracesHTTPEndpoint)
+            }
 
             // Applies signal-specific suffix.
             config.withEnvironmentOverrides(environment: [
@@ -836,7 +883,7 @@ import Testing
 extension OTel.Configuration {
     fileprivate func applyingEnvironmentOverrides(environment: [String: String]) -> Self {
         var result = self
-        result.applyEnvironmentOverrides(environment: environment)
+        result.applyEnvironmentOverrides(environment: environment, logger: ._otelDisabled)
         return result
     }
 
