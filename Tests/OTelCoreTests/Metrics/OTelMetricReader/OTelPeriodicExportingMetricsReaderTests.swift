@@ -131,7 +131,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
 
     func test_exportTakesLongerThanTimeout_logsWarning() async throws {
         let recordingLogHandler = RecordingLogHandler()
-        LoggingSystem.bootstrapInternal { _ in recordingLogHandler }
+        let recordingLogger = Logger(label: "test", recordingLogHandler)
         let clock = TestClock()
         let exporter = MockMetricExporter(behavior: .sleep)
         let producer = MockMetricProducer()
@@ -144,6 +144,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
                 exportInterval: .seconds(1),
                 exportTimeout: .milliseconds(100)
             ),
+            logger: recordingLogger,
             clock: clock
         )
         var sleepCalls = clock.sleepCalls.makeAsyncIterator()
@@ -196,7 +197,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
 
     func test_exportThrowsError_logsError() async throws {
         let recordingLogHandler = RecordingLogHandler()
-        LoggingSystem.bootstrapInternal { _ in recordingLogHandler }
+        let recordingLogger = Logger(label: "test", recordingLogHandler)
         let clock = TestClock()
         let exporter = MockMetricExporter(behavior: .throw)
         let producer = MockMetricProducer()
@@ -209,6 +210,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
                 exportInterval: .seconds(1),
                 exportTimeout: .milliseconds(100)
             ),
+            logger: recordingLogger,
             clock: clock
         )
         var sleepCalls = clock.sleepCalls.makeAsyncIterator()

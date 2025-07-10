@@ -426,8 +426,8 @@ final class OTelMetricRegistryTests: XCTestCase {
 final class DuplicateRegistrationHandlerTests: XCTestCase {
     func test_LoggingDuplicateRegistrationHandler() {
         let recordingLogHandler = RecordingLogHandler()
-        LoggingSystem.bootstrapInternal { _ in recordingLogHandler }
-        let handler = WarningDuplicateRegistrationHandler(logger: Logger(label: "test"))
+        let recordingLogger = Logger(label: "test", recordingLogHandler)
+        let handler = WarningDuplicateRegistrationHandler(logger: recordingLogger)
         handler.handle(
             newRegistration: .counter(name: "name"),
             existingRegistrations: [.gauge(name: "name"), .histogram(name: "name")]
