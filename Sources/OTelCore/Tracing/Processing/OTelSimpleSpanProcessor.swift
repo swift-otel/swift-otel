@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
+package import Logging
 package import ServiceContextModule
 
 /// A span processor that simply forwards finished spans to a configured exporter, one at a time as soon as their ended.
@@ -24,13 +24,14 @@ package struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProc
     private let exporter: Exporter
     private let stream: AsyncStream<OTelFinishedSpan>
     private let continuation: AsyncStream<OTelFinishedSpan>.Continuation
-    private let logger = Logger(label: "OTelSimpleSpanProcessor")
+    private let logger: Logger
 
     /// Create a span processor immediately forwarding spans to the given exporter.
     ///
     /// - Parameter exporter: The exporter to receive finished spans.
     /// On processor shutdown this exporter will also automatically be shut down.
-    package init(exporter: Exporter) {
+    package init(exporter: Exporter, logger: Logger) {
+        self.logger = logger
         self.exporter = exporter
         (stream, continuation) = AsyncStream.makeStream()
     }

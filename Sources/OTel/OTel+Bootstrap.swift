@@ -117,6 +117,7 @@ extension OTel {
 
 extension OTel {
     internal static func bootstrap(configuration: Configuration = .default, environment: [String: String]) throws -> some Service {
+        let logger = Logger(label: "swift-otel")
         var configuration = configuration
         configuration.applyEnvironmentOverrides(environment: environment)
 
@@ -132,7 +133,7 @@ extension OTel {
             try services.append(bootstrapTraces(configuration: configuration))
         }
 
-        return ServiceGroup(services: services, logger: Logger(label: "OTelServiceGroup"))
+        return ServiceGroup(services: services, logger: logger)
     }
 
     internal static func bootstrapTraces(configuration: OTel.Configuration) throws -> some Service {

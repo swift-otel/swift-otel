@@ -14,14 +14,15 @@
 import GRPCNIOTransportHTTP2
 package import OTelCore
 import OTLPCore
+package import Logging
 
 /// A metrics exporter emitting metric batches to an OTel collector via gRPC.
 package final class OTLPGRPCMetricExporter: OTelMetricExporter {
     typealias Client = Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Client<HTTP2ClientTransport.Posix>
     private let client: OTLPGRPCExporter<Client>
 
-    package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
-        client = try OTLPGRPCExporter(configuration: configuration)
+    package init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
+        client = try OTLPGRPCExporter(configuration: configuration, logger: logger)
     }
 
     package func run() async throws {

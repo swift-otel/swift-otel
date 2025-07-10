@@ -38,16 +38,17 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Client: OTLPGR
 extension Opentelemetry_Proto_Collector_Trace_V1_TraceService.Client: OTLPGRPCClient {}
 
 final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sendable, Client.Transport == HTTP2ClientTransport.Posix {
-    private let logger = Logger(label: "OTLPGRPCExporter")
+    private let logger: Logger
     private let underlyingClient: GRPCClient<Client.Transport>
     private let client: Client
     private let metadata: Metadata
     private let callOptions: CallOptions
 
-    init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+    init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
         guard configuration.protocol == .grpc else {
             throw OTLPGRPCExporterError.invalidProtocol
         }
+        self.logger = logger
         self.underlyingClient = try GRPCClient(transport: HTTP2ClientTransport.Posix(configuration))
         self.client = Client(wrapping: underlyingClient)
         self.metadata = Metadata(configuration)

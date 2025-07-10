@@ -13,7 +13,7 @@
 
 import AsyncAlgorithms
 import DequeModule
-import Logging
+package import Logging
 import ServiceLifecycle
 
 /// A log processor that batches logs and forwards them to a configured exporter.
@@ -32,13 +32,14 @@ package actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock
     private let exporter: Exporter
     private let configuration: OTelBatchLogRecordProcessorConfiguration
     private let clock: Clock
-    private let logger = Logger(label: "OTelBatchLogRecordProcessor")
+    private let logger: Logger
     private let logStream: AsyncStream<OTelLogRecord>
     private let logContinuation: AsyncStream<OTelLogRecord>.Continuation
     private let explicitTickStream: AsyncStream<Void>
     private let explicitTick: AsyncStream<Void>.Continuation
 
-    package init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, clock: Clock) {
+    package init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, logger: Logger, clock: Clock) {
+        self.logger = logger
         self.exporter = exporter
         self.configuration = configuration
         self.clock = clock
@@ -147,7 +148,7 @@ extension OTelBatchLogRecordProcessor where Clock == ContinuousClock {
     /// - Parameters:
     ///   - exporter: The log exporter to receive batched logs to export.
     ///   - configuration: Further configuration parameters to tweak the batching behavior.
-    package init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration) {
-        self.init(exporter: exporter, configuration: configuration, clock: .continuous)
+    package init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, logger: Logger) {
+        self.init(exporter: exporter, configuration: configuration, logger: logger, clock: .continuous)
     }
 }

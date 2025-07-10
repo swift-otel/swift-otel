@@ -14,13 +14,14 @@
 import GRPCNIOTransportHTTP2
 package import OTelCore
 import OTLPCore
+package import Logging
 
 package final class OTLPGRPCLogRecordExporter: OTelLogRecordExporter {
     typealias Client = Opentelemetry_Proto_Collector_Logs_V1_LogsService.Client<HTTP2ClientTransport.Posix>
     private let client: OTLPGRPCExporter<Client>
 
-    package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
-        client = try OTLPGRPCExporter(configuration: configuration)
+    package init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
+        client = try OTLPGRPCExporter(configuration: configuration, logger: logger)
     }
 
     package func run() async throws {

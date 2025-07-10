@@ -28,7 +28,7 @@ package import CoreMetrics
 
 /// A Swift Metrics `MetricsFactory` implementation backed by ``OTelMetricRegistry``.
 package struct OTLPMetricsFactory: Sendable {
-    private static let _defaultRegistry = OTelMetricRegistry()
+    private static let _defaultRegistry = OTelMetricRegistry(logger: ._otelDisabled)
 
     /// The shared, default registry.
     package static var defaultRegistry: OTelMetricRegistry {

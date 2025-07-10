@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
+package import Logging
 package import OTelCore
 import OTLPCore
 
@@ -19,9 +19,10 @@ package final class OTLPHTTPLogRecordExporter: OTelLogRecordExporter {
     typealias Request = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest
     typealias Response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse
     let exporter: OTLPHTTPExporter<Request, Response>
-    private let logger = Logger(label: String(describing: OTLPHTTPLogRecordExporter.self))
+    private let logger: Logger
 
-    package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+    package init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
+        self.logger = logger
         exporter = try OTLPHTTPExporter(configuration: configuration)
     }
 

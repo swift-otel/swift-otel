@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
+package import Logging
 import struct NIOConcurrencyHelpers.NIOLockedValueBox
 
 /// A registry for metric instruments.
@@ -19,7 +19,7 @@ import struct NIOConcurrencyHelpers.NIOLockedValueBox
 /// The registry owns the mapping from instrument identfier and attributes to the stateful instrument for recording
 /// measurements.
 package final class OTelMetricRegistry: Sendable {
-    private let logger = Logger(label: "OTelMetricRegistry")
+    private let logger: Logger
 
     struct Storage {
         var counters = [InstrumentIdentifier: [Set<Attribute>: Counter]]()
@@ -70,7 +70,8 @@ package final class OTelMetricRegistry: Sendable {
         package static let crash = Self(behavior: .crash)
     }
 
-    init(duplicateRegistrationHandler: some DuplicateRegistrationHandler) {
+    init(duplicateRegistrationHandler: some DuplicateRegistrationHandler, logger: Logger) {
+        self.logger = logger
         self.storage = .init(Storage(duplicateRegistrationHandler: duplicateRegistrationHandler))
     }
 
@@ -80,12 +81,12 @@ package final class OTelMetricRegistry: Sendable {
     ///     different identifying fields.
     ///
     /// - Seealso: ``OTelMetricRegistry/DuplicateRegistrationBehavior``.
-    package convenience init(onDuplicateRegistration: DuplicateRegistrationBehavior = .warn) {
+    package convenience init(onDuplicateRegistration: DuplicateRegistrationBehavior = .warn, logger: Logger) {
         switch onDuplicateRegistration.behavior {
         case .warn:
-            self.init(duplicateRegistrationHandler: WarningDuplicateRegistrationHandler.default)
+            self.init(duplicateRegistrationHandler: WarningDuplicateRegistrationHandler(logger: logger), logger: logger)
         case .crash:
-            self.init(duplicateRegistrationHandler: FatalErrorDuplicateRegistrationHandler())
+            self.init(duplicateRegistrationHandler: FatalErrorDuplicateRegistrationHandler(), logger: logger)
         }
     }
 
@@ -334,6 +335,4 @@ struct WarningDuplicateRegistrationHandler: DuplicateRegistrationHandler {
             "existingRegistrations": .array(existingRegistrations.map { "\($0)" }),
         ])
     }
-
-    static let `default` = Self(logger: Logger(label: "OTelMetricRegistry"))
 }

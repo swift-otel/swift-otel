@@ -118,14 +118,15 @@ extension OTel {
             }
         }
 
+        let logger = Logger(label: "swift-otel")
         let resource = OTelResource(configuration: configuration)
         switch configuration.logs.exporter.backing {
         case .otlp:
             switch configuration.logs.otlpExporter.protocol.backing {
             case .grpc:
                 #if OTLPGRPC
-                let exporter = try OTLPGRPCLogRecordExporter(configuration: configuration.logs.otlpExporter)
-                let processor = OTelBatchLogRecordProcessor(exporter: exporter, configuration: .init(configuration: configuration.logs.batchLogRecordProcessor))
+                let exporter = try OTLPGRPCLogRecordExporter(configuration: configuration.logs.otlpExporter, logger: logger)
+                let processor = OTelBatchLogRecordProcessor(exporter: exporter, configuration: .init(configuration: configuration.logs.batchLogRecordProcessor), logger: logger)
                 let handler = OTelLogHandler(
                     processor: processor,
                     logLevel: Logger.Level(configuration.logs.level),
@@ -137,10 +138,11 @@ extension OTel {
                 #endif
             case .httpProtobuf, .httpJSON:
                 #if OTLPHTTP
-                let exporter = try OTLPHTTPLogRecordExporter(configuration: configuration.logs.otlpExporter)
+                let exporter = try OTLPHTTPLogRecordExporter(configuration: configuration.logs.otlpExporter, logger: logger)
                 let processor: OTelBatchLogRecordProcessor = .init(
                     exporter: exporter,
-                    configuration: OTelBatchLogRecordProcessorConfiguration(environment: .detected()) // TODO: shim
+                    configuration: OTelBatchLogRecordProcessorConfiguration(environment: .detected()), // TODO: shim,
+                    logger: logger
                 )
                 let handler = OTelLogHandler(
                     processor: processor,
@@ -243,21 +245,22 @@ extension OTel {
     ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
     ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeMetricsBackend(configuration: OTel.Configuration = .default) throws -> (factory: any MetricsFactory, service: some Service) {
+        let logger = Logger(label: "swift-otel")
         let resource = OTelResource(configuration: configuration)
-        let registry = OTelMetricRegistry()
+        let registry = OTelMetricRegistry(logger: logger)
         let metricsExporter: OTelMetricExporter
         switch configuration.metrics.exporter.backing {
         case .otlp:
             switch configuration.metrics.otlpExporter.protocol.backing {
             case .grpc:
                 #if OTLPGRPC
-                metricsExporter = try OTLPGRPCMetricExporter(configuration: configuration.metrics.otlpExporter)
+                metricsExporter = try OTLPGRPCMetricExporter(configuration: configuration.metrics.otlpExporter, logger: logger)
                 #else // OTLPGRPC
                 fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
                 #endif
             case .httpProtobuf, .httpJSON:
                 #if OTLPHTTP
-                metricsExporter = try OTLPHTTPMetricExporter(configuration: configuration.metrics.otlpExporter)
+                metricsExporter = try OTLPHTTPMetricExporter(configuration: configuration.metrics.otlpExporter, logger: logger)
                 #else
                 fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
                 #endif
@@ -270,7 +273,7 @@ extension OTel {
 
         let readerConfig = OTelPeriodicExportingMetricsReaderConfiguration(configuration: configuration.metrics)
 
-        let reader = OTelPeriodicExportingMetricsReader(resource: resource, producer: registry, exporter: metricsExporter, configuration: readerConfig)
+        let reader = OTelPeriodicExportingMetricsReader(resource: resource, producer: registry, exporter: metricsExporter, configuration: readerConfig, logger: logger)
 
         return (OTLPMetricsFactory(registry: registry), reader)
     }
@@ -375,21 +378,23 @@ extension OTel {
             }
         }
 
+        let logger = Logger(label: "swift-otel")
         let resource = OTelResource(configuration: configuration)
         switch configuration.traces.exporter.backing {
         case .otlp:
             switch configuration.traces.otlpExporter.protocol.backing {
             case .grpc:
                 #if OTLPGRPC
-                let exporter = try OTLPGRPCSpanExporter(configuration: configuration.traces.otlpExporter)
-                let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor))
+                let exporter = try OTLPGRPCSpanExporter(configuration: configuration.traces.otlpExporter, logger: logger)
+                let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor), logger: logger)
                 let tracer = OTelTracer(
                     idGenerator: OTelRandomIDGenerator(),
                     sampler: OTelConstantSampler(isOn: true),
                     propagator: OTelW3CPropagator(),
                     processor: processor,
                     environment: .detected(),
-                    resource: resource
+                    resource: resource,
+                    logger: logger
                 )
                 return (tracer, TracerWrapper(wrapped: tracer))
                 #else // OTLPGRPC
@@ -397,15 +402,16 @@ extension OTel {
                 #endif
             case .httpProtobuf, .httpJSON:
                 #if OTLPHTTP
-                let exporter = try OTLPHTTPSpanExporter(configuration: configuration.traces.otlpExporter)
-                let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor))
+                let exporter = try OTLPHTTPSpanExporter(configuration: configuration.traces.otlpExporter, logger: logger)
+                let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor), logger: logger)
                 let tracer = OTelTracer(
                     idGenerator: OTelRandomIDGenerator(),
                     sampler: OTelConstantSampler(isOn: true),
                     propagator: OTelW3CPropagator(),
                     processor: processor,
                     environment: .detected(),
-                    resource: resource
+                    resource: resource,
+                    logger: logger
                 )
                 return (tracer, TracerWrapper(wrapped: tracer))
                 #else

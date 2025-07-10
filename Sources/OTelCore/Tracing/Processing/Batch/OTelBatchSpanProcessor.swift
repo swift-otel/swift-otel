@@ -13,7 +13,7 @@
 
 import AsyncAlgorithms
 import DequeModule
-import Logging
+package import Logging
 import ServiceLifecycle
 
 /// A span processor that batches finished spans and forwards them to a configured exporter.
@@ -29,7 +29,7 @@ package actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurr
 
     internal /* for testing */ private(set) var buffer: Deque<OTelFinishedSpan>
 
-    private let logger = Logger(label: "OTelBatchSpanProcessor")
+    private let logger: Logger
     private let exporter: Exporter
     private let configuration: OTelBatchSpanProcessorConfiguration
     private let clock: Clock
@@ -37,7 +37,8 @@ package actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurr
     private let explicitTick: AsyncStream<Void>.Continuation
     private var batchID: UInt = 0
 
-    package init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, clock: Clock) {
+    package init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, logger: Logger, clock: Clock) {
+        self.logger = logger
         self.exporter = exporter
         self.configuration = configuration
         self.clock = clock
@@ -150,7 +151,7 @@ extension OTelBatchSpanProcessor where Clock == ContinuousClock {
     /// - Parameters:
     ///   - exporter: The span exporter to receive batched spans to export.
     ///   - configuration: Further configuration parameters to tweak the batching behavior.
-    package init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration) {
-        self.init(exporter: exporter, configuration: configuration, clock: .continuous)
+    package init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, logger: Logger) {
+        self.init(exporter: exporter, configuration: configuration, logger: logger, clock: .continuous)
     }
 }

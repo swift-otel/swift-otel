@@ -37,18 +37,18 @@ package struct OTelResourceDetection<Clock: _Concurrency.Clock>: Sendable where 
     ///   - logLevel: The minimum log level used during resource detection. Defaults to `.info`.
     ///
     /// - Returns: The combined resource from running all configured resource detectors.
-    package func resource(environment: OTelEnvironment, logLevel: Logger.Level = .info) async -> OTelResource {
+    package func resource(environment: OTelEnvironment, logger: Logger, logLevel: Logger.Level = .info) async -> OTelResource {
         let sdkResource = OTelResource(attributes: [
             "telemetry.sdk.name": "opentelemetry",
             "telemetry.sdk.language": "swift",
             "telemetry.sdk.version": "\(OTelLibrary.version)",
         ])
 
-        let logger = Logger(label: "OTelResourceDetection") { label in
-            var handler = StreamLogHandler.standardOutput(label: label)
-            handler.logLevel = logLevel
-            return handler
-        }
+        let logger = {
+            var logger = logger
+            logger.logLevel = logLevel
+            return logger
+        }()
 
         let resource = await withThrowingTaskGroup(of: OTelResource.self, returning: OTelResource.self) { group in
             group.addTask {

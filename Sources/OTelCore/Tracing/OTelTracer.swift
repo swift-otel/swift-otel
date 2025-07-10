@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Logging
+package import Logging
 import NIOConcurrencyHelpers
 import ServiceLifecycle
 package import Tracing
@@ -45,13 +45,14 @@ package final class OTelTracer<
         processor: Processor,
         environment: OTelEnvironment,
         resource: OTelResource,
+        logger: Logger,
         clock: Clock
     ) {
         self.idGenerator = idGenerator
         self.sampler = sampler
         self.propagator = propagator
         self.processor = processor
-        logger = Logger(label: "OTelTracer")
+        self.logger = logger
         self.resource = resource
         (eventStream, eventStreamContinuation) = AsyncStream.makeStream()
     }
@@ -79,7 +80,8 @@ extension OTelTracer where Clock == ContinuousClock {
         propagator: Propagator,
         processor: Processor,
         environment: OTelEnvironment,
-        resource: OTelResource
+        resource: OTelResource,
+        logger: Logger
     ) {
         self.init(
             idGenerator: idGenerator,
@@ -88,6 +90,7 @@ extension OTelTracer where Clock == ContinuousClock {
             processor: processor,
             environment: environment,
             resource: resource,
+            logger: logger,
             clock: .continuous
         )
     }
