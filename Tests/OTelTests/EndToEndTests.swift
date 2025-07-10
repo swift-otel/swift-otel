@@ -275,7 +275,8 @@ import Tracing
                     config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.logs.otlpExporter.protocol = .httpProtobuf
                     let observability = try OTel.bootstrap(configuration: config)
-                    let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
+                    // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
+                    let serviceGroup = ServiceGroup(services: [observability], logger: ._otelDisabled)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
@@ -300,13 +301,11 @@ import Tracing
                 }
                 try testServer.receiveBodyAndVerify { body in
                     let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(serializedBytes: Data(buffer: body))
-                    withKnownIssue("Internal diagnostic logging is still using bootstrapped backend") {
-                        #expect(message.resourceLogs.count == 1)
-                        #expect(message.resourceLogs.first?.scopeLogs.count == 1)
-                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
-                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Waffle party privileges have been revoked due to insufficient team spirit"))
-                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value == .init("milchick"))
-                    }
+                    #expect(message.resourceLogs.count == 1)
+                    #expect(message.resourceLogs.first?.scopeLogs.count == 1)
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Waffle party privileges have been revoked due to insufficient team spirit"))
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value == .init("milchick"))
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
@@ -338,7 +337,8 @@ import Tracing
                     config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.logs.otlpExporter.protocol = .httpJSON
                     let observability = try OTel.bootstrap(configuration: config)
-                    let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
+                    // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
+                    let serviceGroup = ServiceGroup(services: [observability], logger: ._otelDisabled)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
@@ -363,13 +363,11 @@ import Tracing
                 }
                 try testServer.receiveBodyAndVerify { body in
                     let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(jsonUTF8Data: Data(buffer: body))
-                    withKnownIssue("Internal diagnostic logging is still using bootstrapped backend") {
-                        #expect(message.resourceLogs.count == 1)
-                        #expect(message.resourceLogs.first?.scopeLogs.count == 1)
-                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
-                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Waffle party privileges have been revoked due to insufficient team spirit"))
-                        #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value == .init("milchick"))
-                    }
+                    #expect(message.resourceLogs.count == 1)
+                    #expect(message.resourceLogs.first?.scopeLogs.count == 1)
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Waffle party privileges have been revoked due to insufficient team spirit"))
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value == .init("milchick"))
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
