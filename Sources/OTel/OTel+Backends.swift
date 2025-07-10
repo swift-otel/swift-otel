@@ -118,7 +118,7 @@ extension OTel {
             }
         }
 
-        let logger = Logger(label: "swift-otel")
+        let logger = configuration.makeDiagnosticLogger()
         let resource = OTelResource(configuration: configuration)
         switch configuration.logs.exporter.backing {
         case .otlp:
@@ -245,7 +245,7 @@ extension OTel {
     ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
     ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeMetricsBackend(configuration: OTel.Configuration = .default) throws -> (factory: any MetricsFactory, service: some Service) {
-        let logger = Logger(label: "swift-otel")
+        let logger = configuration.makeDiagnosticLogger()
         let resource = OTelResource(configuration: configuration)
         let registry = OTelMetricRegistry(logger: logger)
         let metricsExporter: OTelMetricExporter
@@ -378,7 +378,7 @@ extension OTel {
             }
         }
 
-        let logger = Logger(label: "swift-otel")
+        let logger = configuration.makeDiagnosticLogger()
         let resource = OTelResource(configuration: configuration)
         switch configuration.traces.exporter.backing {
         case .otlp:
