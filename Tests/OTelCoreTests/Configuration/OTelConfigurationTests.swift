@@ -15,10 +15,9 @@ import OTelCore
 import Testing
 
 @Suite struct ConfigurationTests {
-
     // OTEL_SDK_DISABLED
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
-    @Test(.disabled("Not currently implemented")) func testSDKDisabled() { }
+    @Test(.disabled("Not currently implemented")) func testSDKDisabled() {}
 
     // OTEL_LOG_LEVEL
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
@@ -83,7 +82,7 @@ import Testing
             ]).resourceAttributes == [
                 "code_key": "code_value",
                 "shared_key": "code_wins",
-                "env_key": "env_value"
+                "env_key": "env_value",
             ])
         }
     }
@@ -91,12 +90,12 @@ import Testing
     // OTEL_TRACES_SAMPLER
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_traces_sampler
-    @Test(.disabled("Not currently implemented")) func testTracesSampler() { }
+    @Test(.disabled("Not currently implemented")) func testTracesSampler() {}
 
     // OTEL_TRACES_SAMPLER_ARG
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_traces_sampler_arg
-    @Test(.disabled("Not currently implemented")) func testTracesSamplerArg() { }
+    @Test(.disabled("Not currently implemented")) func testTracesSamplerArg() {}
 
     // OTEL_PROPAGATORS
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
@@ -351,7 +350,6 @@ import Testing
         ]).logs.batchLogRecordProcessor.maxExportBatchSize == OTel.Configuration.default.logs.batchLogRecordProcessor.maxExportBatchSize)
     }
 
-
     // OTEL_TRACES_EXPORTER
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_traces_exporter
@@ -415,7 +413,6 @@ import Testing
             "OTEL_LOGS_EXPORTER": "none",
         ]).logs.enabled == false)
     }
-
 
     // OTEL_EXPORTER_OTLP_ENDPOINT
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
@@ -748,19 +745,19 @@ import Testing
     }
 }
 
-fileprivate extension OTel.Configuration {
-    func applyingEnvironmentOverrides(environment: [String: String]) -> Self {
+extension OTel.Configuration {
+    fileprivate func applyingEnvironmentOverrides(environment: [String: String]) -> Self {
         var result = self
         result.applyEnvironmentOverrides(environment: environment)
         return result
     }
 
-    func withEnvironmentOverrides<Result>(environment: [String: String], operation: (Self) throws -> Result) rethrows -> Result {
-        try operation(self.applyingEnvironmentOverrides(environment: environment))
+    fileprivate func withEnvironmentOverrides<Result>(environment: [String: String], operation: (Self) throws -> Result) rethrows -> Result {
+        try operation(applyingEnvironmentOverrides(environment: environment))
     }
 
-    func with<Result>(operation: (inout Self) throws -> Result) rethrows -> Result {
+    fileprivate func with<Result>(operation: (inout Self) throws -> Result) rethrows -> Result {
         var config = self
-        return try(operation(&config))
+        return try (operation(&config))
     }
 }
