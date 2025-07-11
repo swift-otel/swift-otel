@@ -48,7 +48,7 @@ extension OTel.Configuration.Key.GeneralKey {
     static let batchSpanProcessorScheduleDelay = Self(key: "OTEL_BSP_SCHEDULE_DELAY")
     static let batchSpanProcessorExportTimeout = Self(key: "OTEL_BSP_EXPORT_TIMEOUT")
     static let batchSpanProcessorMaxQueueSize = Self(key: "OTEL_BSP_MAX_QUEUE_SIZE")
-    static let batchSpanProcessorExportBatchSize = Self(key: "OTEL_BSP_EXPORT_BATCH_SIZE")
+    static let batchSpanProcessorExportBatchSize = Self(key: "OTEL_BSP_MAX_EXPORT_BATCH_SIZE")
     static let batchLogRecordProcessorScheduleDelay = Self(key: "OTEL_BLRP_SCHEDULE_DELAY")
     static let batchLogRecordProcessorExportTimeout = Self(key: "OTEL_BLRP_EXPORT_TIMEOUT")
     static let batchLogRecordProcessorMaxQueueSize = Self(key: "OTEL_BLRP_MAX_QUEUE_SIZE")
