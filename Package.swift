@@ -2,7 +2,6 @@
 import PackageDescription
 
 let sharedSwiftSettings: [SwiftSetting] = [
-    .enableExperimentalFeature("StrictConcurrency=complete"),
     .enableUpcomingFeature("InternalImportsByDefault"),
 ]
 
