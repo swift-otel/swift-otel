@@ -44,15 +44,15 @@ extension OTel.Configuration.Key.GeneralKey {
     static let metricExportInterval = Self(key: "OTEL_METRIC_EXPORT_INTERVAL")
     static let metricExportTimeout = Self(key: "OTEL_METRIC_EXPORT_TIMEOUT")
     static let logsExporter = Self(key: "OTEL_LOGS_EXPORTER")
-    static let propagators = Self(key: "OTEL_PROPARGATORS")
+    static let propagators = Self(key: "OTEL_PROPAGATORS")
     static let batchSpanProcessorScheduleDelay = Self(key: "OTEL_BSP_SCHEDULE_DELAY")
     static let batchSpanProcessorExportTimeout = Self(key: "OTEL_BSP_EXPORT_TIMEOUT")
     static let batchSpanProcessorMaxQueueSize = Self(key: "OTEL_BSP_MAX_QUEUE_SIZE")
-    static let batchSpanProcessorExportBatchSize = Self(key: "OTEL_BSP_EXPORT_BATCH_SIZE")
+    static let batchSpanProcessorExportBatchSize = Self(key: "OTEL_BSP_MAX_EXPORT_BATCH_SIZE")
     static let batchLogRecordProcessorScheduleDelay = Self(key: "OTEL_BLRP_SCHEDULE_DELAY")
     static let batchLogRecordProcessorExportTimeout = Self(key: "OTEL_BLRP_EXPORT_TIMEOUT")
     static let batchLogRecordProcessorMaxQueueSize = Self(key: "OTEL_BLRP_MAX_QUEUE_SIZE")
-    static let batchLogRecordProcessorExportBatchSize = Self(key: "OTEL_BLRP_EXPORT_BATCH_SIZE")
+    static let batchLogRecordProcessorExportBatchSize = Self(key: "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE")
 }
 
 extension OTel.Configuration.Key.SignalSpecificKey {
@@ -123,7 +123,10 @@ extension [String: String] {
         return headers.compactMap { header in
             let pair = header.split(separator: .init(ascii: "="), maxSplits: 1, omittingEmptySubsequences: true)
             guard let key = pair.first, let value = pair.dropFirst().first else { return nil }
-            return (String(decoding: key, as: UTF8.self), String(decoding: value, as: UTF8.self))
+            return (
+                String(decoding: key, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines),
+                String(decoding: value, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+            )
         }
     }
 
