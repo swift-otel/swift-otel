@@ -44,7 +44,7 @@ extension OTel.Configuration.Key.GeneralKey {
     static let metricExportInterval = Self(key: "OTEL_METRIC_EXPORT_INTERVAL")
     static let metricExportTimeout = Self(key: "OTEL_METRIC_EXPORT_TIMEOUT")
     static let logsExporter = Self(key: "OTEL_LOGS_EXPORTER")
-    static let propagators = Self(key: "OTEL_PROPARGATORS")
+    static let propagators = Self(key: "OTEL_PROPAGATORS")
     static let batchSpanProcessorScheduleDelay = Self(key: "OTEL_BSP_SCHEDULE_DELAY")
     static let batchSpanProcessorExportTimeout = Self(key: "OTEL_BSP_EXPORT_TIMEOUT")
     static let batchSpanProcessorMaxQueueSize = Self(key: "OTEL_BSP_MAX_QUEUE_SIZE")
