@@ -123,7 +123,10 @@ extension [String: String] {
         return headers.compactMap { header in
             let pair = header.split(separator: .init(ascii: "="), maxSplits: 1, omittingEmptySubsequences: true)
             guard let key = pair.first, let value = pair.dropFirst().first else { return nil }
-            return (String(decoding: key, as: UTF8.self), String(decoding: value, as: UTF8.self))
+            return (
+                String(decoding: key, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines),
+                String(decoding: value, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+            )
         }
     }
 
