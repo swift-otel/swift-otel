@@ -25,10 +25,11 @@
 //===----------------------------------------------------------------------===//
 
 package import CoreMetrics
+import Logging
 
 /// A Swift Metrics `MetricsFactory` implementation backed by ``OTelMetricRegistry``.
 package struct OTLPMetricsFactory: Sendable {
-    private static let _defaultRegistry = OTelMetricRegistry(logger: ._otelDisabled)
+    private static let _defaultRegistry = OTelMetricRegistry(logger: Logger(label: "OTelMetricRegistry", factory: StreamLogHandler.standardError(label:)))
 
     /// The shared, default registry.
     package static var defaultRegistry: OTelMetricRegistry {
