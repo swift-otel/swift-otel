@@ -110,53 +110,20 @@ extension OTel {
     ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
     ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeLoggingBackend(configuration: OTel.Configuration = .default) throws -> (factory: @Sendable (String) -> any LogHandler, service: some Service) {
-        /// This is necessary because the processor is generic over the exporter and we need to return an opaque type.
-        struct Wrapper: Service {
-            var wrapped: any Service
-            func run() async throws {
-                try await wrapped.run()
-            }
-        }
-
         let logger = configuration.makeDiagnosticLogger()
         let resource = OTelResource(configuration: configuration)
-        switch configuration.logs.exporter.backing {
-        case .otlp:
-            switch configuration.logs.otlpExporter.protocol.backing {
-            case .grpc:
-                #if OTLPGRPC
-                let exporter = try OTLPGRPCLogRecordExporter(configuration: configuration.logs.otlpExporter, logger: logger)
-                let processor = OTelBatchLogRecordProcessor(exporter: exporter, configuration: .init(configuration: configuration.logs.batchLogRecordProcessor), logger: logger)
-                let handler = OTelLogHandler(
-                    processor: processor,
-                    logLevel: Logger.Level(configuration.logs.level),
-                    resource: resource
-                )
-                return ({ _ in handler }, Wrapper(wrapped: processor))
-                #else // OTLPGRPC
-                fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
-                #endif
-            case .httpProtobuf, .httpJSON:
-                #if OTLPHTTP
-                let exporter = try OTLPHTTPLogRecordExporter(configuration: configuration.logs.otlpExporter, logger: logger)
-                let processor: OTelBatchLogRecordProcessor = .init(
-                    exporter: exporter,
-                    configuration: OTelBatchLogRecordProcessorConfiguration(environment: .detected()), // TODO: shim,
-                    logger: logger
-                )
-                let handler = OTelLogHandler(
-                    processor: processor,
-                    logLevel: Logger.Level(configuration.logs.level),
-                    resource: resource
-                )
-                return ({ _ in handler }, Wrapper(wrapped: processor))
-                #else
-                fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
-                #endif
-            }
-        case .console:
-            throw NotImplementedError()
-        }
+        let exporter = try WrappedLogRecordExporter(configuration: configuration, logger: logger)
+        let processor: OTelBatchLogRecordProcessor = .init(
+            exporter: exporter,
+            configuration: OTelBatchLogRecordProcessorConfiguration(environment: .detected()), // TODO: shim,
+            logger: logger
+        )
+        let handler = OTelLogHandler(
+            processor: processor,
+            logLevel: Logger.Level(configuration.logs.level),
+            resource: resource
+        )
+        return ({ _ in handler }, processor)
     }
 
     /// Create a metrics backend with an OTLP exporter.
@@ -244,33 +211,11 @@ extension OTel {
     ///   - `OTel.makeLoggingBackend(configuration:)` for logging backend creation
     ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
     ///   - `OTel.Configuration` for configuration options and environment variables
-    public static func makeMetricsBackend(configuration: OTel.Configuration = .default) throws -> (factory: any MetricsFactory, service: some Service) {
+    public static func makeMetricsBackend(configuration: OTel.Configuration = .default) throws -> (factory: some MetricsFactory, service: some Service) {
         let logger = configuration.makeDiagnosticLogger()
         let resource = OTelResource(configuration: configuration)
         let registry = OTelMetricRegistry(logger: logger)
-        let metricsExporter: OTelMetricExporter
-        switch configuration.metrics.exporter.backing {
-        case .otlp:
-            switch configuration.metrics.otlpExporter.protocol.backing {
-            case .grpc:
-                #if OTLPGRPC
-                metricsExporter = try OTLPGRPCMetricExporter(configuration: configuration.metrics.otlpExporter, logger: logger)
-                #else // OTLPGRPC
-                fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
-                #endif
-            case .httpProtobuf, .httpJSON:
-                #if OTLPHTTP
-                metricsExporter = try OTLPHTTPMetricExporter(configuration: configuration.metrics.otlpExporter, logger: logger)
-                #else
-                fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
-                #endif
-            }
-        case .console:
-            metricsExporter = OTelConsoleMetricExporter()
-        case .prometheus:
-            fatalError("Swift OTel does not support the Prometheus exporter")
-        }
-
+        let metricsExporter = try WrappedMetricExporter(configuration: configuration, logger: logger)
         let readerConfig = OTelPeriodicExportingMetricsReaderConfiguration(configuration: configuration.metrics)
 
         let reader = OTelPeriodicExportingMetricsReader(resource: resource, producer: registry, exporter: metricsExporter, configuration: readerConfig, logger: logger)
@@ -363,63 +308,20 @@ extension OTel {
     ///   - `OTel.makeLoggingBackend(configuration:)` for logging backend creation
     ///   - `OTel.makeMetricsBackend(configuration:)` for metrics backend creation
     ///   - `OTel.Configuration` for configuration options and environment variables
-    public static func makeTracingBackend(configuration: OTel.Configuration = .default) throws -> (factory: any Tracer, service: some Service) {
-        /// This dance is necessary if we want to continue to return `some Service` (vs. returning `any Service`).
-        ///
-        /// This is also only necessary for tracing because the Tracer is generic over the processor, which, in turn, is
-        /// generic over the exporter. The metrics internals use an existential exporter.
-        ///
-        /// For now, in order to preserve the shape of both metrics and traces types, and because there's only a closed
-        /// set of types that are expressible by config, we'll return an enum wrapper as our opaque return type.
-        struct TracerWrapper: Service {
-            var wrapped: any Service
-            func run() async throws {
-                try await wrapped.run()
-            }
-        }
-
+    public static func makeTracingBackend(configuration: OTel.Configuration = .default) throws -> (factory: some Tracer, service: some Service) {
         let logger = configuration.makeDiagnosticLogger()
         let resource = OTelResource(configuration: configuration)
-        switch configuration.traces.exporter.backing {
-        case .otlp:
-            switch configuration.traces.otlpExporter.protocol.backing {
-            case .grpc:
-                #if OTLPGRPC
-                let exporter = try OTLPGRPCSpanExporter(configuration: configuration.traces.otlpExporter, logger: logger)
-                let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor), logger: logger)
-                let tracer = OTelTracer(
-                    idGenerator: OTelRandomIDGenerator(),
-                    sampler: OTelConstantSampler(isOn: true),
-                    propagator: OTelW3CPropagator(),
-                    processor: processor,
-                    environment: .detected(),
-                    resource: resource,
-                    logger: logger
-                )
-                return (tracer, TracerWrapper(wrapped: tracer))
-                #else // OTLPGRPC
-                fatalError("Using the OTLP/GRPC exporter requires the `OTLPGRPC` trait enabled.")
-                #endif
-            case .httpProtobuf, .httpJSON:
-                #if OTLPHTTP
-                let exporter = try OTLPHTTPSpanExporter(configuration: configuration.traces.otlpExporter, logger: logger)
-                let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor), logger: logger)
-                let tracer = OTelTracer(
-                    idGenerator: OTelRandomIDGenerator(),
-                    sampler: OTelConstantSampler(isOn: true),
-                    propagator: OTelW3CPropagator(),
-                    processor: processor,
-                    environment: .detected(),
-                    resource: resource,
-                    logger: logger
-                )
-                return (tracer, TracerWrapper(wrapped: tracer))
-                #else
-                fatalError("Using the OTLP/HTTP + Protobuf exporter requires the `OTLPHTTP` trait enabled.")
-                #endif
-            }
-        case .console, .jaeger, .zipkin:
-            fatalError("not implementated")
-        }
+        let exporter = try WrappedSpanExporter(configuration: configuration, logger: logger)
+        let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor), logger: logger)
+        let tracer = OTelTracer(
+            idGenerator: OTelRandomIDGenerator(),
+            sampler: OTelConstantSampler(isOn: true),
+            propagator: OTelW3CPropagator(),
+            processor: processor,
+            environment: .detected(),
+            resource: resource,
+            logger: logger
+        )
+        return (tracer, tracer)
     }
 }
