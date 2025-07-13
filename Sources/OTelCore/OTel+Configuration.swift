@@ -256,6 +256,12 @@ extension OTel.Configuration {
         /// - Default value: `true`.
         public var enabled: Bool
 
+        /// Sampler to be used for traces.
+        ///
+        /// - Environment variable(s): `OTEL_TRACES_SAMPLER`.
+        /// - Default value: `.parentBasedAlwaysOn`.
+        public var sampler: SamplerConfiguration
+
         /// Configuration for the batch span processor.
         ///
         /// - Default value: `.default`.
@@ -278,6 +284,7 @@ extension OTel.Configuration {
         /// where possible.
         public static let `default`: Self = .init(
             enabled: true,
+            sampler: .parentBasedAlwaysOn,
             batchSpanProcessor: .default,
             exporter: .otlp,
             otlpExporter: .default
@@ -373,6 +380,61 @@ extension OTel.Configuration {
             exporter: .otlp,
             otlpExporter: .default
         )
+    }
+}
+
+extension OTel.Configuration.TracesConfiguration {
+    /// Selection of traces sampler.
+    public struct SamplerConfiguration: Sendable {
+        package enum Backing: String, Sendable {
+            case alwaysOn = "always_on"
+            case alwaysOff = "always_off"
+            case traceIDRatio = "traceidratio"
+            case parentBasedAlwaysOn = "parentbased_always_on"
+            case parentBasedAlwaysOff = "parentbased_always_off"
+            case parentBasedTraceIDRatio = "parentbased_traceidratio"
+            case parentBasedJaegerRemote = "parentbased_jaeger_remote"
+            case jaegerRemote = "jaeger_remote"
+            case xray
+        }
+
+        package enum ArgumentBacking: Equatable, Sendable {
+            case traceIDRatio(samplingProbability: Double)
+            case jaegerRemote(endpoint: String, pollingInterval: Duration, initialSamplingRate: Double)
+        }
+
+        package var backing: Backing
+
+        package var argument: ArgumentBacking?
+
+        /// A sampler that always records the span.
+        public static let alwaysOn: Self = .init(backing: .alwaysOn)
+
+        /// A sampler that always drops the span.
+        public static let alwaysOff: Self = .init(backing: .alwaysOff)
+
+        /// A sampler that records a span based on ratio-based probability.
+        ///
+        /// - TODO: This is still in Development status in the OTel spec; should it be included in our 1.0 API?
+        public static func traceIDRatio(ratio: Double = 1.0) -> Self { .init(backing: .traceIDRatio, argument: .traceIDRatio(samplingProbability: ratio)) }
+
+        /// Inherits parent span's sampling decision; samples all root spans.
+        public static let parentBasedAlwaysOn: Self = .init(backing: .parentBasedAlwaysOn)
+
+        /// Inherits parent span's sampling decision; never samples root spans.
+        public static let parentBasedAlwaysOff: Self = .init(backing: .parentBasedAlwaysOff)
+
+        /// Inherits parent span's sampling decision; samples root spans by trace ID ratio.
+        public static func parentBasedTraceIDRatio(ratio: Double = 1.0) -> Self { .init(backing: .parentBasedTraceIDRatio, argument: .traceIDRatio(samplingProbability: ratio)) }
+
+        /// Inherits parent span's sampling decision; uses Jaeger remote sampling for root spans.
+        public static let parentBasedJaegerRemote: Self = .init(backing: .parentBasedJaegerRemote)
+
+        /// Uses Jaeger agent's remote sampling configuration for all spans.
+        public static let jaegerRemote: Self = .init(backing: .jaegerRemote)
+
+        /// Uses AWS X-Ray's centralized sampling rules and decisions.
+        public static let xray: Self = .init(backing: .xray)
     }
 }
 
