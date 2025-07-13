@@ -19,6 +19,8 @@ import OTLPGRPC
 import OTLPHTTP
 #endif
 import Logging
+import Tracing
+import W3CTraceContext
 
 /// The wrapper types in this file exist to support our simplified public API surface.
 ///
@@ -215,6 +217,52 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
             }
         case .console, .jaeger, .zipkin:
             throw NotImplementedError()
+        }
+    }
+}
+
+internal enum WrappedSampler: OTelSampler {
+    case alwaysOn(OTelConstantSampler)
+    case alwaysOff(OTelConstantSampler)
+    case traceIDRatio(OTelTraceIDRatioBasedSampler)
+    case parentBasedAlwaysOn(OTelParentBasedSampler)
+    case parentBasedAlwaysOff(OTelParentBasedSampler)
+    case parentBasedTraceIDRatio(OTelParentBasedSampler)
+
+    func samplingResult(operationName: String, kind: SpanKind, traceID: TraceID, attributes: SpanAttributes, links: [SpanLink], parentContext: ServiceContext) -> OTelSamplingResult {
+        switch self {
+        case .alwaysOn(let wrapped), .alwaysOff(let wrapped):
+            wrapped.samplingResult(operationName: operationName, kind: kind, traceID: traceID, attributes: attributes, links: links, parentContext: parentContext)
+        case .traceIDRatio(let wrapped):
+            wrapped.samplingResult(operationName: operationName, kind: kind, traceID: traceID, attributes: attributes, links: links, parentContext: parentContext)
+        case .parentBasedAlwaysOn(let wrapped), .parentBasedAlwaysOff(let wrapped), .parentBasedTraceIDRatio(let wrapped):
+            wrapped.samplingResult(operationName: operationName, kind: kind, traceID: traceID, attributes: attributes, links: links, parentContext: parentContext)
+        }
+    }
+
+    init(configuration: OTel.Configuration) {
+        switch configuration.traces.sampler.backing {
+        case .alwaysOn: self = .alwaysOn(OTelConstantSampler(isOn: true))
+        case .alwaysOff: self = .alwaysOff(OTelConstantSampler(isOn: false))
+        case .traceIDRatio:
+            switch configuration.traces.sampler.argument {
+            case .traceIDRatio(let samplingProbability):
+                self = .traceIDRatio(OTelTraceIDRatioBasedSampler(ratio: samplingProbability))
+            default:
+                self = .traceIDRatio(OTelTraceIDRatioBasedSampler(ratio: 1.0))
+            }
+        case .parentBasedAlwaysOn: self = .parentBasedAlwaysOn(OTelParentBasedSampler(rootSampler: OTelConstantSampler(isOn: true)))
+        case .parentBasedAlwaysOff: self = .parentBasedAlwaysOff(OTelParentBasedSampler(rootSampler: OTelConstantSampler(isOn: false)))
+        case .parentBasedTraceIDRatio:
+            switch configuration.traces.sampler.argument {
+            case .traceIDRatio(let samplingProbability):
+                self = .parentBasedTraceIDRatio(OTelParentBasedSampler(rootSampler: OTelTraceIDRatioBasedSampler(ratio: samplingProbability)))
+            default:
+                self = .parentBasedTraceIDRatio(OTelParentBasedSampler(rootSampler: OTelTraceIDRatioBasedSampler(ratio: 1.0)))
+            }
+        case .parentBasedJaegerRemote: fatalError("Swift OTel does not support the parent-based Jaeger sampler")
+        case .jaegerRemote: fatalError("Swift OTel does not support the Jaeger sampler")
+        case .xray: fatalError("Swift OTel does not support the X-Ray sampler")
         }
     }
 }
