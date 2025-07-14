@@ -17,7 +17,19 @@ import Testing
 @Suite struct ConfigurationTests {
     // OTEL_SDK_DISABLED
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
-    @Test(.disabled("Not currently implemented")) func testSDKDisabled() {}
+    @Test func testSDKDisabled() {
+        #expect(OTel.Configuration.default.logs.enabled == true)
+        #expect(OTel.Configuration.default.metrics.enabled == true)
+        #expect(OTel.Configuration.default.traces.enabled == true)
+
+        OTel.Configuration.default.withEnvironmentOverrides(environment: [
+            "OTEL_SDK_DISABLED": "true",
+        ]) { config in
+            #expect(config.logs.enabled == false)
+            #expect(config.metrics.enabled == false)
+            #expect(config.traces.enabled == false)
+        }
+    }
 
     // OTEL_LOG_LEVEL
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/

@@ -36,6 +36,7 @@ extension OTel.Configuration {
 }
 
 extension OTel.Configuration.Key.GeneralKey {
+    static let sdkDisabled = Self(key: "OTEL_SDK_DISABLED")
     static let resourceAttributes = Self(key: "OTEL_RESOURCE_ATTRIBUTES")
     static let serviceName = Self(key: "OTEL_SERVICE_NAME")
     static let logLevel = Self(key: "OTEL_LOG_LEVEL")

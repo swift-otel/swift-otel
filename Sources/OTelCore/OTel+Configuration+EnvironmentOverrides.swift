@@ -13,6 +13,11 @@
 
 extension OTel.Configuration {
     package mutating func applyEnvironmentOverrides(environment: [String: String]) {
+        if let sdkDisabled = environment.getBoolValue(.sdkDisabled), sdkDisabled {
+            logs.enabled = false
+            metrics.enabled = false
+            traces.enabled = false
+        }
         if let resourceAttributes = environment.getHeadersValue(.resourceAttributes) {
             // https://opentelemetry.io/docs/specs/otel/resource/sdk/#specifying-resource-information-via-an-environment-variable
             let incomingAttributes = Dictionary(resourceAttributes, uniquingKeysWith: { _, second in second })
