@@ -73,7 +73,10 @@ import Testing
             "OTEL_RESOURCE_ATTRIBUTES": "key=first_value,key=second_value",
         ]).resourceAttributes == ["key": "second_value"])
 
-        // This is a special key that needs merging (most keys just overwrite).
+        // The resource attributes provided as an environment variable are a bit special. Most configuration values are
+        // taken from the environment variable as-is, and completely override the configuration value, but for resource
+        // attributes, the values from the environment variable are considered additional and should be merged into the
+        // existing value.
         OTel.Configuration.default.with { config in
             config.resourceAttributes["code_key"] = "code_value"
             config.resourceAttributes["shared_key"] = "code_wins"
