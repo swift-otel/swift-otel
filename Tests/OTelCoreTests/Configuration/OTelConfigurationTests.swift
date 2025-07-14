@@ -90,16 +90,6 @@ import Testing
         }
     }
 
-    // OTEL_TRACES_SAMPLER
-    // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
-    // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_traces_sampler
-    @Test(.disabled("Not currently implemented")) func testTracesSampler() {}
-
-    // OTEL_TRACES_SAMPLER_ARG
-    // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
-    // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_traces_sampler_arg
-    @Test(.disabled("Not currently implemented")) func testTracesSamplerArg() {}
-
     // OTEL_PROPAGATORS
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_propagators
