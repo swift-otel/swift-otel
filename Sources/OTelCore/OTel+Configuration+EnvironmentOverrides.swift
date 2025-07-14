@@ -57,6 +57,7 @@ extension OTel.Configuration {
 
 extension OTel.Configuration.TracesConfiguration {
     internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
+        sampler.applyEnvironmentOverrides(environment: environment)
         batchSpanProcessor.applyEnvironmentOverrides(environment: environment)
         if let tracesExporter = environment.getStringValue(.tracesExporter) {
             switch tracesExporter {
@@ -120,6 +121,51 @@ extension OTel.Configuration.LogsConfiguration {
             }
         }
         otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .logs)
+    }
+}
+
+extension OTel.Configuration.TracesConfiguration.SamplerConfiguration {
+    internal mutating func applyEnvironmentOverrides(environment: [String: String]) {
+        if let sampler = environment.getStringValue(.sampler) {
+            switch sampler {
+            case "always_on": self = .alwaysOn
+            case "always_off": self = .alwaysOff
+            case "traceidratio": backing = .traceIDRatio
+            case "parentbased_always_on": self = .parentBasedAlwaysOn
+            case "parentbased_always_off": self = .parentBasedAlwaysOff
+            case "parentbased_traceidratio": backing = .parentBasedTraceIDRatio
+            case "parentbased_jaeger_remote": self = .parentBasedJaegerRemote
+            case "jaeger_remote": self = .jaegerRemote
+            case "xray": self = .xray
+            default: self = .parentBasedAlwaysOn
+            }
+        }
+        if let samplerArgument = environment.getStringValue(.samplerArgument) {
+            switch backing {
+            case .traceIDRatio, .parentBasedTraceIDRatio:
+                guard let samplingProbability = Double(samplerArgument) else { break }
+                argument = .traceIDRatio(samplingProbability: samplingProbability)
+            case .jaegerRemote, .parentBasedJaegerRemote:
+                // Example: endpoint=http://localhost:14250,pollingIntervalMs=5000,initialSamplingRate=0.25
+                let parameters = samplerArgument.split(separator: ",", maxSplits: 3).map { $0.split(separator: "=", maxSplits: 2) }
+                guard
+                    parameters.count == 3, parameters.allSatisfy({ $0.count == 2 }),
+                    parameters[0][0] == "endpoint",
+                    let endpoint = String(parameters[0][1]) as String?,
+                    parameters[1][0] == "pollingIntervalMs",
+                    let pollingIntervalMilliseconds = Int(parameters[1][1]),
+                    parameters[2][0] == "initialSamplingRate",
+                    let initialSamplingRate = Double(parameters[2][1])
+                else { break }
+                argument = .jaegerRemote(
+                    endpoint: endpoint,
+                    pollingInterval: .milliseconds(pollingIntervalMilliseconds),
+                    initialSamplingRate: initialSamplingRate
+                )
+            default:
+                break
+            }
+        }
     }
 }
 

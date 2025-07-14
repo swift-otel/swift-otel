@@ -258,7 +258,7 @@ extension OTel.Configuration {
 
         /// Sampler to be used for traces.
         ///
-        /// - Environment variable(s): `OTEL_TRACES_SAMPLER`.
+        /// - Environment variable(s): `OTEL_TRACES_SAMPLER`, `OTEL_TRACES_SAMPLER_ARG`.
         /// - Default value: `.parentBasedAlwaysOn`.
         public var sampler: SamplerConfiguration
 
