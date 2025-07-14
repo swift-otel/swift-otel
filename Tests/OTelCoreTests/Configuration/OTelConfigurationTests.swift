@@ -123,12 +123,16 @@ import Testing
         ]).traces.batchSpanProcessor.scheduleDelay == .seconds(3))
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_BSP_SCHEDULE_DELAY": "0",
+        ]).traces.batchSpanProcessor.scheduleDelay == .zero)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BSP_SCHEDULE_DELAY": "-3000",
         ]).traces.batchSpanProcessor.scheduleDelay == OTel.Configuration.default.traces.batchSpanProcessor.scheduleDelay)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_SCHEDULE_DELAY": "0",
-        ]).traces.batchSpanProcessor.scheduleDelay == .zero)
+            "OTEL_BSP_SCHEDULE_DELAY": "invalid",
+        ]).traces.batchSpanProcessor.scheduleDelay == OTel.Configuration.default.traces.batchSpanProcessor.scheduleDelay)
     }
 
     // OTEL_BSP_EXPORT_TIMEOUT
@@ -142,12 +146,16 @@ import Testing
         ]).traces.batchSpanProcessor.exportTimeout == .seconds(3))
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_BSP_EXPORT_TIMEOUT": "0",
+        ]).traces.batchSpanProcessor.exportTimeout == .zero)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BSP_EXPORT_TIMEOUT": "-3000",
         ]).traces.batchSpanProcessor.exportTimeout == OTel.Configuration.default.traces.batchSpanProcessor.exportTimeout)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_EXPORT_TIMEOUT": "0",
-        ]).traces.batchSpanProcessor.exportTimeout == .zero)
+            "OTEL_BSP_EXPORT_TIMEOUT": "invalid",
+        ]).traces.batchSpanProcessor.exportTimeout == OTel.Configuration.default.traces.batchSpanProcessor.exportTimeout)
     }
 
     // OTEL_BSP_MAX_QUEUE_SIZE
@@ -164,12 +172,10 @@ import Testing
             "OTEL_BSP_MAX_QUEUE_SIZE": "0",
         ]).traces.batchSpanProcessor.maxQueueSize == 0)
 
-        // Negative values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BSP_MAX_QUEUE_SIZE": "-100",
         ]).traces.batchSpanProcessor.maxQueueSize == OTel.Configuration.default.traces.batchSpanProcessor.maxQueueSize)
 
-        // Invalid values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BSP_MAX_QUEUE_SIZE": "invalid",
         ]).traces.batchSpanProcessor.maxQueueSize == OTel.Configuration.default.traces.batchSpanProcessor.maxQueueSize)
@@ -189,12 +195,10 @@ import Testing
             "OTEL_BSP_MAX_EXPORT_BATCH_SIZE": "0",
         ]).traces.batchSpanProcessor.maxExportBatchSize == 0)
 
-        // Negative values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BSP_MAX_EXPORT_BATCH_SIZE": "-50",
         ]).traces.batchSpanProcessor.maxExportBatchSize == OTel.Configuration.default.traces.batchSpanProcessor.maxExportBatchSize)
 
-        // Invalid values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BSP_MAX_EXPORT_BATCH_SIZE": "invalid",
         ]).traces.batchSpanProcessor.maxExportBatchSize == OTel.Configuration.default.traces.batchSpanProcessor.maxExportBatchSize)
@@ -214,12 +218,10 @@ import Testing
             "OTEL_METRIC_EXPORT_INTERVAL": "0",
         ]).metrics.exportInterval == .zero)
 
-        // Negative values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_METRIC_EXPORT_INTERVAL": "-5000",
         ]).metrics.exportInterval == OTel.Configuration.default.metrics.exportInterval)
 
-        // Invalid values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_METRIC_EXPORT_INTERVAL": "invalid",
         ]).metrics.exportInterval == OTel.Configuration.default.metrics.exportInterval)
@@ -239,12 +241,10 @@ import Testing
             "OTEL_METRIC_EXPORT_TIMEOUT": "0",
         ]).metrics.exportTimeout == .zero)
 
-        // Negative values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_METRIC_EXPORT_TIMEOUT": "-3000",
         ]).metrics.exportTimeout == OTel.Configuration.default.metrics.exportTimeout)
 
-        // Invalid values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_METRIC_EXPORT_TIMEOUT": "invalid",
         ]).metrics.exportTimeout == OTel.Configuration.default.metrics.exportTimeout)
@@ -264,12 +264,10 @@ import Testing
             "OTEL_BLRP_SCHEDULE_DELAY": "0",
         ]).logs.batchLogRecordProcessor.scheduleDelay == .zero)
 
-        // Negative values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BLRP_SCHEDULE_DELAY": "-1000",
         ]).logs.batchLogRecordProcessor.scheduleDelay == OTel.Configuration.default.logs.batchLogRecordProcessor.scheduleDelay)
 
-        // Invalid values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BLRP_SCHEDULE_DELAY": "invalid",
         ]).logs.batchLogRecordProcessor.scheduleDelay == OTel.Configuration.default.logs.batchLogRecordProcessor.scheduleDelay)
@@ -289,12 +287,10 @@ import Testing
             "OTEL_BLRP_EXPORT_TIMEOUT": "0",
         ]).logs.batchLogRecordProcessor.exportTimeout == .zero)
 
-        // Negative values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BLRP_EXPORT_TIMEOUT": "-5000",
         ]).logs.batchLogRecordProcessor.exportTimeout == OTel.Configuration.default.logs.batchLogRecordProcessor.exportTimeout)
 
-        // Invalid values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BLRP_EXPORT_TIMEOUT": "invalid",
         ]).logs.batchLogRecordProcessor.exportTimeout == OTel.Configuration.default.logs.batchLogRecordProcessor.exportTimeout)
@@ -314,12 +310,10 @@ import Testing
             "OTEL_BLRP_MAX_QUEUE_SIZE": "0",
         ]).logs.batchLogRecordProcessor.maxQueueSize == 0)
 
-        // Negative values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BLRP_MAX_QUEUE_SIZE": "-100",
         ]).logs.batchLogRecordProcessor.maxQueueSize == OTel.Configuration.default.logs.batchLogRecordProcessor.maxQueueSize)
 
-        // Invalid values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BLRP_MAX_QUEUE_SIZE": "invalid",
         ]).logs.batchLogRecordProcessor.maxQueueSize == OTel.Configuration.default.logs.batchLogRecordProcessor.maxQueueSize)
@@ -339,12 +333,10 @@ import Testing
             "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "0",
         ]).logs.batchLogRecordProcessor.maxExportBatchSize == 0)
 
-        // Negative values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "-50",
         ]).logs.batchLogRecordProcessor.maxExportBatchSize == OTel.Configuration.default.logs.batchLogRecordProcessor.maxExportBatchSize)
 
-        // Invalid values should be ignored
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "invalid",
         ]).logs.batchLogRecordProcessor.maxExportBatchSize == OTel.Configuration.default.logs.batchLogRecordProcessor.maxExportBatchSize)
