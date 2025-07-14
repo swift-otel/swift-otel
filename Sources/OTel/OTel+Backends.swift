@@ -311,11 +311,12 @@ extension OTel {
     public static func makeTracingBackend(configuration: OTel.Configuration = .default) throws -> (factory: some Tracer, service: some Service) {
         let logger = configuration.makeDiagnosticLogger()
         let resource = OTelResource(configuration: configuration)
+        let sampler = WrappedSampler(configuration: configuration)
         let exporter = try WrappedSpanExporter(configuration: configuration, logger: logger)
         let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor), logger: logger)
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
-            sampler: OTelConstantSampler(isOn: true),
+            sampler: sampler,
             propagator: OTelW3CPropagator(),
             processor: processor,
             environment: .detected(),
