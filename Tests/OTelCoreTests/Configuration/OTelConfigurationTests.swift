@@ -115,6 +115,71 @@ import Testing
         ]).propagators.map(\.backing) == [])
     }
 
+    // OTEL_TRACES_SAMPLER and OTEL_TRACES_SAMPLER_ARG
+    // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
+    @Test func testSamplerSelection() {
+        #expect(OTel.Configuration.default.traces.sampler.backing == .parentBasedAlwaysOn)
+        #expect(OTel.Configuration.default.traces.sampler.argument == nil)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "always_on",
+        ]).traces.sampler.backing == .alwaysOn)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "always_off",
+        ]).traces.sampler.backing == .alwaysOff)
+
+        OTel.Configuration.default.withEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "traceidratio",
+        ]) { config in
+            #expect(config.traces.sampler.backing == .traceIDRatio)
+            #expect(config.traces.sampler.argument == nil)
+        }
+
+        OTel.Configuration.default.withEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "traceidratio",
+            "OTEL_TRACES_SAMPLER_ARG": "0.25",
+        ]) { config in
+            #expect(config.traces.sampler.backing == .traceIDRatio)
+            #expect(config.traces.sampler.argument == .traceIDRatio(samplingProbability: 0.25))
+        }
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "jaeger_remote",
+        ]).traces.sampler.backing == .jaegerRemote)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "parentbased_always_on",
+        ]).traces.sampler.backing == .parentBasedAlwaysOn)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "parentbased_always_off",
+        ]).traces.sampler.backing == .parentBasedAlwaysOff)
+
+        OTel.Configuration.default.withEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "parentbased_traceidratio",
+        ]) { config in
+            #expect(config.traces.sampler.backing == .parentBasedTraceIDRatio)
+            #expect(config.traces.sampler.argument == nil)
+        }
+
+        OTel.Configuration.default.withEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "parentbased_traceidratio",
+            "OTEL_TRACES_SAMPLER_ARG": "0.25",
+        ]) { config in
+            #expect(config.traces.sampler.backing == .parentBasedTraceIDRatio)
+            #expect(config.traces.sampler.argument == .traceIDRatio(samplingProbability: 0.25))
+        }
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "parentbased_jaeger_remote",
+        ]).traces.sampler.backing == .parentBasedJaegerRemote)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_TRACES_SAMPLER": "xray",
+        ]).traces.sampler.backing == .xray)
+    }
+
     // OTEL_BSP_SCHEDULE_DELAY
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#duration
