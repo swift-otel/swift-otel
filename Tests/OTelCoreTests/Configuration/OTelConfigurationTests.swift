@@ -38,24 +38,6 @@ import Testing
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_SERVICE_NAME": "some_service",
         ]).serviceName == "some_service")
-
-        withKnownIssue {
-            Issue.record("""
-            This property is a special since it's supposed to affect what ends up as the value for the service.name
-            resource attribute during export.
-
-            However, I don't think the right way to do that is to magically change the resource attributes of the confg
-            object that the user has.
-
-            Most likely this should be solved with a computed property on the config that's used by exporters, e.g.
-            `resolvedResourceAttributes`.
-            """)
-        }
-
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_RESOURCE_ATTRIBUTES": "service.name=some_service_from_resource_attributes",
-            "OTEL_SERVICE_NAME": "some_service_from_service_name",
-        ]).serviceName == "some_service_from_service_name")
     }
 
     // OTEL_RESOURCE_ATTRIBUTES
@@ -801,6 +783,30 @@ import Testing
             #expect(config.logs.otlpExporter.clientCertificateFilePath == "/path/to/general.crt")
             #expect(config.metrics.otlpExporter.clientCertificateFilePath == "/path/to/general.crt")
             #expect(config.traces.otlpExporter.clientCertificateFilePath == "/path/to/traces.crt")
+        }
+    }
+
+    @Test func testServiceNameResourceAttributeResolution() {
+        OTel.Configuration.default.with { config in
+            #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("unknown_service"))
+        }
+        OTel.Configuration.default.with { config in
+            config.resourceAttributes["service.name"] = "resource_attribute_value"
+            #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("resource_attribute_value"))
+        }
+        OTel.Configuration.default.with { config in
+            config.serviceName = "service_name_value"
+            #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("service_name_value"))
+        }
+        OTel.Configuration.default.with { config in
+            config.resourceAttributes["service.name"] = "resource_attribute_value"
+            config.serviceName = "service_name_value"
+            #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("service_name_value"))
+        }
+
+        OTel.Configuration.default.with { config in
+            config.resourceAttributes["service.name"] = "code_value"
+            #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("code_value"))
         }
     }
 }

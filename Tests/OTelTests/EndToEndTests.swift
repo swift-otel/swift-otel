@@ -41,6 +41,8 @@ import Tracing
                     config.metrics.enabled = false
                     config.traces.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.traces.otlpExporter.protocol = .httpProtobuf
+                    config.serviceName = "innie"
+                    config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
                     let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
 
@@ -72,6 +74,9 @@ import Tracing
                     #expect(message.resourceSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.first?.spans.count == 5)
+                    #expect(message.resourceSpans.first?.resource.attributes.count == 2)
+                    #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
+                    #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
@@ -101,6 +106,8 @@ import Tracing
                     config.metrics.enabled = false
                     config.traces.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.traces.otlpExporter.protocol = .httpJSON
+                    config.serviceName = "innie"
+                    config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
                     let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
 
@@ -132,6 +139,9 @@ import Tracing
                     #expect(message.resourceSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.first?.spans.count == 5)
+                    #expect(message.resourceSpans.first?.resource.attributes.count == 2)
+                    #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
+                    #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
@@ -161,6 +171,8 @@ import Tracing
                     config.traces.enabled = false
                     config.metrics.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.metrics.otlpExporter.protocol = .httpProtobuf
+                    config.serviceName = "innie"
+                    config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
                     let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
 
@@ -188,6 +200,9 @@ import Tracing
                     #expect(message.resourceMetrics.count == 1)
                     #expect(message.resourceMetrics.first?.scopeMetrics.count == 1)
                     #expect(message.resourceMetrics.first?.scopeMetrics.first?.metrics.count == 3)
+                    #expect(message.resourceMetrics.first?.resource.attributes.count == 2)
+                    #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
+                    #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
@@ -217,6 +232,8 @@ import Tracing
                     config.traces.enabled = false
                     config.metrics.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.metrics.otlpExporter.protocol = .httpJSON
+                    config.serviceName = "innie"
+                    config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
                     let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
 
@@ -244,6 +261,9 @@ import Tracing
                     #expect(message.resourceMetrics.count == 1)
                     #expect(message.resourceMetrics.first?.scopeMetrics.count == 1)
                     #expect(message.resourceMetrics.first?.scopeMetrics.first?.metrics.count == 3)
+                    #expect(message.resourceMetrics.first?.resource.attributes.count == 2)
+                    #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
+                    #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
@@ -274,6 +294,8 @@ import Tracing
                     config.logs.level = .debug
                     config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.logs.otlpExporter.protocol = .httpProtobuf
+                    config.serviceName = "innie"
+                    config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
                     // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
                     let serviceGroup = ServiceGroup(services: [observability], logger: ._otelDisabled)
@@ -306,6 +328,9 @@ import Tracing
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Waffle party privileges have been revoked due to insufficient team spirit"))
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value == .init("milchick"))
+                    #expect(message.resourceLogs.first?.resource.attributes.count == 2)
+                    #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
+                    #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
@@ -336,6 +361,8 @@ import Tracing
                     config.logs.level = .debug
                     config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.logs.otlpExporter.protocol = .httpJSON
+                    config.serviceName = "innie"
+                    config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
                     // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
                     let serviceGroup = ServiceGroup(services: [observability], logger: ._otelDisabled)
@@ -368,6 +395,9 @@ import Tracing
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Waffle party privileges have been revoked due to insufficient team spirit"))
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value == .init("milchick"))
+                    #expect(message.resourceLogs.first?.resource.attributes.count == 2)
+                    #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
+                    #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)

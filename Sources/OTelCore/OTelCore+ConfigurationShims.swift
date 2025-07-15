@@ -16,7 +16,17 @@ import Tracing
 
 extension OTelResource {
     package init(configuration: OTel.Configuration) {
-        let attributes = configuration.resourceAttributes.mapValues { $0.toSpanAttribute() }
+        var attributes = configuration.resourceAttributes.mapValues { $0.toSpanAttribute() }
+
+        // If service.name is also provided in OTEL_RESOURCE_ATTRIBUTES, then OTEL_SERVICE_NAME takes precedence.
+        // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_service_name
+        // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_resource_attributes
+        if let serviceName = attributes["service.name"], configuration.serviceName == OTel.Configuration.default.serviceName {
+            attributes["service.name"] = serviceName
+        } else {
+            attributes["service.name"] = .string(configuration.serviceName)
+        }
+
         self.init(attributes: SpanAttributes(attributes))
     }
 }
