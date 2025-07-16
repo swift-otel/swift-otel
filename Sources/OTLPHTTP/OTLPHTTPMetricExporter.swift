@@ -23,6 +23,8 @@ package final class OTLPHTTPMetricExporter: OTelMetricExporter {
 
     package init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
         self.logger = logger
+        var configuration = configuration
+        configuration.endpoint = configuration.metricsHTTPEndpoint
         exporter = try OTLPHTTPExporter(configuration: configuration)
     }
 

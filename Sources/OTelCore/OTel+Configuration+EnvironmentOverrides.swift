@@ -233,33 +233,19 @@ extension OTel.Configuration.OTLPExporterConfiguration {
                 #endif
             }
         }
-        do {
-            switch self.protocol.backing {
-            case .grpc:
-                // For OTLP/gRPC, we honor the endpoint as its been provided.
-                if let endpoint = environment.getStringValue(.otlpExporterEndpoint, signal: signal) {
-                    self.endpoint = endpoint
-                }
-            case .httpProtobuf, .httpJSON:
-                // For OTLP/HTTP, how the endpoint is derrived depends on whether the shared and/or specific keys are set.
-                // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#endpoint-urls-for-otlphttp
-                let key = OTel.Configuration.Key.SignalSpecificKey.otlpExporterEndpoint
-                let sharedKey = key.shared
-                let (signalSpecificKey, signalSpecificEndpointSuffix) = switch signal {
-                case .logs: (key.logs, "v1/logs")
-                case .metrics: (key.metrics, "v1/metrics")
-                case .traces: (key.traces, "v1/traces")
-                }
-                if let specificEndpoint = environment[signalSpecificKey] {
-                    endpoint = specificEndpoint
-                } else if let sharedEndpoint = environment[sharedKey] {
-                    endpoint = sharedEndpoint
-                    if !endpoint.hasSuffix("/") {
-                        endpoint.append("/")
-                    }
-                    endpoint.append(signalSpecificEndpointSuffix)
-                }
-            }
+        let key = OTel.Configuration.Key.SignalSpecificKey.otlpExporterEndpoint
+        let signalSpecificKey = switch signal {
+        case .traces: key.traces
+        case .metrics: key.metrics
+        case .logs: key.logs
+        }
+        if let sharedEndpoint = environment[key.shared] {
+            endpoint = sharedEndpoint
+            endpointHasBeenExplicitlySet = false
+        }
+        if let signalSpecificEndpoint = environment[signalSpecificKey] {
+            endpoint = signalSpecificEndpoint
+            endpointHasBeenExplicitlySet = true
         }
         if let insecure = environment.getBoolValue(.otlpExporterInsecure, signal: signal) {
             self.insecure = insecure

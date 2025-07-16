@@ -620,11 +620,71 @@ extension OTel.Configuration {
         ///   - `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`
         ///   - `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`
         ///   - `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`
-        /// - Default value:
+        /// - Default values:
         ///   - `http://localhost:4317` (for OTLP/gRPC)
         ///   - `http://localhost:4318` (for OTLP/HTTP)
         /// - Notes: Signal-specific configuration takes precedence over the general configuration.
-        public var endpoint: String
+        ///
+        /// - Important: When used with OTLP/HTTP, the _default_ endpoint is appended with a signal-specific path:
+        ///   - Traces: `/v1/traces` → `http://localhost:4318/v1/traces`
+        ///   - Metrics: `/v1/metrics` → `http://localhost:4318/v1/metrics`
+        ///   - Logs: `/v1/logs` → `http://localhost:4318/v1/logs`
+        ///
+        ///   But if you manually set this parameter after construction, the new value will be used _as-is_.
+        public var endpoint: String { didSet { endpointHasBeenExplicitlySet = true } }
+
+        /// For OTLP/HTTP, how the endpoint is derived depends on whether the shared and/or specific keys are set.
+        ///
+        /// > Based on the environment variables above, the OTLP/HTTP exporter MUST construct URLs for each
+        /// > signal as follow:
+        /// >
+        /// > 1. For the per-signal variables (`OTEL_EXPORTER_OTLP_<signal>_ENDPOINT`), the URL MUST be usedas-is
+        /// >    without any modification. The only exception is that if an URL contains no path part, the root
+        /// >    path `/` MUST be used (see Example 2).
+        /// > 2. If signals are sent that have no per-signal configuration from the previous point,
+        /// >    `OTEL_EXPORTER_OTLP_ENDPOINT` is used as a base URL and the signals are sent to these paths
+        /// >    relative to that:
+        /// >    - Traces: `v1/traces`
+        /// >    - Metrics: `v1/metrics`
+        /// >    - Logs: `v1/logs`
+        /// >    Non-normatively, this could be implemented by ensuring that the base URL ends with a slash and
+        /// >    then appending the relative URLs as strings.
+        /// >
+        /// > An SDK MUST NOT modify the URL in ways other than specified above. That also means, if the port is
+        /// > empty or not given, TCP port 80 is the default for the http scheme and TCP port 443 is the default
+        /// > for the https scheme, as per the usual rules for these schemes (RFC 7230).
+        /// > — source: https://opentelemetry.io/docs/specs/otel/protocol/exporter/#endpoint-urls-for-otlphttp
+        ///
+        /// As per the spec, we defer this responsibility to the OTLP/HTTP exporters.
+        ///
+        /// However, to make a clearer configuration for our API users, we already have per-signal OTLP exporter
+        /// configuration, and to allow the exporters the ability to follow this policy, the exporter must be able
+        /// to tell if the value is default, or explicitly set, either in-code or by an environment override.
+        internal var endpointHasBeenExplicitlySet: Bool = false
+
+        package var logsHTTPEndpoint: String {
+            switch (endpointHasBeenExplicitlySet, endpoint.hasSuffix("/")) {
+            case (true, _): endpoint
+            case (false, true): "\(endpoint)v1/logs"
+            case (false, false): "\(endpoint)/v1/logs"
+            }
+        }
+
+        package var metricsHTTPEndpoint: String {
+            switch (endpointHasBeenExplicitlySet, endpoint.hasSuffix("/")) {
+            case (true, _): endpoint
+            case (false, true): "\(endpoint)v1/metrics"
+            case (false, false): "\(endpoint)/v1/metrics"
+            }
+        }
+
+        package var tracesHTTPEndpoint: String {
+            switch (endpointHasBeenExplicitlySet, endpoint.hasSuffix("/")) {
+            case (true, _): endpoint
+            case (false, true): "\(endpoint)v1/traces"
+            case (false, false): "\(endpoint)/v1/traces"
+            }
+        }
 
         /// Whether to enable client transport security for gRPC connections.
         ///

@@ -461,35 +461,37 @@ import Testing
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#endpoint-urls-for-otlphttp
     @Test func testOTLPExporterEndpoint() {
-        withKnownIssue("""
-        We currently have an issue with how we handle the HTTP endpoints.
+        #expect(OTel.Configuration.OTLPExporterConfiguration.default.protocol == .httpProtobuf)
+        #expect(OTel.Configuration.OTLPExporterConfiguration.default.endpoint == "http://localhost:4318")
+        #expect(OTel.Configuration.OTLPExporterConfiguration.default.logsHTTPEndpoint == "http://localhost:4318/v1/logs")
+        #expect(OTel.Configuration.OTLPExporterConfiguration.default.metricsHTTPEndpoint == "http://localhost:4318/v1/metrics")
+        #expect(OTel.Configuration.OTLPExporterConfiguration.default.tracesHTTPEndpoint == "http://localhost:4318/v1/traces")
 
-        OTLP/gRPC endpoints should be left alone, which we handle fine.
+        #expect(OTel.Configuration.default.logs.otlpExporter.protocol == .httpProtobuf)
+        #expect(OTel.Configuration.default.logs.otlpExporter.endpoint == "http://localhost:4318")
+        #expect(OTel.Configuration.default.logs.otlpExporter.logsHTTPEndpoint == "http://localhost:4318/v1/logs")
 
-        OTLP/HTTP endpoints should default to a URL wth signal-specific path (e.g. `/v1/logs`).
+        #expect(OTel.Configuration.default.metrics.otlpExporter.protocol == .httpProtobuf)
+        #expect(OTel.Configuration.default.metrics.otlpExporter.endpoint == "http://localhost:4318")
+        #expect(OTel.Configuration.default.metrics.otlpExporter.metricsHTTPEndpoint == "http://localhost:4318/v1/metrics")
 
-        Our logic to resolve these between the general and signal-specific environment variables is working fine (later
-        part of the test covers that).
+        #expect(OTel.Configuration.default.traces.otlpExporter.protocol == .httpProtobuf)
+        #expect(OTel.Configuration.default.traces.otlpExporter.endpoint == "http://localhost:4318")
+        #expect(OTel.Configuration.default.traces.otlpExporter.tracesHTTPEndpoint == "http://localhost:4318/v1/traces")
 
-        The problem is in how we configure the defaults.
-
-        Our configuration datamodel uses a per-sigal OTLP exporter config, which makes a pretty clear API for the user.
-        However, we also provide a public `OTel.Configuration.OTLPExporterConfig.default` which is the problem, since
-        the endpoint URL depends on the signal, i.e. the context where it's used.
-
-        The likely solution to this is to remove the `.default` from the public API and use signal-specific defaults
-        internally.
-        """) {
-            #expect(OTel.Configuration.OTLPExporterConfiguration.default.protocol == .httpProtobuf)
-            #expect(OTel.Configuration.OTLPExporterConfiguration.default.endpoint == "http://localhost:4318")
-            #expect(OTel.Configuration.default.logs.otlpExporter.protocol == .httpProtobuf)
-            #expect(OTel.Configuration.default.logs.otlpExporter.endpoint == "http://localhost:4318/v1/logs")
-            #expect(OTel.Configuration.default.metrics.otlpExporter.protocol == .httpProtobuf)
-            #expect(OTel.Configuration.default.metrics.otlpExporter.endpoint == "http://localhost:4318/v1/metrics")
-            #expect(OTel.Configuration.default.traces.otlpExporter.protocol == .httpProtobuf)
-            #expect(OTel.Configuration.default.traces.otlpExporter.endpoint == "http://localhost:4318/v1/traces")
+        // OTLP/HTTP endpoint in-code overrides (manually set => no path gets automatically appended).
+        OTel.Configuration.default.with { config in
+            #expect(config.logs.otlpExporter.endpoint == "http://localhost:4318")
+            #expect(config.logs.otlpExporter.logsHTTPEndpoint == "http://localhost:4318/v1/logs")
+            config.logs.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
+            #expect(config.logs.otlpExporter.logsHTTPEndpoint == "https://other-otel-collector.example.com:3123/custom")
+            config.metrics.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
+            #expect(config.metrics.otlpExporter.metricsHTTPEndpoint == "https://other-otel-collector.example.com:3123/custom")
+            config.traces.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
+            #expect(config.traces.otlpExporter.tracesHTTPEndpoint == "https://other-otel-collector.example.com:3123/custom")
         }
 
+        // OTLP/HTTP environment overrides.
         OTel.Configuration.default.with { config in
             config.traces.otlpExporter.protocol = .httpProtobuf
 
@@ -497,18 +499,21 @@ import Testing
             config.withEnvironmentOverrides(environment: [
                 "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otel-collector.example.com:4318",
             ]) { config in
-                #expect(config.logs.otlpExporter.endpoint == "https://otel-collector.example.com:4318/v1/logs")
-                #expect(config.metrics.otlpExporter.endpoint == "https://otel-collector.example.com:4318/v1/metrics")
-                #expect(config.traces.otlpExporter.endpoint == "https://otel-collector.example.com:4318/v1/traces")
+                #expect(config.logs.otlpExporter.endpoint == "https://otel-collector.example.com:4318")
+                #expect(config.logs.otlpExporter.logsHTTPEndpoint == "https://otel-collector.example.com:4318/v1/logs")
+                #expect(config.metrics.otlpExporter.endpoint == "https://otel-collector.example.com:4318")
+                #expect(config.metrics.otlpExporter.metricsHTTPEndpoint == "https://otel-collector.example.com:4318/v1/metrics")
+                #expect(config.traces.otlpExporter.endpoint == "https://otel-collector.example.com:4318")
+                #expect(config.traces.otlpExporter.tracesHTTPEndpoint == "https://otel-collector.example.com:4318/v1/traces")
             }
 
             // Handles trailing slash.
             config.withEnvironmentOverrides(environment: [
                 "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otel-collector.example.com:4318/",
             ]) { config in
-                #expect(config.logs.otlpExporter.endpoint == "https://otel-collector.example.com:4318/v1/logs")
-                #expect(config.metrics.otlpExporter.endpoint == "https://otel-collector.example.com:4318/v1/metrics")
-                #expect(config.traces.otlpExporter.endpoint == "https://otel-collector.example.com:4318/v1/traces")
+                #expect(config.logs.otlpExporter.logsHTTPEndpoint == "https://otel-collector.example.com:4318/v1/logs")
+                #expect(config.metrics.otlpExporter.metricsHTTPEndpoint == "https://otel-collector.example.com:4318/v1/metrics")
+                #expect(config.traces.otlpExporter.tracesHTTPEndpoint == "https://otel-collector.example.com:4318/v1/traces")
             }
 
             // Signal-specific endpoints takes precedence.
@@ -516,12 +521,27 @@ import Testing
                 "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otel-collector.example.com:4318",
                 "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "https://other-otel-collector.example.com:3123/custom",
             ]) { config in
-                #expect(config.logs.otlpExporter.endpoint == "https://otel-collector.example.com:4318/v1/logs")
-                #expect(config.metrics.otlpExporter.endpoint == "https://other-otel-collector.example.com:3123/custom")
-                #expect(config.traces.otlpExporter.endpoint == "https://otel-collector.example.com:4318/v1/traces")
+                #expect(config.logs.otlpExporter.logsHTTPEndpoint == "https://otel-collector.example.com:4318/v1/logs")
+                #expect(config.metrics.otlpExporter.metricsHTTPEndpoint == "https://other-otel-collector.example.com:3123/custom")
+                #expect(config.traces.otlpExporter.tracesHTTPEndpoint == "https://otel-collector.example.com:4318/v1/traces")
             }
         }
 
+        // OTLP/gRPC endpoint in-code overrides.
+        OTel.Configuration.default.with { config in
+            config.logs.otlpExporter.protocol = .grpc
+            config.metrics.otlpExporter.protocol = .grpc
+            config.traces.otlpExporter.protocol = .grpc
+
+            config.logs.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
+            #expect(config.logs.otlpExporter.endpoint == "https://other-otel-collector.example.com:3123/custom")
+            config.metrics.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
+            #expect(config.metrics.otlpExporter.endpoint == "https://other-otel-collector.example.com:3123/custom")
+            config.traces.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
+            #expect(config.traces.otlpExporter.endpoint == "https://other-otel-collector.example.com:3123/custom")
+        }
+
+        // OTLP/gRPC environment overrides.
         OTel.Configuration.default.with { config in
             config.logs.otlpExporter.protocol = .grpc
             config.metrics.otlpExporter.protocol = .grpc
