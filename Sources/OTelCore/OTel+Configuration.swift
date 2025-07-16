@@ -870,3 +870,18 @@ extension OTel.Configuration.OTLPExporterConfiguration {
         public static let httpJSON: Self = .init(backing: .httpJSON)
     }
 }
+
+extension OTel.Configuration {
+    /// Configuration for the batch logging metadata provider.
+    public struct LoggingMetadataProviderConfiguration: Sendable {
+        public var traceIDKey: String
+        public var spanIDKey: String
+        public var traceFlagsKey: String
+
+        public static let `default`: Self = .init(
+            traceIDKey: "trace_id",
+            spanIDKey: "span_id",
+            traceFlagsKey: "trace_flags"
+        )
+    }
+}
