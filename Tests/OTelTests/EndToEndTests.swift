@@ -412,5 +412,116 @@ import Tracing
             }
         }
     }
+
+    @Test func testLogRecordsIncludeSpanContext() async throws {
+        /// Note: It's easier to debug this test by commenting out the surrounding `#expect(procesExitsWith:_:)`.
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            try await withThrowingTaskGroup { group in
+                let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
+                defer { #expect(throws: Never.self) { try testServer.stop() } }
+
+                // Client
+                group.addTask {
+                    var config = OTel.Configuration.default
+                    config.metrics.enabled = false
+                    config.logs.level = .debug
+                    config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
+                    config.logs.otlpExporter.protocol = .httpJSON
+                    config.serviceName = "innie"
+                    config.resourceAttributes = ["deployment.environment": "prod"]
+                    let observability = try OTel.bootstrap(configuration: config)
+                    // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
+                    let serviceGroup = ServiceGroup(services: [observability], logger: ._otelDisabled)
+
+                    try await withThrowingTaskGroup { group in
+                        group.addTask {
+                            try await serviceGroup.run()
+                        }
+                        group.addTask {
+                            let logger = Logger(label: "logger")
+                            withSpan("waffle party") { _ in
+                                logger.debug(
+                                    "Waffle party privileges have been revoked due to insufficient team spirit",
+                                    metadata: ["person": "milchick"]
+                                )
+                            }
+                            await serviceGroup.triggerGracefulShutdown()
+                        }
+                        try await group.waitForAll()
+                    }
+                }
+
+                try testServer.receiveHeadAndVerify { head in
+                    #expect(head.method == .POST)
+                    #expect(head.uri == "/some/path")
+                    #expect(head.headers["Content-Type"] == ["application/json"])
+                }
+                try testServer.receiveBodyAndVerify { body in
+                    let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(jsonUTF8Data: Data(buffer: body))
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.spanID.count == 8)
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.traceID.count == 16)
+                }
+                try testServer.receiveEndAndVerify { trailers in
+                    #expect(trailers == nil)
+                }
+
+                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
+                let response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse()
+                try testServer.writeOutbound(.body(.byteBuffer(.init(data: response.jsonUTF8Data()))))
+                try testServer.writeOutbound(.end(nil))
+
+                try await group.waitForAll()
+            }
+        }
+    }
+
+    @Test func testLogsIncludeSpanContext() async throws {
+        let result = try await #require(processExitsWith: .success, observing: [\.standardErrorContent], "Running in a separate process because test uses bootstrap") {
+            let config = OTel.Configuration.LoggingMetadataProviderConfiguration.default
+            try InstrumentationSystem.bootstrap(OTel.makeTracingBackend().factory)
+            let logger = Logger(label: "test") { label in
+                StreamLogHandler.standardError(
+                    label: label,
+                    metadataProvider: OTel.makeLoggingMetadataProvider(configuration: config)
+                )
+            }
+            logger.info("outside")
+            withSpan("span") { _ in logger.info("inside") }
+        }
+        let lines = try #require(String(validating: result.standardErrorContent, as: UTF8.self)).split(separator: "\n")
+        let outside = try #require(lines.first { $0.contains("outside") })
+        let inside = try #require(lines.first { $0.contains("inside") })
+        for metadataKey in ["span_id", "trace_id", "trace_flags"] {
+            #expect(!outside.contains(metadataKey))
+            #expect(inside.contains(metadataKey))
+        }
+    }
+
+    // Cannot use parametrized test because there's a compiler bug preventing the passing of values into exit tests.
+    // https://github.com/swiftlang/swift/issues/82783
+    @Test func testLogsIncludeSpanContextWithCustomKeys() async throws {
+        let result = try await #require(processExitsWith: .success, observing: [\.standardErrorContent], "Running in a separate process because test uses bootstrap") {
+            var config = OTel.Configuration.LoggingMetadataProviderConfiguration.default
+            config.spanIDKey = "🔧"
+            config.traceIDKey = "🫆"
+            config.traceFlagsKey = "🏴‍☠️"
+            try InstrumentationSystem.bootstrap(OTel.makeTracingBackend().factory)
+            let logger = Logger(label: "test") { label in
+                StreamLogHandler.standardError(
+                    label: label,
+                    metadataProvider: OTel.makeLoggingMetadataProvider(configuration: config)
+                )
+            }
+            logger.info("outside")
+            withSpan("span") { _ in logger.info("inside") }
+        }
+        let lines = try #require(String(validating: result.standardErrorContent, as: UTF8.self)).split(separator: "\n")
+        let outside = try #require(lines.first { $0.contains("outside") })
+        let inside = try #require(lines.first { $0.contains("inside") })
+        for metadataKey in ["🔧", "🫆", "🏴‍☠️"] {
+            #expect(!outside.contains(metadataKey))
+            #expect(inside.contains(metadataKey))
+        }
+    }
 }
 #endif // compiler(>=6.2)
