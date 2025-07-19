@@ -115,7 +115,7 @@ extension OTel {
         let exporter = try WrappedLogRecordExporter(configuration: configuration, logger: logger)
         let processor: OTelBatchLogRecordProcessor = .init(
             exporter: exporter,
-            configuration: OTelBatchLogRecordProcessorConfiguration(environment: .detected()), // TODO: shim,
+            configuration: OTelBatchLogRecordProcessorConfiguration(configuration: configuration.logs.batchLogRecordProcessor),
             logger: logger
         )
         let handler = OTelLogHandler(
