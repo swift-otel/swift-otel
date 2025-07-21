@@ -458,8 +458,10 @@ import Tracing
                 }
                 try testServer.receiveBodyAndVerify { body in
                     let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(jsonUTF8Data: Data(buffer: body))
-                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.spanID.count == 8)
-                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.traceID.count == 16)
+                    let spanID = try #require(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.spanID)
+                    #expect(spanID.count == 8 && !spanID.allSatisfy { $0 == 0 })
+                    let traceID = try #require(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.traceID)
+                    #expect(traceID.count == 16 && !spanID.allSatisfy { $0 == 0 })
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
