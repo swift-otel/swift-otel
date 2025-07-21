@@ -37,7 +37,10 @@ package final class OTLPHTTPLogRecordExporter: OTelLogRecordExporter {
         let response = try await exporter.send(proto)
         if response.hasPartialSuccess {
             // https://opentelemetry.io/docs/specs/otlp/#partial-success-1
-            logger.warning("Partial success", metadata: ["message": .string(response.partialSuccess.errorMessage)])
+            logger.warning("Partial success", metadata: [
+                "message": "\(response.partialSuccess.errorMessage)",
+                "rejected_log_records": "\(response.partialSuccess.rejectedLogRecords)",
+            ])
         }
     }
 
