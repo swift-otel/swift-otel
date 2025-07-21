@@ -425,7 +425,7 @@ import Tracing
                     var config = OTel.Configuration.default
                     config.metrics.enabled = false
                     config.logs.level = .debug
-                    // We use a tiny trace export timeout, otherwise the test will wait the export timeout is reached.
+                    // We use a tiny trace export timeout, otherwise the test will wait until the export timeout is reached.
                     config.traces.otlpExporter.timeout = .nanoseconds(1)
                     config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.logs.otlpExporter.protocol = .httpJSON
