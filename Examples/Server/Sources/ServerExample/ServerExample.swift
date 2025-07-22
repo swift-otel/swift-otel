@@ -12,18 +12,13 @@
 //===----------------------------------------------------------------------===//
 
 import Hummingbird
-import Logging
-import Metrics
 import OTel
-import Tracing
 
 @main
 enum ServerMiddlewareExample {
     static func main() async throws {
         // Bootstrap the observability backends with default configuration.
-        // TODO: Uncomment this line when the 1.0 API is ready.
-        // let observability = try OTel.bootstrap()
-        let observability: ServiceGroup! = nil
+        let observability = try OTel.bootstrap()
 
         // Create an HTTP server with instrumentation middlewares added.
         let router = Router()
