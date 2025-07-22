@@ -111,23 +111,3 @@ jobs:
       - name: Run example package tests
         run: swift test
         if: steps.check-for-tests.outputs.example_has_tests == 'true'
-
-  compile-counter-example:
-    name: Compile Counter Example
-    runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: ./Examples/Counter
-    steps:
-      - name: Install Swift
-        uses: vapor/swiftly-action@v0.2.0
-        with:
-          toolchain: latest
-        env:
-          SWIFTLY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Checkout
-        uses: actions/checkout@v4.2.2
-      - name: Resolve Swift dependencies
-        run: swift package resolve
-      - name: Build
-        run: swift build
