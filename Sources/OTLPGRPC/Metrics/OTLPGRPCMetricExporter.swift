@@ -17,6 +17,7 @@ import OTLPCore
 package import Logging
 
 /// A metrics exporter emitting metric batches to an OTel collector via gRPC.
+@available(gRPCSwift, *)
 package final class OTLPGRPCMetricExporter: OTelMetricExporter {
     typealias Client = Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Client<HTTP2ClientTransport.Posix>
     private let client: OTLPGRPCExporter<Client>

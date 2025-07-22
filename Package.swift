@@ -3,11 +3,13 @@ import PackageDescription
 
 let sharedSwiftSettings: [SwiftSetting] = [
     .enableUpcomingFeature("InternalImportsByDefault"),
+    PlatformRequirements.clockAPI.availabilityMacro,
+    PlatformRequirements.gRPCSwift.availabilityMacro,
 ]
 
 let package = Package(
     name: "swift-otel",
-    platforms: [.macOS(.v15), .iOS(.v18), .tvOS(.v18), .watchOS(.v11), .visionOS(.v2)],
+    platforms: PlatformRequirements.clockAPI.supportedPlatforms,
     products: [
         .library(name: "OTel", targets: ["OTel"]),
     ],

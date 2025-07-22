@@ -88,8 +88,12 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
             switch configuration.logs.otlpExporter.protocol.backing {
             case .grpc:
                 #if OTLPGRPC
-                let exporter = try OTLPGRPCLogRecordExporter(configuration: configuration.logs.otlpExporter, logger: logger)
-                self = .grpc(exporter)
+                if #available(gRPCSwift, *) {
+                    let exporter = try OTLPGRPCLogRecordExporter(configuration: configuration.logs.otlpExporter, logger: logger)
+                    self = .grpc(exporter)
+                } else {
+                    fatalError("Using the OTLP/gRPC exporter is not supported on this platform.")
+                }
                 #else // OTLPGRPC
                 fatalError("Using the OTLP/gRPC exporter requires the `OTLPGRPC` trait enabled.")
                 #endif
@@ -145,8 +149,12 @@ internal enum WrappedMetricExporter: OTelMetricExporter {
             switch configuration.metrics.otlpExporter.protocol.backing {
             case .grpc:
                 #if OTLPGRPC
-                let exporter = try OTLPGRPCMetricExporter(configuration: configuration.metrics.otlpExporter, logger: logger)
-                self = .grpc(exporter)
+                if #available(gRPCSwift, *) {
+                    let exporter = try OTLPGRPCMetricExporter(configuration: configuration.metrics.otlpExporter, logger: logger)
+                    self = .grpc(exporter)
+                } else {
+                    fatalError("Using the OTLP/gRPC exporter is not supported on this platform.")
+                }
                 #else // OTLPGRPC
                 fatalError("Using the OTLP/gRPC exporter requires the `OTLPGRPC` trait enabled.")
                 #endif
@@ -202,8 +210,12 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
             switch configuration.traces.otlpExporter.protocol.backing {
             case .grpc:
                 #if OTLPGRPC
-                let exporter = try OTLPGRPCSpanExporter(configuration: configuration.traces.otlpExporter, logger: logger)
-                self = .grpc(exporter)
+                if #available(gRPCSwift, *) {
+                    let exporter = try OTLPGRPCSpanExporter(configuration: configuration.traces.otlpExporter, logger: logger)
+                    self = .grpc(exporter)
+                } else {
+                    fatalError("Using the OTLP/gRPC exporter is not supported on this platform.")
+                }
                 #else // OTLPGRPC
                 fatalError("Using the OTLP/gRPC exporter requires the `OTLPGRPC` trait enabled.")
                 #endif

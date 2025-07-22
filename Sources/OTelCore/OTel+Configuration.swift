@@ -855,6 +855,7 @@ extension OTel.Configuration.OTLPExporterConfiguration {
         #if !OTLPGRPC
         @available(*, unavailable, message: "Using the OTLP/gRPC exporter requires the `OTLPGRPC` trait enabled.")
         #endif
+        @available(gRPCSwift, *)
         public static let grpc: Self = .init(backing: .grpc)
 
         /// HTTP transport with Protocol Buffers encoding for OTLP.

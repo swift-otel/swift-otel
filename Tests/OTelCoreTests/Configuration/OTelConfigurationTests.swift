@@ -458,11 +458,11 @@ import Testing
         ]).logs.enabled == false)
     }
 
-    // OTEL_EXPORTER_OTLP_ENDPOINT
+    // OTEL_EXPORTER_OTLP_ENDPOINT (OTLP/HTTP edition).
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#endpoint-urls-for-otlphttp
-    @Test func testOTLPExporterEndpoint() {
+    @Test func testOTLPExporterEndpointHTTP() {
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.protocol == .httpProtobuf)
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.endpoint == "http://localhost:4318")
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.logsHTTPEndpoint == "http://localhost:4318/v1/logs")
@@ -528,7 +528,14 @@ import Testing
                 #expect(config.traces.otlpExporter.tracesHTTPEndpoint == "https://otel-collector.example.com:4318/v1/traces")
             }
         }
+    }
 
+    // OTEL_EXPORTER_OTLP_ENDPOINT (OTLP/gRPC edition).
+    // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
+    // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
+    // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#endpoint-urls-for-otlphttp
+    @available(gRPCSwift, *)
+    @Test func testOTLPExporterEndpointGRPC() {
         // OTLP/gRPC endpoint in-code overrides.
         OTel.Configuration.default.with { config in
             config.logs.otlpExporter.protocol = .grpc
@@ -648,6 +655,7 @@ import Testing
     // OTEL_EXPORTER_OTLP_PROTOCOL
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
+    @available(gRPCSwift, *)
     @Test func testOTLPExporterProtocol() {
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.protocol == .httpProtobuf)
 

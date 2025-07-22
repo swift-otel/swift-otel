@@ -17,6 +17,7 @@ import OTLPCore
 package import Logging
 
 /// A span exporter emitting span batches to an OTel collector via gRPC.
+@available(gRPCSwift, *)
 package final class OTLPGRPCSpanExporter: OTelSpanExporter {
     typealias Client = Opentelemetry_Proto_Collector_Trace_V1_TraceService.Client<HTTP2ClientTransport.Posix>
     private let client: OTLPGRPCExporter<Client>

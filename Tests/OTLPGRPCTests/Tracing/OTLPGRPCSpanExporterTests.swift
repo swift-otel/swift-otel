@@ -19,6 +19,7 @@ import OTelTesting
 import Tracing
 import XCTest
 
+@available(gRPCSwift, *)
 final class OTLPGRPCSpanExporterTests: XCTestCase {
     private var requestLogger: Logger!
     private var backgroundActivityLogger: Logger!
@@ -149,6 +150,7 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
     }
 }
 
+@available(gRPCSwift, *)
 extension OTLPGRPCSpanExporter {
     // Overload with logging disabled.
     convenience init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {

@@ -492,7 +492,7 @@ import Tracing
             logger.info("outside")
             withSpan("span") { _ in logger.info("inside") }
         }
-        let lines = try #require(String(validating: result.standardErrorContent, as: UTF8.self)).split(separator: "\n")
+        let lines = try #require(String(bytes: result.standardErrorContent, encoding: .utf8)).split(separator: "\n")
         let outside = try #require(lines.first { $0.contains("outside") })
         let inside = try #require(lines.first { $0.contains("inside") })
         for metadataKey in ["span_id", "trace_id", "trace_flags"] {
@@ -519,7 +519,7 @@ import Tracing
             logger.info("outside")
             withSpan("span") { _ in logger.info("inside") }
         }
-        let lines = try #require(String(validating: result.standardErrorContent, as: UTF8.self)).split(separator: "\n")
+        let lines = try #require(String(bytes: result.standardErrorContent, encoding: .utf8)).split(separator: "\n")
         let outside = try #require(lines.first { $0.contains("outside") })
         let inside = try #require(lines.first { $0.contains("inside") })
         for metadataKey in ["🔧", "🫆", "🏴‍☠️"] {

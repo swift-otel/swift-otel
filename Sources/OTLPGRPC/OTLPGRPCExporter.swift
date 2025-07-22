@@ -18,6 +18,7 @@ import Logging
 import OTelCore
 
 /// Unifying protocol for shared OTLP/gRPC exporter across signals.
+@available(gRPCSwift, *)
 protocol OTLPGRPCClient<Transport, Request, Response> where Response: Sendable, Transport: ClientTransport {
     associatedtype Transport
     associatedtype Request
@@ -33,10 +34,14 @@ protocol OTLPGRPCClient<Transport, Request, Response> where Response: Sendable, 
     ) async throws -> Result where Result: Sendable
 }
 
+@available(gRPCSwift, *)
 extension Opentelemetry_Proto_Collector_Logs_V1_LogsService.Client: OTLPGRPCClient {}
+@available(gRPCSwift, *)
 extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Client: OTLPGRPCClient {}
+@available(gRPCSwift, *)
 extension Opentelemetry_Proto_Collector_Trace_V1_TraceService.Client: OTLPGRPCClient {}
 
+@available(gRPCSwift, *)
 final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sendable, Client.Transport == HTTP2ClientTransport.Posix {
     private let logger: Logger
     private let underlyingClient: GRPCClient<Client.Transport>
@@ -80,6 +85,7 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sen
     }
 }
 
+@available(gRPCSwift, *)
 enum OTLPGRPCExporterError: Swift.Error {
     case invalidEndpoint(String)
     case partialMTLSdConfiguration
@@ -87,6 +93,7 @@ enum OTLPGRPCExporterError: Swift.Error {
     case invalidProtocol
 }
 
+@available(gRPCSwift, *)
 extension HTTP2ClientTransport.Posix.Config {
     init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) {
         self = .defaults
@@ -97,6 +104,7 @@ extension HTTP2ClientTransport.Posix.Config {
     }
 }
 
+@available(gRPCSwift, *)
 extension CallOptions {
     init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) {
         self = .defaults
@@ -110,6 +118,7 @@ extension CallOptions {
     }
 }
 
+@available(gRPCSwift, *)
 extension HTTP2ClientTransport.Posix {
     init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
         guard
@@ -161,6 +170,7 @@ extension HTTP2ClientTransport.Posix {
     }
 }
 
+@available(gRPCSwift, *)
 extension Metadata {
     init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) {
         self.init()

@@ -18,6 +18,7 @@ import OTLPCore
 @testable import OTLPGRPC
 import XCTest
 
+@available(gRPCSwift, *)
 final class OTLPGRPCMetricExporterTests: XCTestCase {
     private var requestLogger: Logger!
     private var backgroundActivityLogger: Logger!
@@ -184,6 +185,7 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
     }
 }
 
+@available(gRPCSwift, *)
 extension OTLPGRPCMetricExporter {
     // Overload with logging disabled.
     convenience init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {

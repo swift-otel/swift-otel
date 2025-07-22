@@ -18,6 +18,7 @@ import OTLPGRPC
 import SwiftProtobuf
 import XCTest
 
+@available(gRPCSwift, *)
 final class OTLPGRPCMockCollector: Sendable {
     let recordingMetricsService = RecordingMetricsService()
     let recordingTraceService = RecordingTraceService()
@@ -76,6 +77,7 @@ final class OTLPGRPCMockCollector: Sendable {
     }
 }
 
+@available(gRPCSwift, *)
 final class RecordingService<Request, Response>: Sendable where Request: Message, Response: Message {
     struct RecordedRequest {
         var message: Request
@@ -95,6 +97,7 @@ final class RecordingService<Request, Response>: Sendable where Request: Message
     }
 }
 
+@available(gRPCSwift, *)
 final class RecordingTraceService: Opentelemetry_Proto_Collector_Trace_V1_TraceService.ServiceProtocol {
     typealias Request = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest
     typealias Response = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse
@@ -104,6 +107,7 @@ final class RecordingTraceService: Opentelemetry_Proto_Collector_Trace_V1_TraceS
     }
 }
 
+@available(gRPCSwift, *)
 final class RecordingMetricsService: Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.ServiceProtocol {
     typealias Request = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest
     typealias Response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse
