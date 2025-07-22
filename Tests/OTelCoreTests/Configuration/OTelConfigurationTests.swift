@@ -136,7 +136,6 @@ import Testing
             #expect(config.traces.sampler.argument == .traceIDRatio(samplingProbability: 0.25))
         }
 
-        // TODO: this test needs some work (out of range probablilty)
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
             "OTEL_TRACES_SAMPLER": "traceidratio",
             "OTEL_TRACES_SAMPLER_ARG": "1.25",
