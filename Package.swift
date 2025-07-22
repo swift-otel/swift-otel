@@ -170,3 +170,47 @@ let package = Package(
     ],
     swiftLanguageModes: [.v6]
 )
+
+/// A set of related platform requirements to prevent version drift in availability annotations and package platforms.
+struct PlatformRequirements {
+    private let name, macOS, iOS, tvOS, watchOS, visionOS: String
+
+    /// Platform requirements for use within a package manifest.
+    var supportedPlatforms: [SupportedPlatform] {
+        [.macOS(macOS), .iOS(iOS), .tvOS(tvOS), .watchOS(watchOS), .visionOS(visionOS)]
+    }
+
+    /// Swift setting to enable a custom availability macro for this set of platform requirements.
+    ///
+    /// This creates a shorthand availability annotation that can be used instead of writing out the full platform list.
+    ///
+    /// First add the Swift setting to your targets:
+    ///
+    /// ```swift
+    /// .target(
+    ///     name: "MyTarget",
+    ///     swiftSettings: [PlatformRequirements.myFeature.availabilityMacro]
+    /// )
+    /// ```
+    ///
+    /// Then in your source code, use the annotation:
+    ///
+    /// ```swift
+    /// @available(MyFeature, *)
+    /// func newAPIMethod() { ... }
+    /// ```
+    ///
+    /// This is equivalent to the following, but allows a clear reason for why the annotation exists and a central way
+    /// to manage the associated platform version requirements:
+    ///
+    /// ```swift
+    /// @available(macOS 13, iOS 16, tvOS 16, watchOS 9, visionOS 1, *)
+    /// func newAPIMethod() { ... }
+    /// ```
+    var availabilityMacro: SwiftSetting {
+        .enableExperimentalFeature("AvailabilityMacro=\(name) : macOS \(macOS), iOS \(iOS), tvOS \(tvOS), watchOS \(watchOS), visionOS \(visionOS)")
+    }
+
+    static let clockAPI = Self(name: "ClockAPI", macOS: "13", iOS: "16", tvOS: "16", watchOS: "9", visionOS: "1")
+    static let gRPCSwift = Self(name: "gRPCSwift", macOS: "15", iOS: "18", tvOS: "18", watchOS: "11", visionOS: "2")
+}
