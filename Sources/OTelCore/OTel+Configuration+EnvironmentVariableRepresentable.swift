@@ -167,13 +167,13 @@ extension Array: OTelEnvironmentVariableRepresentable where Element: OTelEnviron
         ///
         /// There are a few options:
         /// 1. Just use the valid values, and warn and skip the invalid ones.
-        /// 2. If any are invalid, warn and abort the override. override.
+        /// 2. If any are invalid, warn and abort the override.
         ///
         /// This implementation goes for (2) since if an adopter has chosen a list, we cannot decide that a partial
         /// override is acceptable for them. And, in the cases where they provide only invalid values, allowing this
         /// to proceed with an empty list may be very harmful. For example, a typo in the sampler configuration should
         /// not result in no sampling, since the adopter presumably wants sampling, and it's possible that disabling
-        /// sampling altogether wll have a negative performance implication.
+        /// sampling altogether will have a negative performance implication.
         var newValues: [Element] = []
         for proposedValue in environmentVariableValue.split(separator: ",") {
             guard let value = Element(environmentVariableValue: String(proposedValue)) else { return nil }
@@ -242,7 +242,7 @@ extension OTel.Configuration.TracesConfiguration.SamplerConfiguration.ArgumentBa
                     parameters[2][0] == "initialSamplingRate",
                     let initialSamplingRate = Double(parameters[2][1])
                 else {
-                    result = .failure(hint: "Value must be an comma-separated list of key-value pairs in a specific order. Example: `endpoint=http://localhost:14250,pollingIntervalMs=5000,initialSamplingRate=0.25`")
+                    result = .failure(hint: "Value must be a comma-separated list of key-value pairs in a specific order. Example: `endpoint=http://localhost:14250,pollingIntervalMs=5000,initialSamplingRate=0.25`")
                     break
                 }
                 self = .jaegerRemote(
