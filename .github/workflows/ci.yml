@@ -85,6 +85,7 @@ jobs:
     needs: construct-examples-matrix
     strategy:
       matrix: ${{ fromJSON(needs.construct-examples-matrix.outputs.matrix) }}
+      fail-fast: false
     defaults:
       run:
         working-directory: ${{ matrix.example }}
