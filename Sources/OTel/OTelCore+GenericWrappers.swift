@@ -49,36 +49,63 @@ import W3CTraceContext
 /// have performance implications.
 ///
 /// (2) is a better choice for a closed set of types since it introduces minimal overhead.
+///
+/// Note that, in order to abstract over platform availability and provide the package on older platforms that are not
+/// supported by gRPC Swift v2, some of the below wrapper enums _do_ hold an existential in one of their cases. In this
+/// case, they still add value because they:
+///
+/// (a) Allow us to remove the existential from the API surface.
+/// (b) Allow us to remove the existential completely for the OTLP/HTTP exporter.
 
 internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
-    case grpc(OTLPGRPCLogRecordExporter)
+    #if OTLPGRPC
+    case grpc(any OTelLogRecordExporter)
+    #endif
+    #if OTLPHTTP
     case http(OTLPHTTPLogRecordExporter)
+    #endif
 
     func run() async throws {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): try await exporter.run()
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): try await exporter.run()
+        #endif
         }
     }
 
     func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): try await exporter.export(batch)
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): try await exporter.export(batch)
+        #endif
         }
     }
 
     func forceFlush() async throws {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): try await exporter.forceFlush()
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): try await exporter.forceFlush()
+        #endif
         }
     }
 
     func shutdown() async {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): await exporter.shutdown()
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): await exporter.shutdown()
+        #endif
         }
     }
 
@@ -113,34 +140,54 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
 }
 
 internal enum WrappedMetricExporter: OTelMetricExporter {
-    case grpc(OTLPGRPCMetricExporter)
+    #if OTLPGRPC
+    case grpc(any OTelMetricExporter)
+    #endif
+    #if OTLPHTTP
     case http(OTLPHTTPMetricExporter)
+    #endif
 
     func run() async throws {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): try await exporter.run()
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): try await exporter.run()
+        #endif
         }
     }
 
     func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): try await exporter.export(batch)
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): try await exporter.export(batch)
+        #endif
         }
     }
 
     func forceFlush() async throws {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): try await exporter.forceFlush()
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): try await exporter.forceFlush()
+        #endif
         }
     }
 
     func shutdown() async {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): await exporter.shutdown()
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): await exporter.shutdown()
+        #endif
         }
     }
 
@@ -175,34 +222,54 @@ internal enum WrappedMetricExporter: OTelMetricExporter {
 }
 
 internal enum WrappedSpanExporter: OTelSpanExporter {
-    case grpc(OTLPGRPCSpanExporter)
+    #if OTLPGRPC
+    case grpc(any OTelSpanExporter)
+    #endif
+    #if OTLPHTTP
     case http(OTLPHTTPSpanExporter)
+    #endif
 
     func run() async throws {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): try await exporter.run()
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): try await exporter.run()
+        #endif
         }
     }
 
     func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): try await exporter.export(batch)
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): try await exporter.export(batch)
+        #endif
         }
     }
 
     func forceFlush() async throws {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): try await exporter.forceFlush()
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): try await exporter.forceFlush()
+        #endif
         }
     }
 
     func shutdown() async {
         switch self {
+        #if OTLPGRPC
         case .grpc(let exporter): await exporter.shutdown()
+        #endif
+        #if OTLPHTTP
         case .http(let exporter): await exporter.shutdown()
+        #endif
         }
     }
 
