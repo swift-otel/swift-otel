@@ -1,21 +1,100 @@
 # Swift OTel
 
-An [OpenTelemetry](https://opentelemetry.io) client for server-side Swift.
+An OTLP backend for Swift Log, Swift Metrics, and Swift Distributed Tracing.
 
-[![Swift Package Index](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fswift-otel%2Fswift-otel%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/swift-otel/swift-otel)
-[![codecov](https://codecov.io/gh/swift-otel/swift-otel/graph/badge.svg?token=CLBHHQITUY)](https://codecov.io/gh/swift-otel/swift-otel)
+- 📚 **Documentation** is available on the [Swift Package Index][TODO-docs-need-fixing]
+- 💻 **Examples** are available in the [Examples][examples] directory
+- 🪪 **License** is Apache 2.0, repeated in [LICENSE][license]
+- 🔀 **Related Repositories**:
+  - [`swift-log`][swift-log] Logging API package for Swift.
+  - [`swift-metrics`][swift-metrics] Metrics API package for Swift.
+  - [`swift-distributed-tracing`][swift-distributed-tracing] Tracing API package for Swift.
 
-## Examples
+## Quickstart
 
-Swift OTel comes with a couple examples to demonstrate how to get started and how to go beyond the basics:
+Add the dependencies to your package and target:
 
-### Example 1: [Counter](./Examples/Counter)
+```swift
+// swift-tools-version: 6.1
+import PackageDescription
 
-This example contains an endless running service that keeps counting up a number after a randomized delay.
-The increments are traced and exported to [Jaeger](https://jaegertracing.io).
+let package = Package(
+    name: "Application",
+    platforms: [.macOS("13.0")],
+    dependencies: [
+        // ...
+        // NOTE: this will use `from: "1.0.0"` once its available.
+        .package(url: "https://github.com/swift-otel/swift-otel.git", exact: "1.0.0-alpha.1"),
+    ],
+    targets: [
+        .executableTarget(
+            name: "Server",
+            dependencies: [
+                // ...
+                .product(name: "OTel", package: "swift-otel"),
+            ]
+        )
+    ]
+)
+```
 
-### Example 2: [Server](./Examples/Server)
+Then in your target:
 
-An example HTTP server built using [Hummingbird](https://github.com/hummingbird-project/hummingbird) and its middleware
-for Metrics and Distributed Tracing. Each incoming request is automatically instrumented with a span and metrics such
-as the request duration are recorded. Both metrics and traces are sent to an OTel Collector via Swift OTel.
+```swift
+import OTel
+
+// Bootstrap observability backends.
+let observability = try OTel.bootstrap()
+
+// Run the observability background tasks, alongside your application logic.
+await withThrowingTaskGroup { group in
+    group.addTask { try await observability.run() }
+    // Your application logic here...
+}
+```
+
+### Swift Service Lifecycle integration
+
+The value returned from the bootstrap API conforms to `Service` so it can be run within a `ServiceGroup`:
+
+```swift
+import OTel
+import ServiceLifecycle
+
+// Bootstrap observability backends.
+let observability = try OTel.bootstrap()
+
+// Run observability services in a service group with your services.
+let service: Service = // ...
+let serviceGroup = ServiceGroup(services: [observability, service], logger: .init(label: "ServiceGroup"))
+try await serviceGroup.run()
+```
+
+Or, if another dependency has APIs for running additional services, you can use those. For example, using Hummingbird:
+
+```swift
+import OTel
+import Hummingbird
+
+// Bootstrap observability backends.
+let observability = try OTel.bootstrap()
+
+// Create an HTTP server with instrumentation middlewares.
+let router = Router()
+router.middlewares.add(TracingMiddleware())
+router.middlewares.add(MetricsMiddleware())
+router.middlewares.add(LogRequestsMiddleware(.info))
+router.get("hello") { _, _ in "hello" }
+var app = Application(router: router)
+
+// Add the observability service to the Hummingbird service group and run the server.
+app.addServices(observability)
+try await app.runService()
+```
+
+[docs]: https://swiftpackageindex.com/swift-otel/swift-otel/documentation
+[examples]: https://github.com/swift-otel/swift-otel/tree/main/Examples/
+[license]: https://github.com/swift-otel/swift-otel/tree/main/LICENSE.txt
+[swift-log]: https://github.com/apple/swift-log
+[swift-metrics]: https://github.com/apple/swift-metrics
+[swift-distributed-tracing]: https://github.com/apple/swift-distributed-tracing
