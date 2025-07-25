@@ -65,7 +65,7 @@ jobs:
 
 
   construct-examples-matrix:
-    name: Example Package (Construct Matrix)
+    name: Example Packages (Construct Matrix)
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.find-examples.outputs.matrix }}
@@ -112,3 +112,10 @@ jobs:
       - name: Run example package tests
         run: swift test
         if: steps.check-for-tests.outputs.example_has_tests == 'true'
+
+  collect-examples:
+    name: Example Packages (All Passed)
+    runs-on: ubuntu-latest
+    needs: test-examples
+    steps:
+      - run: echo "All matrix jobs completed"
