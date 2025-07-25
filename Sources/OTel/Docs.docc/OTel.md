@@ -5,9 +5,6 @@
     @PageImage(purpose: icon, source: "otel-logo")
 }
 
-mumble mumble
-foo bar baz
-
 ## Topics
 
 ### Bootstrap
