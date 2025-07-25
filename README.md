@@ -2,6 +2,8 @@
 
 An OTLP backend for Swift Log, Swift Metrics, and Swift Distributed Tracing.
 
+> Note: This package does not provide an OTel instrumentation API, or general-purpose OTel SDK.
+
 - 📚 **Documentation** is available on the [Swift Package Index][TODO-docs-need-fixing]
 - 💻 **Examples** are available in the [Examples][examples] directory
 - 🪪 **License** is Apache 2.0, repeated in [LICENSE][license]
@@ -9,6 +11,7 @@ An OTLP backend for Swift Log, Swift Metrics, and Swift Distributed Tracing.
   - [`swift-log`][swift-log] Logging API package for Swift.
   - [`swift-metrics`][swift-metrics] Metrics API package for Swift.
   - [`swift-distributed-tracing`][swift-distributed-tracing] Tracing API package for Swift.
+  - [`opentelemetry-swift`][opentelemetry-swift] OpenTelemetry API and SDK package.
 
 ## Quickstart
 
@@ -98,3 +101,4 @@ try await app.runService()
 [swift-log]: https://github.com/apple/swift-log
 [swift-metrics]: https://github.com/apple/swift-metrics
 [swift-distributed-tracing]: https://github.com/apple/swift-distributed-tracing
+[opentelemetry-swift]: https://github.com/open-telemetry/opentelemetry-swift
