@@ -1,6 +1,6 @@
 # Swift OTel
 
-An OTLP backend for Swift Log, Swift Metrics, and Swift Distributed Tracing.
+An [OTLP][otlp] backend for Swift Log, Swift Metrics, and Swift Distributed Tracing.
 
 > Note: This package does not provide an OTel instrumentation API, or general-purpose OTel SDK.
 
@@ -95,6 +95,7 @@ app.addServices(observability)
 try await app.runService()
 ```
 
+[otlp]: https://opentelemetry.io/docs/specs/otel/protocol
 [docs]: https://swiftpackageindex.com/swift-otel/swift-otel/documentation
 [examples]: https://github.com/swift-otel/swift-otel/tree/main/Examples/
 [license]: https://github.com/swift-otel/swift-otel/tree/main/LICENSE.txt
