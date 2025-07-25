@@ -861,7 +861,7 @@ extension OTel.Configuration {
             headers: [],
             compression: .none,
             timeout: .seconds(10),
-            protocol: .httpProtobuf
+            protocol: .init(backing: .httpProtobuf)
         )
     }
 }

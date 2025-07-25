@@ -31,6 +31,7 @@ package final class OTLPHTTPLogRecordExporter: OTelLogRecordExporter {
     package func run() async throws {}
 
     package func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
+        guard !batch.isEmpty else { return }
         let proto = Request.with { request in
             request.resourceLogs = [Opentelemetry_Proto_Logs_V1_ResourceLogs(batch)]
         }

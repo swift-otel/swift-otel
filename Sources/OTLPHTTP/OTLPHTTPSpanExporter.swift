@@ -31,6 +31,7 @@ package final class OTLPHTTPSpanExporter: OTelSpanExporter {
     package func run() async throws {}
 
     package func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws {
+        guard !batch.isEmpty else { return }
         let proto = Request.with { request in
             request.resourceSpans = [Opentelemetry_Proto_Trace_V1_ResourceSpans(batch)]
         }

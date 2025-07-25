@@ -112,3 +112,10 @@ jobs:
       - name: Run example package tests
         run: swift test
         if: steps.check-for-tests.outputs.example_has_tests == 'true'
+
+  collect-examples:
+    name: Example Package (All)
+    runs-on: ubuntu-latest
+    needs: test-examples
+    steps:
+      - run: echo "All matrix jobs completed"
