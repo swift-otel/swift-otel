@@ -16,7 +16,7 @@ import Metrics
 import NIOTestUtils
 @testable import OTel
 @testable import OTelCore
-import OTelTesting
+@testable import OTelTesting
 import OTLPCore
 @testable import OTLPHTTP
 import ServiceLifecycle
@@ -109,7 +109,8 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpProtobuf
                 let exporter = try OTLPHTTPMetricExporter(configuration: config)
-                await #expect(throws: Never.self) { try await exporter.export([OTelResourceMetrics(scopeMetrics: [])]) }
+                let batch = [OTelResourceMetrics(scopeMetrics: [.stub(metrics: [.stub()])])]
+                await #expect(throws: Never.self) { try await exporter.export(batch) }
             }
 
             try testServer.receiveHeadAndVerify { head in
@@ -145,7 +146,8 @@ import Tracing
                 config.protocol = .httpJSON
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 let exporter = try OTLPHTTPMetricExporter(configuration: config)
-                await #expect(throws: Never.self) { try await exporter.export([OTelResourceMetrics(scopeMetrics: [])]) }
+                let batch = [OTelResourceMetrics(scopeMetrics: [.stub(metrics: [.stub()])])]
+                await #expect(throws: Never.self) { try await exporter.export(batch) }
             }
 
             try testServer.receiveHeadAndVerify { head in

@@ -3,10 +3,15 @@ receivers:
     protocols:
       grpc:
         endpoint: "otel-collector:4317"
+      http:
+        endpoint: "otel-collector:4318"
 
 exporters:
   debug:  # Data sources: traces, metrics, logs
-    verbosity: detailed
+    verbosity: basic
+
+  file:
+    path: /logs/logs.json
 
   prometheus:  # Data sources: metrics
     endpoint: "otel-collector:7070"
@@ -18,9 +23,11 @@ exporters:
 
 service:
   pipelines:
+    logs:
+      receivers: [otlp]
+      exporters: [file, debug]
     metrics:
       receivers: [otlp]
-      # processors: [batch]
       exporters: [prometheus, debug]
     traces:
       receivers: [otlp]
