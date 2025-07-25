@@ -303,6 +303,38 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
     }
 }
 
+internal enum WrappedIDGenerator: OTelIDGenerator {
+    case random(OTelRandomIDGenerator<SystemRandomNumberGenerator>)
+    case xray(OTelXRayIDGenerator<SystemRandomNumberGenerator>)
+
+    func nextTraceID() -> TraceID {
+        switch self {
+        case .random(let wrapped):
+            wrapped.nextTraceID()
+        case .xray(let wrapped):
+            wrapped.nextTraceID()
+        }
+    }
+
+    func nextSpanID() -> SpanID {
+        switch self {
+        case .random(let wrapped):
+            wrapped.nextSpanID()
+        case .xray(let wrapped):
+            wrapped.nextSpanID()
+        }
+    }
+
+    init(configuration: OTel.Configuration) {
+        switch configuration.traces.idGenerator.backing {
+        case .random:
+            self = .random(OTelRandomIDGenerator())
+        case .xray:
+            self = .xray(OTelXRayIDGenerator())
+        }
+    }
+}
+
 internal enum WrappedSampler: OTelSampler {
     case alwaysOn(OTelConstantSampler)
     case alwaysOff(OTelConstantSampler)

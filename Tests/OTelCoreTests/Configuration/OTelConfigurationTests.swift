@@ -107,6 +107,10 @@ import Testing
         ]).propagators.map(\.backing) == [.none])
     }
 
+    @Test func testIDGeneratorSelection() {
+        #expect(OTel.Configuration.default.traces.idGenerator.backing == .random)
+    }
+
     // OTEL_TRACES_SAMPLER and OTEL_TRACES_SAMPLER_ARG
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     @Test func testSamplerSelection() {

@@ -269,6 +269,9 @@ extension OTel.Configuration {
             get { !enabled }
         }
 
+        /// AWS X-Ray ID generator for AWS environments.
+        public var idGenerator: IDGeneratorConfiguration
+
         /// Sampler to be used for traces.
         ///
         /// - Environment variable(s): `OTEL_TRACES_SAMPLER`, `OTEL_TRACES_SAMPLER_ARG`.
@@ -297,6 +300,7 @@ extension OTel.Configuration {
         /// where possible.
         public static let `default`: Self = .init(
             enabled: true,
+            idGenerator: .random,
             sampler: .parentBasedAlwaysOn,
             batchSpanProcessor: .default,
             exporter: .otlp,
@@ -407,6 +411,24 @@ extension OTel.Configuration {
             exporter: .otlp,
             otlpExporter: .default
         )
+    }
+}
+
+extension OTel.Configuration.TracesConfiguration {
+    /// Selection of ID generator.
+    public struct IDGeneratorConfiguration: Sendable {
+        package enum Backing: Sendable {
+            case random
+            case xray
+        }
+
+        package var backing: Backing
+
+        /// A random ID generator.
+        public static let random: Self = .init(backing: .random)
+
+        /// AWS X-Ray propagator for AWS environments.
+        public static let xray: Self = .init(backing: .xray)
     }
 }
 
