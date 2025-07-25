@@ -1,6 +1,6 @@
 # Swift OTel
 
-An [OTLP][otlp] backend for Swift Log, Swift Metrics, and Swift Distributed Tracing.
+An [OpenTelemetry Protocol (OTLP)][otlp] backend for Swift Log, Swift Metrics, and Swift Distributed Tracing.
 
 > Note: This package does not provide an OTel instrumentation API, or general-purpose OTel SDK.
 
