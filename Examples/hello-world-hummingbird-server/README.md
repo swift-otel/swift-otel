@@ -6,13 +6,15 @@ An HTTP server that uses middleware to emit telemetry for each HTTP request.
 
 ## Overview
 
-This example package configures and starts a Hummingbird HTTP server along with its associated middleware for
-instrumentation.
+This example bootstraps the logging, metrics, and tracing Swift subsystems to export
+logs, metrics, and traces to file, Prometheus, and Jaeger, respectively, via an OTel Collector.
+
+It then starts a Hummingbird HTTP server along with its associated middleware for instrumentation.
 
 ## Testing
 
-The example uses [Compose](https://docs.docker.com/compose) to run a set of containers to collect and visualize the
-traces from the server, which is running on your local machine.
+The example uses [Docker Compose](https://docs.docker.com/compose) to run a set of containers to collect and
+visualize the telemetry from the server, which is running on your local machine.
 
 ```none
 ┌──────────────────────────────────────────────────────────────────────┐
