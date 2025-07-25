@@ -95,6 +95,9 @@ app.addServices(observability)
 try await app.runService()
 ```
 
+> [!Tip]
+> This, and other examples, can be be found in the [Examples][examples] directory.
+
 [otlp]: https://opentelemetry.io/docs/specs/otel/protocol
 [docs]: https://swiftpackageindex.com/swift-otel/swift-otel/documentation
 [examples]: https://github.com/swift-otel/swift-otel/tree/main/Examples/
