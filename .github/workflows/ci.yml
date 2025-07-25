@@ -63,6 +63,17 @@ jobs:
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  check-docs:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    container:
+      image: swift:6.1-noble
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: Run documentation check
+        run: |
+          which curl yq || (apt -q update && apt -yq install curl yq)
+          scripts/check-docs.sh
 
   construct-examples-matrix:
     name: Example Package (Construct Matrix)
