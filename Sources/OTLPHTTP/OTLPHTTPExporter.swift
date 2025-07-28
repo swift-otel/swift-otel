@@ -20,6 +20,7 @@ import OTelCore
 import SwiftProtobuf
 
 import struct Foundation.Data
+import class Foundation.FileManager
 import struct Foundation.URL
 
 final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
@@ -118,6 +119,9 @@ enum OTLPHTTPExporterError: Swift.Error {
     case requestFailed(HTTPResponseStatus)
     case requestFailedWithRetryableError
     case partialMTLSdConfiguration
+    case serverCertificateFileNotFound(String)
+    case clientCertificateFileNotFound(String)
+    case clientKeyFileNotFound(String)
 }
 
 extension HTTPClient {
@@ -143,6 +147,9 @@ extension HTTPClient.Configuration {
         } else {
             // TLS
             if let certPath = configuration.certificateFilePath {
+                guard FileManager.default.fileExists(atPath: certPath) else {
+                    throw OTLPHTTPExporterError.serverCertificateFileNotFound(certPath)
+                }
                 self.tlsConfiguration?.trustRoots = .file(certPath)
             }
             // mTLS
@@ -152,6 +159,12 @@ extension HTTPClient.Configuration {
             case (.some, .none), (.none, .some):
                 throw OTLPHTTPExporterError.partialMTLSdConfiguration
             case (.some(let clientCertPath), .some(let clientKeyPath)):
+                guard FileManager.default.fileExists(atPath: clientCertPath) else {
+                    throw OTLPHTTPExporterError.clientCertificateFileNotFound(clientCertPath)
+                }
+                guard FileManager.default.fileExists(atPath: clientKeyPath) else {
+                    throw OTLPHTTPExporterError.clientKeyFileNotFound(clientKeyPath)
+                }
                 let clientCerts = try NIOSSLCertificate.fromPEMFile(clientCertPath).map { cert in
                     NIOSSLCertificateSource.certificate(cert)
                 }
