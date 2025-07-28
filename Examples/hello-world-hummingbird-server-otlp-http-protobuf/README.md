@@ -1,4 +1,4 @@
-# Hello World server using Hummingbird middleware
+# Hello World HTTP server with observability middleware (OTLP/HTTP+Protobuf)
 
 An HTTP server that uses middleware to emit telemetry for each HTTP request.
 
@@ -10,6 +10,8 @@ This example bootstraps the logging, metrics, and tracing Swift subsystems to ex
 logs, metrics, and traces to file, Prometheus, and Jaeger, respectively, via an OTel Collector.
 
 It then starts a Hummingbird HTTP server along with its associated middleware for instrumentation.
+
+Telemetry data is exported using OTLP/HTTP+Protobuf (the default serialization).
 
 ## Testing
 

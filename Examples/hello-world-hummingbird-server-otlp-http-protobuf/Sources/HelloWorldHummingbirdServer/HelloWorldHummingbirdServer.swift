@@ -17,10 +17,10 @@ import OTel
 @main
 enum HelloWorldHummingbirdServer {
     static func main() async throws {
-        // Bootstrap observability backends with default configuration (except export intervals).
+        // Bootstrap observability backends (with short export intervals for demo purposes).
         var config = OTel.Configuration.default
-        config.diagnosticLogLevel = .error
         config.serviceName = "hello_world"
+        config.diagnosticLogLevel = .error
         config.logs.batchLogRecordProcessor.scheduleDelay = .seconds(3)
         config.metrics.exportInterval = .seconds(3)
         config.traces.batchSpanProcessor.scheduleDelay = .seconds(3)
