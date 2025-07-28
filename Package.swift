@@ -65,7 +65,8 @@ let package = Package(
             dependencies: [
                 .target(name: "OTel"),
                 .product(name: "NIOTestUtils", package: "swift-nio"),
-            ]
+            ],
+            swiftSettings: sharedSwiftSettings
         ),
 
         .target(
