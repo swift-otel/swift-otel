@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "hello-world-hummingbird-server-otlp-http-protobuf",
+    name: "hello-world-hummingbird-server-otlp-grpc",
     platforms: [.macOS(.v15)],
     dependencies: [
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.0.0"),

@@ -6,7 +6,7 @@ An HTTP server that uses middleware to emit telemetry for each HTTP request.
 
 ## Overview
 
-This example bootstraps the only the tracing Swift subsystems to export
+This example bootstraps only the tracing Swift subsystems to export
 traces to Jaeger, via an OTel Collector. The logging and metrics backends are
 disabled.
 
