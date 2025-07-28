@@ -735,6 +735,10 @@ extension OTel.Configuration {
             }
         }
 
+        package var grpcEndpoint: String {
+            endpointHasBeenExplicitlySet ? endpoint : "http://localhost:4317"
+        }
+
         /// Whether to enable client transport security for gRPC connections.
         ///
         /// Controls whether to use insecure (non-TLS) connections. Only applies to OTLP/gRPC

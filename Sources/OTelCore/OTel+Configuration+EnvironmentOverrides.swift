@@ -92,10 +92,11 @@ extension OTel.Configuration.OTLPExporterConfiguration {
         case .metrics: key.metrics
         case .logs: key.logs
         }
-        switch (environment[key.shared], environment[signalSpecificKey]) {
-        case (.some, .none): endpointHasBeenExplicitlySet = false
-        case (_, .some): endpointHasBeenExplicitlySet = true
-        case (.none, .none): endpointHasBeenExplicitlySet = previousValue.endpointHasBeenExplicitlySet
+        switch (self.protocol.backing, environment[key.shared], environment[signalSpecificKey]) {
+        case (_, .none, .none): endpointHasBeenExplicitlySet = previousValue.endpointHasBeenExplicitlySet
+        case (.grpc, .some, _), (.grpc, _, .some): endpointHasBeenExplicitlySet = true
+        case (_, .some, .none): endpointHasBeenExplicitlySet = false
+        case (_, _, .some): endpointHasBeenExplicitlySet = true
         }
         insecure.override(using: .otlpExporterInsecure, for: signal, from: environment, logger: logger)
         certificateFilePath.override(using: .otlpExporterCertificate, for: signal, from: environment, logger: logger)

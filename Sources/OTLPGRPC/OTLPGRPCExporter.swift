@@ -122,11 +122,11 @@ extension CallOptions {
 extension HTTP2ClientTransport.Posix {
     init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
         guard
-            let endpointComponents = URLComponents(string: configuration.endpoint),
+            let endpointComponents = URLComponents(string: configuration.grpcEndpoint),
             let host = endpointComponents.host,
             let port = endpointComponents.port
         else {
-            throw OTLPGRPCExporterError.invalidEndpoint(configuration.endpoint)
+            throw OTLPGRPCExporterError.invalidEndpoint(configuration.grpcEndpoint)
         }
 
         /// > A scheme of https indicates a secure connection and takes precedence over the insecure configuration

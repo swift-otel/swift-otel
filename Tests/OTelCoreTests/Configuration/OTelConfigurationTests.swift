@@ -582,52 +582,63 @@ import Testing
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#endpoint-urls-for-otlphttp
     @available(gRPCSwift, *)
     @Test func testOTLPExporterEndpointGRPC() {
+        #expect(OTel.Configuration.default.logs.otlpExporter.grpcEndpoint == "http://localhost:4317")
+        #expect(OTel.Configuration.default.metrics.otlpExporter.grpcEndpoint == "http://localhost:4317")
+        #expect(OTel.Configuration.default.traces.otlpExporter.grpcEndpoint == "http://localhost:4317")
+
         // OTLP/gRPC endpoint in-code overrides.
         OTel.Configuration.default.with { config in
-            config.logs.otlpExporter.protocol = .grpc
-            config.metrics.otlpExporter.protocol = .grpc
-            config.traces.otlpExporter.protocol = .grpc
-
             config.logs.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
             #expect(config.logs.otlpExporter.endpoint == "https://other-otel-collector.example.com:3123/custom")
+            #expect(config.logs.otlpExporter.grpcEndpoint == "https://other-otel-collector.example.com:3123/custom")
             config.metrics.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
             #expect(config.metrics.otlpExporter.endpoint == "https://other-otel-collector.example.com:3123/custom")
+            #expect(config.metrics.otlpExporter.grpcEndpoint == "https://other-otel-collector.example.com:3123/custom")
             config.traces.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
             #expect(config.traces.otlpExporter.endpoint == "https://other-otel-collector.example.com:3123/custom")
+            #expect(config.metrics.otlpExporter.grpcEndpoint == "https://other-otel-collector.example.com:3123/custom")
         }
 
         // OTLP/gRPC environment overrides.
         OTel.Configuration.default.with { config in
-            config.logs.otlpExporter.protocol = .grpc
-            config.metrics.otlpExporter.protocol = .grpc
-            config.traces.otlpExporter.protocol = .grpc
-
             // Applies signal-specific suffix.
             config.withEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
                 "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otel-collector.example.com:4317",
             ]) { config in
                 #expect(config.logs.otlpExporter.endpoint == "https://otel-collector.example.com:4317")
+                #expect(config.logs.otlpExporter.grpcEndpoint == "https://otel-collector.example.com:4317")
                 #expect(config.metrics.otlpExporter.endpoint == "https://otel-collector.example.com:4317")
+                #expect(config.metrics.otlpExporter.grpcEndpoint == "https://otel-collector.example.com:4317")
                 #expect(config.traces.otlpExporter.endpoint == "https://otel-collector.example.com:4317")
+                #expect(config.traces.otlpExporter.grpcEndpoint == "https://otel-collector.example.com:4317")
             }
 
             // Trailing slash is untouched for gRPC endpoints.
             config.withEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
                 "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otel-collector.example.com:4317/",
             ]) { config in
                 #expect(config.logs.otlpExporter.endpoint == "https://otel-collector.example.com:4317/")
+                #expect(config.logs.otlpExporter.grpcEndpoint == "https://otel-collector.example.com:4317/")
                 #expect(config.metrics.otlpExporter.endpoint == "https://otel-collector.example.com:4317/")
+                #expect(config.metrics.otlpExporter.grpcEndpoint == "https://otel-collector.example.com:4317/")
                 #expect(config.traces.otlpExporter.endpoint == "https://otel-collector.example.com:4317/")
+                #expect(config.traces.otlpExporter.grpcEndpoint == "https://otel-collector.example.com:4317/")
             }
 
             // Signal-specific endpoints takes precedence.
             config.withEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
                 "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otel-collector.example.com:4317",
                 "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "https://other-otel-collector.example.com:3123/custom",
             ]) { config in
                 #expect(config.logs.otlpExporter.endpoint == "https://otel-collector.example.com:4317")
+                #expect(config.logs.otlpExporter.grpcEndpoint == "https://otel-collector.example.com:4317")
                 #expect(config.metrics.otlpExporter.endpoint == "https://other-otel-collector.example.com:3123/custom")
+                #expect(config.metrics.otlpExporter.grpcEndpoint == "https://other-otel-collector.example.com:3123/custom")
                 #expect(config.traces.otlpExporter.endpoint == "https://otel-collector.example.com:4317")
+                #expect(config.traces.otlpExporter.grpcEndpoint == "https://otel-collector.example.com:4317")
             }
         }
     }
