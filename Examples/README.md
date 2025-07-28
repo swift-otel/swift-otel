@@ -25,7 +25,8 @@ logs, metrics, and traces to file, Prometheus, and Jaeger, respectively, via an 
   with instrumentation middleware, exporting telemetry over OTLP/HTTP with TLS.
 - [hello-world-hummingbird-server-mtls](./hello-world-hummingbird-server-mtls) - HTTP server
   with instrumentation middleware, exporting telemetry over OTLP/HTTP with mTLS.
-- TODO: Bootstrapping a subset of backends
+- [hello-world-hummingbird-server-only-traces](./hello-world-hummingbird-server-only-traces) - HTTP server
+  with instrumentation middleware, with metrics and logging backends disabled.
 - TODO: Using logging metadata provider
 
 ## Pruning dependencies with traits
