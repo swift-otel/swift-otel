@@ -15,12 +15,15 @@ logs, metrics, and traces to file, Prometheus, and Jaeger, respectively, via an 
 - [hello-world-hummingbird-server-otlp-http-protobuf](./hello-world-hummingbird-server-otlp-http-protobuf) - HTTP server
   with instrumentation middleware, exporting telemetry over OTLP/HTTP+Protobuf.
 - [hello-world-hummingbird-server-otlp-http-json](./hello-world-hummingbird-server-otlp-http-json) - HTTP server
+  with instrumentation middleware, exporting telemetry over OTLP/HTTP+json.
 - [hello-world-hummingbird-server-otlp-grpc](./hello-world-hummingbird-server-otlp-grpc) - HTTP server
   with instrumentation middleware, exporting telemetry over OTLP/gRPC.
 
 ## Advanced configuration
 
-- TODO: Using (m)TLS
+- [hello-world-hummingbird-server-tls](./hello-world-hummingbird-server-tls) - HTTP server
+  with instrumentation middleware, exporting telemetry over OTLP/HTTP with TLS.
+- TODO: Using mTLS
 - TODO: Bootstrapping a subset of backends
 - TODO: Using logging metadata provider
 
