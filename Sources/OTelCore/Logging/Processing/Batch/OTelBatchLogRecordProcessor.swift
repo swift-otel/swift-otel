@@ -68,6 +68,9 @@ package actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock
         await withTaskCancellationOrGracefulShutdownHandler {
             await withThrowingTaskGroup(of: Void.self) { taskGroup in
                 taskGroup.addTask {
+                    try await self.exporter.run()
+                }
+                taskGroup.addTask {
                     for await log in self.logStream {
                         await self._onLog(log)
                     }

@@ -69,19 +69,24 @@ extension OTelPeriodicExportingMetricsReader: CustomStringConvertible, Service {
     package var description: String { "OTelPeriodicExportingMetricsReader" }
 
     package func run() async throws {
-        let interval = configuration.exportInterval
-        logger.info("Started periodic loop.", metadata: ["interval": "\(interval)"])
-        for try await _ in AsyncTimerSequence.repeating(every: interval, clock: clock).cancelOnGracefulShutdown() {
-            logger.trace("Timer fired.", metadata: ["interval": "\(interval)"])
-            await tick()
-        }
+        try await withThrowingTaskGroup { group in
+            group.addTask { try await self.exporter.run() }
 
-        logger.debug("Shutting down.")
-        // Unlike traces, force-flush is just a regular tick for metrics; no need for a different function.
-        await tick()
-        try await exporter.forceFlush()
-        await exporter.shutdown()
-        logger.debug("Shut down.")
+            let interval = configuration.exportInterval
+            logger.info("Started periodic loop.", metadata: ["interval": "\(interval)"])
+            for try await _ in AsyncTimerSequence.repeating(every: interval, clock: clock).cancelOnGracefulShutdown() {
+                logger.trace("Timer fired.", metadata: ["interval": "\(interval)"])
+                await tick()
+            }
+
+            logger.debug("Shutting down.")
+            // Unlike traces, force-flush is just a regular tick for metrics; no need for a different function.
+            await tick()
+            try await exporter.forceFlush()
+            await exporter.shutdown()
+            try await group.waitForAll()
+            logger.debug("Shut down.")
+        }
     }
 }
 
