@@ -65,34 +65,30 @@ package actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock
         let timerSequence = AsyncTimerSequence(interval: configuration.scheduleDelay, clock: clock).map { _ in }
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
 
-        await withTaskCancellationOrGracefulShutdownHandler {
-            await withThrowingTaskGroup(of: Void.self) { taskGroup in
+        try await withTaskCancellationOrGracefulShutdownHandler {
+            try await withThrowingTaskGroup { taskGroup in
                 taskGroup.addTask {
                     try await self.exporter.run()
                 }
-                taskGroup.addTask {
-                    for await log in self.logStream {
-                        await self._onLog(log)
-                    }
-                }
-
                 taskGroup.addTask {
                     for try await _ in mergedSequence where await !(self.buffer.isEmpty) {
                         await self.tick()
                     }
                 }
-
-                try? await taskGroup.next()
-                taskGroup.cancelAll()
+                for await log in self.logStream {
+                    self._onLog(log)
+                }
+                logger.debug("Shutting down.")
+                self.explicitTick.finish()
+                try? await forceFlush()
+                await exporter.shutdown()
+                try await taskGroup.waitForAll()
+                logger.debug("Shut down.")
             }
         } onCancelOrGracefulShutdown: {
             self.logContinuation.finish()
+            self.explicitTick.finish()
         }
-
-        logger.debug("Shutting down.")
-        try? await forceFlush()
-        await exporter.shutdown()
-        logger.debug("Shut down.")
     }
 
     package func forceFlush() async throws {
