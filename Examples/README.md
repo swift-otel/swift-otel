@@ -14,7 +14,8 @@ logs, metrics, and traces to file, Prometheus, and Jaeger, respectively, via an 
 
 - [hello-world-hummingbird-server-otlp-http-protobuf](./hello-world-hummingbird-server-otlp-http-protobuf) - HTTP server
   with instrumentation middleware, exporting telemetry over OTLP/HTTP+Protobuf.
-- TODO: same as above but using OTLP/HTTP+json exporter
+- [hello-world-hummingbird-server-otlp-http-json](./hello-world-hummingbird-server-otlp-http-json) - HTTP server
+  with instrumentation middleware, exporting telemetry over OTLP/HTTP+json.
 - TODO: same as above but using OTLP/gRPC exporter
 
 ## Advanced configuration
