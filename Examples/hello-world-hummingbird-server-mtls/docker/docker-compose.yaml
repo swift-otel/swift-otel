@@ -1,0 +1,37 @@
+version: "3.5"
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ../certs/ca.crt:/etc/ssl/certs/ca.crt
+      - ../certs/server.crt:/etc/ssl/certs/server.crt
+      - ../certs/server.key:/etc/ssl/private/server.key
+      - ./logs:/logs:rw
+    ports:
+      - "4317:4317"  # OTLP/gRPC receiver
+      - "4318:4318"  # OTLP/HTTP receiver
+    environment:
+      - OTEL_LOG_LEVEL=debug
+
+  prometheus:
+    image: prom/prometheus:latest
+    entrypoint:
+      - "/bin/prometheus"
+      - "--log.level=debug"
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+    ports:
+      - "9090:9090"  # Prometheus web UI
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - "16686:16686"  # Jaeger Web UI
+
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
