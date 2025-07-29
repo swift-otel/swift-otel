@@ -128,5 +128,12 @@ jobs:
     name: Example Package (All)
     runs-on: ubuntu-latest
     needs: test-examples
+    if: always()
     steps:
-      - run: echo "All matrix jobs completed"
+      - name: Check all example jobs succeeded
+        run: |
+          if [[ "${{ needs.test-examples.result }}" != "success" ]]; then
+            echo "One or more example matrix jobs failed; failing job."
+            exit 1
+          fi
+          echo "All example matrix jobs succeeded."
