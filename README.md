@@ -4,7 +4,7 @@ An [OpenTelemetry Protocol (OTLP)][otlp] backend for Swift Log, Swift Metrics, a
 
 > Note: This package does not provide an OTel instrumentation API, or general-purpose OTel SDK.
 
-- 📚 **Documentation** is available on the [Swift Package Index][TODO-docs-need-fixing]
+- 📚 **Documentation** is available on the [Swift Package Index][docs]
 - 💻 **Examples** are available in the [Examples][examples] directory
 - 🪪 **License** is Apache 2.0, repeated in [LICENSE][license]
 - 🔀 **Related Repositories**:
