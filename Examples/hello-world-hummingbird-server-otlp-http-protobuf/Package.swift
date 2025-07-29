@@ -2,6 +2,8 @@
 
 import PackageDescription
 
+fatalError()
+
 let package = Package(
     name: "hello-world-hummingbird-server-otlp-http-protobuf",
     platforms: [.macOS(.v14)],

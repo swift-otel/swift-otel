@@ -2,6 +2,8 @@
 
 import PackageDescription
 
+fatalError()
+
 let package = Package(
     name: "hello-world-hummingbird-server-only-traces",
     platforms: [.macOS(.v14)],

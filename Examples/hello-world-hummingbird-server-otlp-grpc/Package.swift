@@ -2,6 +2,8 @@
 
 import PackageDescription
 
+fatalError()
+
 let package = Package(
     name: "hello-world-hummingbird-server-otlp-grpc",
     platforms: [.macOS(.v15)],
