@@ -124,32 +124,57 @@ extension OTel {
         var services: [Service] = []
 
         if configuration.logs.enabled {
-            try services.append(bootstrapLogs(configuration: configuration))
+            try services.append(bootstrapLogs(configuration: configuration, logger: logger))
         }
         if configuration.metrics.enabled {
-            try services.append(bootstrapMetrics(configuration: configuration))
+            try services.append(bootstrapMetrics(configuration: configuration, logger: logger))
         }
         if configuration.traces.enabled {
-            try services.append(bootstrapTraces(configuration: configuration))
+            try services.append(bootstrapTraces(configuration: configuration, logger: logger))
         }
 
         return ServiceGroup(services: services, logger: logger)
     }
 
-    internal static func bootstrapTraces(configuration: OTel.Configuration) throws -> some Service {
+    internal static func bootstrapTraces(configuration: OTel.Configuration, logger: Logger) throws -> some Service {
         let backend = try makeTracingBackend(configuration: configuration)
         InstrumentationSystem.bootstrap(backend.factory)
         return backend.service
     }
 
-    internal static func bootstrapMetrics(configuration: OTel.Configuration) throws -> some Service {
+    internal static func bootstrapMetrics(configuration: OTel.Configuration, logger: Logger) throws -> some Service {
         let backend = try makeMetricsBackend(configuration: configuration)
         MetricsSystem.bootstrap(backend.factory)
         return backend.service
     }
 
-    internal static func bootstrapLogs(configuration: OTel.Configuration) throws -> some Service {
+    internal static func bootstrapLogs(configuration: OTel.Configuration, logger: Logger) throws -> some Service {
         let backend = try makeLoggingBackend(configuration: configuration)
+        if configuration.logs.exporter.backing != .console {
+            logger.info(
+                """
+
+                Bootstapping logging system
+                ---
+                Only diagnostic logging will use the console logger.
+
+                If you require console logging for local development, use the
+                console logs exporter, which can be enabled using the
+                following configuration:
+
+                    config.logs.exporter = .console
+
+                Or, run your process with the following environment variable:
+
+                    OTEL_LOGS_EXPORTER=console
+
+                If you require logs to go to both the console and another
+                exporter, manually bootstrap the logging subsystem with a
+                multiplex log hander and the result of `makeLoggingBackend`.
+                ---
+                """
+            )
+        }
         LoggingSystem.bootstrap(backend.factory)
         return backend.service
     }

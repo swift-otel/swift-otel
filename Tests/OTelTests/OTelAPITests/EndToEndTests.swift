@@ -656,6 +656,22 @@ import Tracing
         }
     }
 
+    @Test func testBootstrapLogsHandoffMessage() async throws {
+        let result = try await #require(processExitsWith: .success, observing: [\.standardErrorContent], "Running in a separate process because test uses bootstrap") {
+            var config = OTel.Configuration.default
+            config.metrics.enabled = false
+            config.traces.enabled = false
+            Logger(label: "test").info("before bootstrap")
+            _ = try OTel.bootstrap(configuration: config)
+            Logger(label: "test").info("after bootstrap")
+        }
+        let lines = try #require(String(bytes: result.standardErrorContent, encoding: .utf8)).split(separator: "\n")
+        print(lines.joined(separator: "\n"))
+        #expect(lines.contains { $0.contains("before bootstrap") })
+        #expect(lines.contains { $0.contains("Only diagnostic logging will use the console") })
+        #expect(!lines.contains { $0.contains("after bootstrap") })
+    }
+
     @Test func testLogsIncludeSpanContext() async throws {
         let result = try await #require(processExitsWith: .success, observing: [\.standardErrorContent], "Running in a separate process because test uses bootstrap") {
             var bootstrapConfig = OTel.Configuration.default
