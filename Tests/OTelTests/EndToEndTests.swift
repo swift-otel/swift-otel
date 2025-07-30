@@ -413,6 +413,37 @@ import Tracing
         }
     }
 
+    @Test func testLoggingConsoleExportUsingBootstrap() async throws {
+        /// Note: It's easier to debug this test by commenting out the surrounding `#expect(procesExitsWith:_:)`.
+        let result = try await #require(processExitsWith: .success, observing: [\.standardOutputContent], "Running in a separate process because test uses bootstrap") {
+            var config = OTel.Configuration.default
+            config.traces.enabled = false
+            config.metrics.enabled = false
+            config.logs.exporter = .console
+            let observability = try OTel.bootstrap(configuration: config)
+
+            try await withThrowingTaskGroup { group in
+                let serviceGroup = ServiceGroup(services: [observability], logger: ._otelDisabled)
+                group.addTask { try await serviceGroup.run() }
+                group.addTask {
+                    // There's no API in Swift Service Lifecycle to wait for it to be "ready".
+                    try await Task.sleep(for: .seconds(0.1))
+                    let logger = Logger(label: "Foo")
+                    logger.info(
+                        "Waffle party privileges have been revoked due to insufficient team spirit",
+                        metadata: ["person": "milchick"]
+                    )
+                    await serviceGroup.triggerGracefulShutdown()
+                }
+                try await group.waitForAll()
+            }
+        }
+
+        let lines = try #require(String(bytes: result.standardOutputContent, encoding: .utf8)).split(separator: "\n")
+        let match = try #require(lines.first { $0.contains("Waffle party privileges have been revoked due to insufficient team spirit") })
+        #expect(match.contains("person") && match.contains("milchick"))
+    }
+
     @Test func testLogRecordsIncludeSpanContext() async throws {
         /// Note: It's easier to debug this test by commenting out the surrounding `#expect(procesExitsWith:_:)`.
         await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
