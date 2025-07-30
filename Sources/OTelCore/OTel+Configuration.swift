@@ -608,7 +608,6 @@ extension OTel.Configuration.LogsConfiguration {
         public static let none: Self = .init(backing: .none)
 
         /// Console exporter for logs (development/debugging).
-        @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let console: Self = .init(backing: .console)
     }
 }
