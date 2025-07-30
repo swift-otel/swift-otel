@@ -90,3 +90,9 @@ final class OTelMultiplexLogRecordProcessorTests: XCTestCase {
         XCTAssertEqual(processor2ShutdownCount, 1)
     }
 }
+
+extension OTelSimpleLogRecordProcessor {
+    fileprivate init(exporter: Exporter) {
+        self.init(exporter: exporter, logger: ._otelDisabled)
+    }
+}
