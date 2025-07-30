@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import struct Foundation.Date
+
 package struct OTelConsoleLogRecordExporter: OTelLogRecordExporter {
     package init() {}
 
@@ -38,11 +40,35 @@ package struct OTelConsoleLogRecordExporter: OTelLogRecordExporter {
 
     package func export(_ batch: some Collection<OTelLogRecord> & Sendable) {
         for logRecord in batch {
-            print(logRecord)
+            print(logRecord.consoleFormatted)
         }
     }
 
     package func forceFlush() {}
 
     package func shutdown() {}
+}
+
+extension OTelLogRecord {
+    var consoleFormatted: String {
+        // 2024-01-15 14:30:45.123 [INFO] user-api [req-456] User login successful user_id=abc123 duration_ms=245
+        let date = Date(timeIntervalSince1970: Double(self.timeNanosecondsSinceEpoch) / 1_000_000_000)
+        var fields: [String] = []
+        fields.append(date.formatted(.iso8601))
+        fields.append("[\(self.level)]")
+        switch self.resource.attributes["service.name"]?.toSpanAttribute() {
+        case .string(let serviceName): fields.append(serviceName)
+        default: fields.append("unknown")
+        }
+        if let spanContext = self.spanContext {
+            fields.append("[\(spanContext.spanID)]")
+        } else {
+            fields.append("[unknown]")
+        }
+        fields.append("\(self.body)")
+        for (key, value) in self.metadata.filter({ $0.key != "code.function" }) {
+            fields.append("\(key)=\(value)")
+        }
+        return fields.joined(separator: " ")
+    }
 }
