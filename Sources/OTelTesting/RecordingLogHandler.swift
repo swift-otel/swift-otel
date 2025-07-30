@@ -17,6 +17,8 @@ package import NIOConcurrencyHelpers
 package struct RecordingLogHandler: LogHandler {
     package typealias LogFunctionCall = (level: Logger.Level, message: Logger.Message, metadata: Logger.Metadata?)
 
+    private let _level = NIOLockedValueBox(Logger.Level.trace)
+    private let _metadata = NIOLockedValueBox(Logger.Metadata())
     package let recordedLogMessages = NIOLockedValueBox([LogFunctionCall]())
     let recordedLogMessageStream: AsyncStream<LogFunctionCall>
     let recordedLogMessageContinuation: AsyncStream<LogFunctionCall>.Continuation
@@ -41,18 +43,18 @@ package struct RecordingLogHandler: LogHandler {
     }
 
     package var metadata: Logging.Logger.Metadata {
-        get { [:] }
-        set(newValue) { fatalError("unimplemented") }
+        get { self._metadata.withLockedValue { $0 } }
+        set(newValue) { self._metadata.withLockedValue { $0 = newValue } }
     }
 
     package var logLevel: Logging.Logger.Level {
-        get { .trace }
-        set(newValue) { fatalError("unimplemented") }
+        get { self._level.withLockedValue { $0 } }
+        set(newValue) { self._level.withLockedValue { $0 = newValue } }
     }
 
-    package subscript(metadataKey _: String) -> Logging.Logger.Metadata.Value? {
-        get { fatalError("unimplemented") }
-        set(newValue) { fatalError("unimplemented") }
+    package subscript(metadataKey metadataKey: String) -> Logging.Logger.Metadata.Value? {
+        get { _metadata.withLockedValue { $0[metadataKey] } }
+        set(newValue) { _metadata.withLockedValue { $0[metadataKey] = newValue } }
     }
 }
 
