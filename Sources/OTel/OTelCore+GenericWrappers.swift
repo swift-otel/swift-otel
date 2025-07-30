@@ -64,6 +64,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
     #if OTLPHTTP
     case http(OTLPHTTPLogRecordExporter)
     #endif
+    case console(OTelConsoleLogRecordExporter)
     case none
 
     func run() async throws {
@@ -74,6 +75,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.run()
         #endif
+        case .console(let exporter): exporter.run()
         case .none: break
         }
     }
@@ -86,6 +88,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.export(batch)
         #endif
+        case .console(let exporter): exporter.export(batch)
         case .none: break
         }
     }
@@ -98,6 +101,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.forceFlush()
         #endif
+        case .console(let exporter): exporter.forceFlush()
         case .none: break
         }
     }
@@ -110,6 +114,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
         #if OTLPHTTP
         case .http(let exporter): await exporter.shutdown()
         #endif
+        case .console(let exporter): exporter.shutdown()
         case .none: break
         }
     }
@@ -137,9 +142,8 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
                 fatalError("Using the OTLP/HTTP exporter requires the `OTLPHTTP` trait enabled.")
                 #endif
             }
+        case .console: self = .console(OTelConsoleLogRecordExporter())
         case .none: self = .none
-        case .console:
-            throw NotImplementedError()
         }
     }
 }
