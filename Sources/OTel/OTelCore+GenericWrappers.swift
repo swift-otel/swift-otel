@@ -368,6 +368,61 @@ internal enum WrappedSampler: OTelSampler {
     }
 }
 
+internal enum WrappedLogRecordProcessor: OTelLogRecordProcessor {
+    case batch(OTelBatchLogRecordProcessor<WrappedLogRecordExporter, ContinuousClock>)
+    case simple(OTelSimpleLogRecordProcessor<WrappedLogRecordExporter>)
+
+    func run() async throws {
+        switch self {
+        case .batch(let processor): try await processor.run()
+        case .simple(let processor): try await processor.run()
+        }
+    }
+
+    func onEmit(_ record: inout OTelCore.OTelLogRecord) {
+        switch self {
+        case .batch(let processor): processor.onEmit(&record)
+        case .simple(let processor): processor.onEmit(&record)
+        }
+    }
+
+    func forceFlush() async throws {
+        switch self {
+        case .batch(let processor): try await processor.forceFlush()
+        case .simple(let processor): try await processor.forceFlush()
+        }
+    }
+
+    init(configuration: OTel.Configuration, exporter: WrappedLogRecordExporter, logger: Logger) throws {
+        /// Here we choose which processor to use based on the exporter, as described by the spec:
+        ///
+        /// > If a language provides a mechanism to automatically configure a LogRecordProcessor to pair with the
+        /// > associated exporter (e.g., using the OTEL_LOGS_EXPORTER environment variable), by default the standard
+        /// > output exporter SHOULD be paired with a simple processor.
+        /// > — source: https://opentelemetry.io/docs/specs/otel/logs/sdk_exporters/stdout/
+        switch exporter {
+        #if OTLPGRPC
+        case .grpc:
+            self = .batch(OTelBatchLogRecordProcessor(
+                exporter: exporter,
+                configuration: .init(configuration: configuration.logs.batchLogRecordProcessor),
+                logger: logger
+            ))
+        #endif
+        #if OTLPHTTP
+        case .http:
+            self = .batch(OTelBatchLogRecordProcessor(
+                exporter: exporter,
+                configuration: .init(configuration: configuration.logs.batchLogRecordProcessor),
+                logger: logger
+            ))
+        #endif
+        case .console, .none:
+            self = .simple(OTelSimpleLogRecordProcessor(exporter: exporter, logger: logger))
+        }
+    }
+}
+
 extension OTelMultiplexPropagator {
     init(configuration: OTel.Configuration) {
         var propagators: [OTelPropagator] = []

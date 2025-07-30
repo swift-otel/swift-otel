@@ -116,11 +116,7 @@ extension OTel {
         let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeLoggingBackend")
         let resource = OTelResource(configuration: configuration)
         let exporter = try WrappedLogRecordExporter(configuration: configuration, logger: logger)
-        let processor: OTelBatchLogRecordProcessor = .init(
-            exporter: exporter,
-            configuration: OTelBatchLogRecordProcessorConfiguration(configuration: configuration.logs.batchLogRecordProcessor),
-            logger: logger
-        )
+        let processor = try WrappedLogRecordProcessor(configuration: configuration, exporter: exporter, logger: logger)
         let handler = OTelLogHandler(
             processor: processor,
             logLevel: Logger.Level(configuration.logs.level),
