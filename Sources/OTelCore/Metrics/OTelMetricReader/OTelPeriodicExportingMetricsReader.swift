@@ -36,7 +36,7 @@ package struct OTelPeriodicExportingMetricsReader<Clock: _Concurrency.Clock> whe
         self.producer = producer
         self.exporter = exporter
         self.configuration = configuration
-        self.logger = logger
+        self.logger = logger.withMetadata(component: "OTelPeriodicExportingMetricsReader")
         self.clock = clock
     }
 

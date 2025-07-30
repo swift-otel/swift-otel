@@ -53,7 +53,7 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sen
         guard configuration.protocol == .grpc else {
             throw OTLPGRPCExporterError.invalidProtocol
         }
-        self.logger = logger
+        self.logger = logger.withMetadata(component: "OTLPGRPCExporter")
         self.underlyingClient = try GRPCClient(transport: HTTP2ClientTransport.Posix(configuration))
         self.client = Client(wrapping: underlyingClient)
         self.metadata = Metadata(configuration)

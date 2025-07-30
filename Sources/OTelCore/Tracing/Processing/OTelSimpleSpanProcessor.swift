@@ -31,7 +31,7 @@ package struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProc
     /// - Parameter exporter: The exporter to receive finished spans.
     /// On processor shutdown this exporter will also automatically be shut down.
     package init(exporter: Exporter, logger: Logger) {
-        self.logger = logger
+        self.logger = logger.withMetadata(component: "OTelSimpleSpanProcessor")
         self.exporter = exporter
         (stream, continuation) = AsyncStream.makeStream()
     }

@@ -39,7 +39,7 @@ package actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock
     private let explicitTick: AsyncStream<Void>.Continuation
 
     package init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, logger: Logger, clock: Clock) {
-        self.logger = logger
+        self.logger = logger.withMetadata(component: "OTelBatchLogRecordProcessor")
         self.exporter = exporter
         self.configuration = configuration
         self.clock = clock

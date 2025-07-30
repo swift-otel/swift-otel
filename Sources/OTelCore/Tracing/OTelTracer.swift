@@ -52,7 +52,7 @@ package final class OTelTracer<
         self.sampler = sampler
         self.propagator = propagator
         self.processor = processor
-        self.logger = logger
+        self.logger = logger.withMetadata(component: "OTelTracer")
         self.resource = resource
         (eventStream, eventStreamContinuation) = AsyncStream.makeStream()
     }

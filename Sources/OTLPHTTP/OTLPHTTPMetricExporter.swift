@@ -22,7 +22,7 @@ package final class OTLPHTTPMetricExporter: OTelMetricExporter {
     private let logger: Logger
 
     package init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
-        self.logger = logger
+        self.logger = logger.withMetadata(component: "OTLPHTTPMetricExporter")
         var configuration = configuration
         configuration.endpoint = configuration.metricsHTTPEndpoint
         exporter = try OTLPHTTPExporter(configuration: configuration)

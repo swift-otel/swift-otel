@@ -41,3 +41,11 @@ extension OTel.Configuration {
         }
     }()
 }
+
+package extension Logger {
+    func withMetadata(component: String) -> Self {
+        var result = self
+        result[metadataKey: "component"] = "\(component)"
+        return result
+    }
+}

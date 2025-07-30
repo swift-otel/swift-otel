@@ -117,7 +117,7 @@ extension OTel {
 
 extension OTel {
     internal static func bootstrap(configuration: Configuration = .default, environment: [String: String]) throws -> some Service {
-        let logger = configuration.makeDiagnosticLogger()
+        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "bootstrap")
         var configuration = configuration
         configuration.applyEnvironmentOverrides(environment: environment, logger: logger)
 

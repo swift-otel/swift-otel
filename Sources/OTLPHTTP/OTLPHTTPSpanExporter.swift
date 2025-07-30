@@ -22,7 +22,7 @@ package final class OTLPHTTPSpanExporter: OTelSpanExporter {
     private let logger: Logger
 
     package init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
-        self.logger = logger
+        self.logger = logger.withMetadata(component: "OTLPHTTPSpanExporter")
         var configuration = configuration
         configuration.endpoint = configuration.tracesHTTPEndpoint
         exporter = try OTLPHTTPExporter(configuration: configuration)

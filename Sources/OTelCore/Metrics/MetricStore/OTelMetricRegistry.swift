@@ -71,7 +71,7 @@ package final class OTelMetricRegistry: Sendable {
     }
 
     init(duplicateRegistrationHandler: some DuplicateRegistrationHandler, logger: Logger) {
-        self.logger = logger
+        self.logger = logger.withMetadata(component: "OTelMetricRegistry")
         self.storage = .init(Storage(duplicateRegistrationHandler: duplicateRegistrationHandler))
     }
 

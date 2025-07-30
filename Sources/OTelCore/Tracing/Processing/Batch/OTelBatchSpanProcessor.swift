@@ -38,7 +38,7 @@ package actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurr
     private var batchID: UInt = 0
 
     package init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, logger: Logger, clock: Clock) {
-        self.logger = logger
+        self.logger = logger.withMetadata(component: "OTelBatchSpanProcessor")
         self.exporter = exporter
         self.configuration = configuration
         self.clock = clock

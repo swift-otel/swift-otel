@@ -110,7 +110,7 @@ extension OTel {
     ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
     ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeLoggingBackend(configuration: OTel.Configuration = .default) throws -> (factory: @Sendable (String) -> any LogHandler, service: some Service) {
-        let logger = configuration.makeDiagnosticLogger()
+        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeLoggingBackend")
         let resource = OTelResource(configuration: configuration)
         let exporter = try WrappedLogRecordExporter(configuration: configuration, logger: logger)
         let processor: OTelBatchLogRecordProcessor = .init(
@@ -212,7 +212,7 @@ extension OTel {
     ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
     ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeMetricsBackend(configuration: OTel.Configuration = .default) throws -> (factory: some MetricsFactory, service: some Service) {
-        let logger = configuration.makeDiagnosticLogger()
+        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeMetricsBackend")
         let resource = OTelResource(configuration: configuration)
         let registry = OTelMetricRegistry(logger: logger)
         let metricsExporter = try WrappedMetricExporter(configuration: configuration, logger: logger)
@@ -309,7 +309,7 @@ extension OTel {
     ///   - `OTel.makeMetricsBackend(configuration:)` for metrics backend creation
     ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeTracingBackend(configuration: OTel.Configuration = .default) throws -> (factory: some Tracer, service: some Service) {
-        let logger = configuration.makeDiagnosticLogger()
+        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeTracingBackend")
         let resource = OTelResource(configuration: configuration)
         let sampler = WrappedSampler(configuration: configuration)
         let propagator = OTelMultiplexPropagator(configuration: configuration)
