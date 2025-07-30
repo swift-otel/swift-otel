@@ -527,5 +527,23 @@ import Tracing
             #expect(inside.contains(metadataKey))
         }
     }
+
+    @Test func testMakeBackendThrowsWhenSignalIsDisabled() {
+        #expect(throws: OTel.Configuration.Error.invalidConfiguration("makeLoggingBackend called but config has logs disabled")) {
+            var config = OTel.Configuration.default
+            config.logs.enabled = false
+            _ = try OTel.makeLoggingBackend(configuration: config)
+        }
+        #expect(throws: OTel.Configuration.Error.invalidConfiguration("makeMetricsBackend called but config has metrics disabled")) {
+            var config = OTel.Configuration.default
+            config.metrics.enabled = false
+            _ = try OTel.makeMetricsBackend(configuration: config)
+        }
+        #expect(throws: OTel.Configuration.Error.invalidConfiguration("makeTracingBackend called but config has traces disabled")) {
+            var config = OTel.Configuration.default
+            config.traces.enabled = false
+            _ = try OTel.makeTracingBackend(configuration: config)
+        }
+    }
 }
 #endif // compiler(>=6.2)
