@@ -64,6 +64,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
     #if OTLPHTTP
     case http(OTLPHTTPLogRecordExporter)
     #endif
+    case none
 
     func run() async throws {
         switch self {
@@ -73,6 +74,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.run()
         #endif
+        case .none: break
         }
     }
 
@@ -84,6 +86,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.export(batch)
         #endif
+        case .none: break
         }
     }
 
@@ -95,6 +98,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.forceFlush()
         #endif
+        case .none: break
         }
     }
 
@@ -106,6 +110,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
         #if OTLPHTTP
         case .http(let exporter): await exporter.shutdown()
         #endif
+        case .none: break
         }
     }
 
@@ -132,9 +137,9 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
                 fatalError("Using the OTLP/HTTP exporter requires the `OTLPHTTP` trait enabled.")
                 #endif
             }
+        case .none: self = .none
         case .console:
             throw NotImplementedError()
-        case .none: preconditionFailure()
         }
     }
 }
@@ -146,6 +151,7 @@ internal enum WrappedMetricExporter: OTelMetricExporter {
     #if OTLPHTTP
     case http(OTLPHTTPMetricExporter)
     #endif
+    case none
 
     func run() async throws {
         switch self {
@@ -155,6 +161,7 @@ internal enum WrappedMetricExporter: OTelMetricExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.run()
         #endif
+        case .none: break
         }
     }
 
@@ -166,6 +173,7 @@ internal enum WrappedMetricExporter: OTelMetricExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.export(batch)
         #endif
+        case .none: break
         }
     }
 
@@ -177,6 +185,7 @@ internal enum WrappedMetricExporter: OTelMetricExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.forceFlush()
         #endif
+        case .none: break
         }
     }
 
@@ -188,6 +197,7 @@ internal enum WrappedMetricExporter: OTelMetricExporter {
         #if OTLPHTTP
         case .http(let exporter): await exporter.shutdown()
         #endif
+        case .none: break
         }
     }
 
@@ -214,9 +224,9 @@ internal enum WrappedMetricExporter: OTelMetricExporter {
                 fatalError("Using the OTLP/HTTP exporter requires the `OTLPHTTP` trait enabled.")
                 #endif
             }
+        case .none: self = .none
         case .prometheus, .console:
             throw NotImplementedError()
-        case .none: preconditionFailure()
         }
     }
 }
@@ -228,6 +238,7 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
     #if OTLPHTTP
     case http(OTLPHTTPSpanExporter)
     #endif
+    case none
 
     func run() async throws {
         switch self {
@@ -237,6 +248,7 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.run()
         #endif
+        case .none: break
         }
     }
 
@@ -248,6 +260,7 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.export(batch)
         #endif
+        case .none: break
         }
     }
 
@@ -259,6 +272,7 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.forceFlush()
         #endif
+        case .none: break
         }
     }
 
@@ -270,6 +284,7 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
         #if OTLPHTTP
         case .http(let exporter): await exporter.shutdown()
         #endif
+        case .none: break
         }
     }
 
@@ -296,9 +311,9 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
                 fatalError("Using the OTLP/HTTP exporter requires the `OTLPHTTP` trait enabled.")
                 #endif
             }
+        case .none: self = .none
         case .console, .jaeger, .zipkin:
             throw NotImplementedError()
-        case .none: preconditionFailure()
         }
     }
 }

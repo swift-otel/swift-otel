@@ -481,8 +481,11 @@ import Tracing
 
     @Test func testLogsIncludeSpanContext() async throws {
         let result = try await #require(processExitsWith: .success, observing: [\.standardErrorContent], "Running in a separate process because test uses bootstrap") {
+            var bootstrapConfig = OTel.Configuration.default
+            bootstrapConfig.traces.exporter = .none
+            bootstrapConfig.diagnosticLogLevel = .trace
+            try InstrumentationSystem.bootstrap(OTel.makeTracingBackend(configuration: bootstrapConfig).factory)
             let config = OTel.Configuration.LoggingMetadataProviderConfiguration.default
-            try InstrumentationSystem.bootstrap(OTel.makeTracingBackend().factory)
             let logger = Logger(label: "test") { label in
                 StreamLogHandler.standardError(
                     label: label,
@@ -505,11 +508,14 @@ import Tracing
     // https://github.com/swiftlang/swift/issues/82783
     @Test func testLogsIncludeSpanContextWithCustomKeys() async throws {
         let result = try await #require(processExitsWith: .success, observing: [\.standardErrorContent], "Running in a separate process because test uses bootstrap") {
+            var bootstrapConfig = OTel.Configuration.default
+            bootstrapConfig.traces.exporter = .none
+            bootstrapConfig.diagnosticLogLevel = .trace
+            try InstrumentationSystem.bootstrap(OTel.makeTracingBackend(configuration: bootstrapConfig).factory)
             var config = OTel.Configuration.LoggingMetadataProviderConfiguration.default
             config.spanIDKey = "🔧"
             config.traceIDKey = "🫆"
             config.traceFlagsKey = "🏴‍☠️"
-            try InstrumentationSystem.bootstrap(OTel.makeTracingBackend().factory)
             let logger = Logger(label: "test") { label in
                 StreamLogHandler.standardError(
                     label: label,

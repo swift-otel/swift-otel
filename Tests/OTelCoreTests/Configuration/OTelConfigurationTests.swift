@@ -437,9 +437,12 @@ import Testing
         #expect(OTel.Configuration.default.traces.enabled == true)
         #expect(OTel.Configuration.default.traces.exporter.backing == .otlp)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+        OTel.Configuration.default.withEnvironmentOverrides(environment: [
             "OTEL_TRACES_EXPORTER": "none",
-        ]).traces.enabled == false)
+        ]) { config in
+            #expect(config.traces.enabled == true)
+            #expect(config.traces.exporter.backing == .none)
+        }
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
             "OTEL_TRACES_EXPORTER": "jaeger",
@@ -474,8 +477,15 @@ import Testing
         ]).metrics.exporter.backing == .console)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_METRICS_EXPORTER": "otlp",
+        ]).metrics.exporter.backing == .otlp)
+
+        OTel.Configuration.default.withEnvironmentOverrides(environment: [
             "OTEL_METRICS_EXPORTER": "none",
-        ]).metrics.enabled == false)
+        ]) { config in
+            #expect(config.metrics.enabled == true)
+            #expect(config.metrics.exporter.backing == .none)
+        }
     }
 
     // OTEL_LOGS_EXPORTER
@@ -490,8 +500,15 @@ import Testing
         ]).logs.exporter.backing == .console)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_LOGS_EXPORTER": "otlp",
+        ]).logs.exporter.backing == .otlp)
+
+        OTel.Configuration.default.withEnvironmentOverrides(environment: [
             "OTEL_LOGS_EXPORTER": "none",
-        ]).logs.enabled == false)
+        ]) { config in
+            #expect(config.logs.enabled == true)
+            #expect(config.logs.exporter.backing == .none)
+        }
     }
 
     // OTEL_EXPORTER_OTLP_ENDPOINT (OTLP/HTTP edition).

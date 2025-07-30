@@ -541,6 +541,9 @@ extension OTel.Configuration.TracesConfiguration {
         /// OTLP (OpenTelemetry Protocol) exporter for traces.
         public static let otlp: Self = .init(backing: .otlp)
 
+        /// No automatically configured exporter for traces.
+        public static let none: Self = .init(backing: .none)
+
         /// Jaeger exporter for traces.
         @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let jaeger: Self = .init(backing: .jaeger)
@@ -572,6 +575,9 @@ extension OTel.Configuration.MetricsConfiguration {
         /// OTLP (OpenTelemetry Protocol) exporter for metrics.
         public static let otlp: Self = .init(backing: .otlp)
 
+        /// No automatically configured exporter for metrics.
+        public static let none: Self = .init(backing: .none)
+
         /// Prometheus exporter for metrics.
         @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let prometheus: Self = .init(backing: .prometheus)
@@ -597,6 +603,9 @@ extension OTel.Configuration.LogsConfiguration {
 
         /// OTLP (OpenTelemetry Protocol) exporter for logs.
         public static let otlp: Self = .init(backing: .otlp)
+
+        /// No automatically configured exporter for logs.
+        public static let none: Self = .init(backing: .none)
 
         /// Console exporter for logs (development/debugging).
         @available(*, unavailable, message: "This option is not supported by Swift OTel")

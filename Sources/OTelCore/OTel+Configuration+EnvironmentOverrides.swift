@@ -32,7 +32,6 @@ extension OTel.Configuration.TracesConfiguration {
         sampler.applyEnvironmentOverrides(environment: environment, logger: logger)
         batchSpanProcessor.applyEnvironmentOverrides(environment: environment, logger: logger)
         exporter.override(using: .tracesExporter, from: environment, logger: logger)
-        if exporter.backing == .none { enabled = false }
         otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .traces, logger: logger)
     }
 }
@@ -42,7 +41,6 @@ extension OTel.Configuration.MetricsConfiguration {
         exportInterval.override(using: .metricExportInterval, from: environment, logger: logger)
         exportTimeout.override(using: .metricExportTimeout, from: environment, logger: logger)
         exporter.override(using: .metricsExporter, from: environment, logger: logger)
-        if exporter.backing == .none { enabled = false }
         otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .metrics, logger: logger)
     }
 }
@@ -51,7 +49,6 @@ extension OTel.Configuration.LogsConfiguration {
     internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
         batchLogRecordProcessor.applyEnvironmentOverrides(environment: environment, logger: logger)
         exporter.override(using: .logsExporter, from: environment, logger: logger)
-        if exporter.backing == .none { enabled = false }
         otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .logs, logger: logger)
     }
 }
