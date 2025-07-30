@@ -27,15 +27,21 @@ package struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OT
 
     package func run() async throws {
         logger.info("Starting.")
-        for try await record in stream.cancelOnGracefulShutdown() {
-            do {
-                logger.debug("Exporting log record.")
-                try await exporter.export([record])
-            } catch {
-                // simple log processor does not attempt retries
+        try await withThrowingTaskGroup { group in
+            group.addTask { try await exporter.run() }
+            for try await record in stream.cancelOnGracefulShutdown() {
+                do {
+                    logger.debug("Exporting log record.")
+                    try await exporter.export([record])
+                } catch {
+                    // simple log processor does not attempt retries
+                }
             }
+            logger.info("Log stream ended, shutting down.")
+            await exporter.shutdown()
+            try await group.waitForAll()
         }
-        logger.info("Log stream ended, shutting down.")
+        logger.info("Shut down.")
     }
 
     package func onEmit(_ record: inout OTelLogRecord) {
@@ -49,7 +55,7 @@ package struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OT
     }
 
     package func shutdown() async throws {
-        logger.info("Shutting down.")
+        logger.info("Received shutdown request.")
         await exporter.shutdown()
     }
 }
