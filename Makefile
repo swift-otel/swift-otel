@@ -53,7 +53,7 @@ PROTO_MODULEMAP = module-mapping.proto
 
 OTLP_CORE_SWIFT_ROOT = Sources/OTLPCore/Generated
 OTLP_CLIENT_GRPC_SWIFT_ROOT = Sources/OTLPGRPC/Generated
-OTLP_SERVER_GRPC_SWIFT_ROOT = Tests/OTLPGRPCTests/Generated
+OTLP_SERVER_GRPC_SWIFT_ROOT = Tests/OTelTests/OTLPGRPCTests/Generated
 
 OTLP_CORE_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/common/v1/common.proto
 OTLP_CORE_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/resource/v1/resource.proto
