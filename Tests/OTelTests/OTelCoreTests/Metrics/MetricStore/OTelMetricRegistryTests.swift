@@ -13,8 +13,7 @@
 
 @testable import Logging
 import struct NIOConcurrencyHelpers.NIOLockedValueBox
-@testable import OTelCore
-import OTelTesting
+@testable import OTel
 import XCTest
 
 final class OTelMetricRegistryTests: XCTestCase {

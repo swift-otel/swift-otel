@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTelCore
+@testable import OTel
 import XCTest
 
 final class TimeoutTests: XCTestCase {

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import OTelCore
+@testable package import OTel
 
 /// An in-memory span exporter, collecting exported batches into ``OTelInMemorySpanExporter/exportedBatches``.
 package final actor OTelInMemorySpanExporter: OTelSpanExporter {

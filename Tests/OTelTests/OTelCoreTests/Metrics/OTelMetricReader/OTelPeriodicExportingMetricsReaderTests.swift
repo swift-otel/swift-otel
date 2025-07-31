@@ -13,8 +13,7 @@
 
 @testable import Logging
 import NIOConcurrencyHelpers
-@testable import OTelCore
-@testable import OTelTesting
+@testable import OTel
 import ServiceLifecycle
 import XCTest
 

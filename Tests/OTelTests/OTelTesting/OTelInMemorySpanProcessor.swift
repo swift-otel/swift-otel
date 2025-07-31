@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import OTelCore
 package import ServiceContextModule
+@testable package import OTel
 
 /// An in-memory span processor, collecting started spans into ``OTelInMemorySpanProcessor/startedSpans``
 /// and finished spans into ``OTelInMemorySpanProcessor/finishedSpans``.

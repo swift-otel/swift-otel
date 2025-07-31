@@ -12,9 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 @testable import OTel
-import OTelCore
 import OTLPGRPC
-import OTLPHTTP
 import Testing
 
 @Suite struct OTelBackendTests {

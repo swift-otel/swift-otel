@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import OTelCore
+@testable package import OTel
 
 /// A log record exporter streaming exported batches via an async sequence.
 package final actor OTelStreamingLogRecordExporter: OTelLogRecordExporter {

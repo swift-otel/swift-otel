@@ -11,8 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTelCore
-import OTelTesting
+@testable import OTel
 import ServiceContextModule
 import XCTest
 

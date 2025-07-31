@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTelCore
+import OTel
 import Testing
 
 @Suite struct ConfigurationTests {

@@ -13,14 +13,10 @@
 
 public import CoreMetrics
 public import Logging
-public import OTelCore
 public import ServiceLifecycle
 public import Tracing
 #if OTLPGRPC
 import OTLPGRPC
-#endif
-#if OTLPHTTP
-import OTLPHTTP
 #endif
 
 extension OTel {

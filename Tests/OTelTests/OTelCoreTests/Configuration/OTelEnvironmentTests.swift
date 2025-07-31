@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import class Foundation.ProcessInfo
-import OTelCore
+@testable import OTel
 import XCTest
 
 final class OTelEnvironmentTests: XCTestCase {

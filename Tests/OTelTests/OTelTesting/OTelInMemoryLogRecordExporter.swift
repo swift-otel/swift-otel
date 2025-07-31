@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-package import OTelCore
+@testable package import OTel
 
 package actor OTelInMemoryLogRecordExporter: OTelLogRecordExporter {
     package private(set) var exportedBatches = [[OTelLogRecord]]()

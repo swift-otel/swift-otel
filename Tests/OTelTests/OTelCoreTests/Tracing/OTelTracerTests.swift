@@ -12,8 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-@testable import OTelCore
-import OTelTesting
+@testable import OTel
 import ServiceContextModule
 import ServiceLifecycle
 import W3CTraceContext

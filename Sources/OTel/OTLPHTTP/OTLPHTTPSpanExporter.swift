@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 
 package import Logging
-package import OTelCore
 import OTLPCore
 
 package final class OTLPHTTPSpanExporter: OTelSpanExporter {

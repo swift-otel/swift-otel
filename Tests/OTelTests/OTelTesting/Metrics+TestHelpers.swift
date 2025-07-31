@@ -12,8 +12,8 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(XCTest)
-@testable package import OTelCore
 import XCTest
+@testable package import OTel
 
 extension Counter {
     package var atomicValue: Int64 { atomic.load(ordering: .relaxed) }

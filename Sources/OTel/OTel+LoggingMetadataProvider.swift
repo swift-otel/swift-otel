@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 
 public import Logging
-import OTelCore
 
 extension OTel {
     /// Create a logging metadata provider, which includes metadata about the current span.

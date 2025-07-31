@@ -13,10 +13,10 @@
 
 import struct Foundation.URLComponents
 import GRPCCore
-import OTLPGRPC
-import OTLPCore
 import GRPCNIOTransportHTTP2
 import Logging
+import OTLPCore
+import OTLPGRPC
 
 /// Unifying protocol for shared OTLP/gRPC exporter across signals.
 @available(gRPCSwift, *)

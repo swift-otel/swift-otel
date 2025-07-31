@@ -13,7 +13,7 @@
 
 import Foundation
 package import Logging
-package import OTelCore
+@testable package import OTel
 
 extension OTelLogRecord {
     package static func stub(

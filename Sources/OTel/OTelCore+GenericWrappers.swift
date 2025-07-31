@@ -11,12 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTelCore
 #if OTLPGRPC
 import OTLPGRPC
-#endif
-#if OTLPHTTP
-import OTLPHTTP
 #endif
 import Logging
 import Tracing
@@ -379,7 +375,7 @@ internal enum WrappedLogRecordProcessor: OTelLogRecordProcessor {
         }
     }
 
-    func onEmit(_ record: inout OTelCore.OTelLogRecord) {
+    func onEmit(_ record: inout OTelLogRecord) {
         switch self {
         case .batch(let processor): processor.onEmit(&record)
         case .simple(let processor): processor.onEmit(&record)

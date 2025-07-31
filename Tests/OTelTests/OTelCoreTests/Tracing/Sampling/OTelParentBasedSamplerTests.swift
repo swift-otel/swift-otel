@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-@testable import OTelCore
+@testable import OTel
 import Tracing
 import W3CTraceContext
 import XCTest

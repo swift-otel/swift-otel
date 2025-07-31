@@ -13,8 +13,8 @@
 
 #if canImport(XCTest)
 package import NIOConcurrencyHelpers
-package import OTelCore
 import XCTest
+@testable package import OTel
 
 package struct RecordingMetricExporter: OTelMetricExporter {
     package typealias ExportCall = Collection<OTelResourceMetrics> & Sendable

@@ -11,8 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTelCore
-@testable import OTelTesting
+@testable import OTel
 import OTLPCore
 import XCTest
 

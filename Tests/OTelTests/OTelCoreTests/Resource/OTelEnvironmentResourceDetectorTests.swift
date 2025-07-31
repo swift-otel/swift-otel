@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-import OTelCore
+@testable import OTel
 import Tracing
 import XCTest
 

@@ -12,8 +12,10 @@
 //===----------------------------------------------------------------------===//
 
 import CoreMetrics
-@testable import OTelCore
-import OTelTesting
+import OTel
+@testable import class OTel.Counter
+@testable import class OTel.FloatingPointCounter
+@testable import class OTel.Gauge
 import XCTest
 
 final class OTLPMetricsFactoryTests: XCTestCase {
@@ -21,7 +23,7 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let registry = OTelMetricRegistry()
         let factory = OTLPMetricsFactory(registry: registry)
 
-        let counter = try XCTUnwrap(factory.makeCounter(label: "c", dimensions: [("x", "1")]) as? OTelCore.Counter)
+        let counter = try XCTUnwrap(factory.makeCounter(label: "c", dimensions: [("x", "1")]) as? Counter)
         XCTAssertEqual(counter.name, "c")
         XCTAssertEqual(counter.attributes, Set([("x", "1")]))
     }
@@ -30,7 +32,7 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let registry = OTelMetricRegistry()
         let factory = OTLPMetricsFactory(registry: registry)
 
-        let counter = try XCTUnwrap(factory.makeFloatingPointCounter(label: "c", dimensions: [("x", "1")]) as? OTelCore.FloatingPointCounter)
+        let counter = try XCTUnwrap(factory.makeFloatingPointCounter(label: "c", dimensions: [("x", "1")]) as? FloatingPointCounter)
         XCTAssertEqual(counter.name, "c")
         XCTAssertEqual(counter.attributes, Set([("x", "1")]))
     }
@@ -50,7 +52,7 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let factory = OTLPMetricsFactory(registry: registry)
 
         let meter = factory.makeMeter(label: "m", dimensions: [("x", "1")])
-        let gauge = try XCTUnwrap(meter as? OTelCore.Gauge)
+        let gauge = try XCTUnwrap(meter as? Gauge)
         XCTAssertEqual(gauge.name, "m")
         XCTAssertEqual(gauge.attributes, Set([("x", "1")]))
     }
@@ -70,7 +72,7 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let factory = OTLPMetricsFactory(registry: registry)
 
         let recorder = factory.makeRecorder(label: "r", dimensions: [("x", "1")], aggregate: false)
-        let gauge = try XCTUnwrap(recorder as? OTelCore.Gauge)
+        let gauge = try XCTUnwrap(recorder as? Gauge)
         XCTAssertEqual(gauge.name, "r")
         XCTAssertEqual(gauge.attributes, Set([("x", "1")]))
     }
@@ -142,13 +144,13 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let factory = OTLPMetricsFactory(registry: registry)
         let counter = factory.makeCounter(label: "c", dimensions: [("x", "1")])
 
-        XCTAssertEqual((counter as? OTelCore.Counter)?.atomicValue, 0)
+        XCTAssertEqual((counter as? Counter)?.atomicValue, 0)
         counter.increment(by: 2)
-        XCTAssertEqual((counter as? OTelCore.Counter)?.atomicValue, 2)
+        XCTAssertEqual((counter as? Counter)?.atomicValue, 2)
         counter.increment(by: 2)
-        XCTAssertEqual((counter as? OTelCore.Counter)?.atomicValue, 4)
+        XCTAssertEqual((counter as? Counter)?.atomicValue, 4)
         counter.reset()
-        XCTAssertEqual((counter as? OTelCore.Counter)?.atomicValue, 0)
+        XCTAssertEqual((counter as? Counter)?.atomicValue, 0)
     }
 
     func test_FloatingPointCounter_methods() {
@@ -156,13 +158,13 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let factory = OTLPMetricsFactory(registry: registry)
         let counter = factory.makeFloatingPointCounter(label: "c", dimensions: [("x", "1")])
 
-        XCTAssertEqual((counter as? OTelCore.FloatingPointCounter)?.atomicValue, 0.0)
+        XCTAssertEqual((counter as? FloatingPointCounter)?.atomicValue, 0.0)
         counter.increment(by: 2)
-        XCTAssertEqual((counter as? OTelCore.FloatingPointCounter)?.atomicValue, 2.0)
+        XCTAssertEqual((counter as? FloatingPointCounter)?.atomicValue, 2.0)
         counter.increment(by: 2.5)
-        XCTAssertEqual((counter as? OTelCore.FloatingPointCounter)?.atomicValue, 4.5)
+        XCTAssertEqual((counter as? FloatingPointCounter)?.atomicValue, 4.5)
         counter.reset()
-        XCTAssertEqual((counter as? OTelCore.FloatingPointCounter)?.atomicValue, 0.0)
+        XCTAssertEqual((counter as? FloatingPointCounter)?.atomicValue, 0.0)
     }
 
     func test_Meter_methods() {
@@ -171,13 +173,13 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let meter = factory.makeMeter(label: "m", dimensions: [("x", "1")])
 
         meter.set(43.5)
-        XCTAssertEqual((meter as? OTelCore.Gauge)?.atomicValue, 43.5)
+        XCTAssertEqual((meter as? Gauge)?.atomicValue, 43.5)
         meter.increment(by: 6.5)
-        XCTAssertEqual((meter as? OTelCore.Gauge)?.atomicValue, 50.0)
+        XCTAssertEqual((meter as? Gauge)?.atomicValue, 50.0)
         meter.decrement(by: 8.0)
-        XCTAssertEqual((meter as? OTelCore.Gauge)?.atomicValue, 42.0)
+        XCTAssertEqual((meter as? Gauge)?.atomicValue, 42.0)
         meter.set(Int64(6))
-        XCTAssertEqual((meter as? OTelCore.Gauge)?.atomicValue, 6.0)
+        XCTAssertEqual((meter as? Gauge)?.atomicValue, 6.0)
     }
 
     func test_Recorder_withoutAggregration_methods() throws {
@@ -185,13 +187,13 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let factory = OTLPMetricsFactory(registry: registry)
         let recorder = factory.makeRecorder(label: "r", dimensions: [("x", "1")], aggregate: false)
 
-        XCTAssertEqual((recorder as? OTelCore.Gauge)?.atomicValue, 0.0)
+        XCTAssertEqual((recorder as? Gauge)?.atomicValue, 0.0)
         recorder.record(Int64(2))
-        XCTAssertEqual((recorder as? OTelCore.Gauge)?.atomicValue, 2.0)
+        XCTAssertEqual((recorder as? Gauge)?.atomicValue, 2.0)
         recorder.record(Double(-3.1))
-        XCTAssertEqual((recorder as? OTelCore.Gauge)?.atomicValue, -3.1)
+        XCTAssertEqual((recorder as? Gauge)?.atomicValue, -3.1)
         recorder.record(Int64(42))
-        XCTAssertEqual((recorder as? OTelCore.Gauge)?.atomicValue, 42)
+        XCTAssertEqual((recorder as? Gauge)?.atomicValue, 42)
     }
 
     func test_Recorder_withAggregration_methods() throws {

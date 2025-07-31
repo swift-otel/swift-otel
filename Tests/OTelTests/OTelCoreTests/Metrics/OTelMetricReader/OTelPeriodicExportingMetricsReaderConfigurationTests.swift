@@ -12,8 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-@testable import OTelCore
-@testable import OTelTesting
+@testable import OTel
 import XCTest
 
 final class OTelPeriodicExportingMetricsReaderConfigurationTests: XCTestCase {

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTelCore
+@testable import OTel
 package import W3CTraceContext
 
 package struct OTelConstantIDGenerator: OTelIDGenerator {

@@ -16,7 +16,6 @@ import Logging
 import NIOFoundationCompat
 import NIOHTTP1
 import NIOSSL
-import OTelCore
 import SwiftProtobuf
 
 import struct Foundation.Data

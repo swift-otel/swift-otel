@@ -12,8 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 @testable import Logging
-import OTelCore
-import OTelTesting
+@testable import OTel
 import XCTest
 
 final class OTelLogHandlerTests: XCTestCase {

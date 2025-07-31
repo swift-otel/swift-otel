@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTelCore
+@testable import OTel
 import XCTest
 
 final class OTelBatchLogRecordProcessorConfigurationTests: XCTestCase {

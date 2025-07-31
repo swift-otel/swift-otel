@@ -12,8 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-import OTelCore
-import OTelTesting
+@testable import OTel
 import XCTest
 
 final class OTelResourceDetectionTests: XCTestCase {

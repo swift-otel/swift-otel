@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-package import OTelCore
+@testable package import OTel
 
 /// An in-memory log record processor, collecting emitted log records into ``onEmit(_:)``.
 package final class OTelInMemoryLogRecordProcessor: OTelLogRecordProcessor {
