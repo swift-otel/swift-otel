@@ -93,6 +93,8 @@ $(OTLP_CLIENT_GRPC_SWIFTS): $(OTLP_GRPC_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_
 	protoc $(OTLP_GRPC_PROTOS) \
 		--proto_path=$(PROTO_ROOT) \
 		--plugin=$(PROTOC_GEN_GRPC_SWIFT) \
+		--grpc-swift-2_opt=Visibility=Package \
+		--grpc-swift-2_opt=UseAccessLevelOnImports=true \
 		--grpc-swift-2_opt=ProtoPathModuleMappings=$(PROTO_MODULEMAP) \
 		--grpc-swift-2_out=Client=true,Server=false:$(OTLP_CLIENT_GRPC_SWIFT_ROOT)
 
