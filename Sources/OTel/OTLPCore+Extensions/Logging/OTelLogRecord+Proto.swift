@@ -12,10 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-package import OTelCore
+import OTLPCore
 
 extension Opentelemetry_Proto_Logs_V1_LogRecord {
     package init(_ logRecord: OTelLogRecord) {
+        self.init()
         timeUnixNano = logRecord.timeNanosecondsSinceEpoch
         observedTimeUnixNano = logRecord.timeNanosecondsSinceEpoch
 
@@ -67,12 +68,14 @@ extension [Opentelemetry_Proto_Common_V1_KeyValue] {
 
 extension Opentelemetry_Proto_Common_V1_KeyValueList {
     init(_ metadata: Logger.Metadata) {
+        self.init()
         values = [Opentelemetry_Proto_Common_V1_KeyValue](metadata)
     }
 }
 
 extension Opentelemetry_Proto_Common_V1_AnyValue {
     init(_ metadataValue: Logger.MetadataValue) {
+        self.init()
         switch metadataValue {
         case .string(let string):
             stringValue = string
@@ -90,6 +93,7 @@ extension Opentelemetry_Proto_Common_V1_AnyValue {
 
 extension Opentelemetry_Proto_Logs_V1_ResourceLogs {
     package init(_ logRecords: some Collection<OTelLogRecord>) {
+        self.init()
         if let resource = logRecords.first?.resource {
             self.resource = .init(resource)
         }

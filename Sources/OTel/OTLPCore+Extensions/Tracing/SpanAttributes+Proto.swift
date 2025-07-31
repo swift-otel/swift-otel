@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import OTLPCore
 package import Tracing
 
 extension [Opentelemetry_Proto_Common_V1_KeyValue] {

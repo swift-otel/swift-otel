@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift OTel open source project
 //
-// Copyright (c) 2025 the Swift OTel project authors
+// Copyright (c) 2024 the Swift OTel project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -12,13 +12,14 @@
 //===----------------------------------------------------------------------===//
 
 import GRPCNIOTransportHTTP2
-package import OTelCore
 import OTLPCore
+import OTLPGRPC
 package import Logging
 
+/// A metrics exporter emitting metric batches to an OTel collector via gRPC.
 @available(gRPCSwift, *)
-package final class OTLPGRPCLogRecordExporter: OTelLogRecordExporter {
-    typealias Client = Opentelemetry_Proto_Collector_Logs_V1_LogsService.Client<HTTP2ClientTransport.Posix>
+package final class OTLPGRPCMetricExporter: OTelMetricExporter {
+    typealias Client = Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Client<HTTP2ClientTransport.Posix>
     private let client: OTLPGRPCExporter<Client>
 
     package init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
@@ -29,11 +30,10 @@ package final class OTLPGRPCLogRecordExporter: OTelLogRecordExporter {
         try await client.run()
     }
 
-    package func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
-        let request = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest.with { request in
-            request.resourceLogs = [Opentelemetry_Proto_Logs_V1_ResourceLogs(batch)]
+    package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
+        let request = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest.with { request in
+            request.resourceMetrics = batch.map(Opentelemetry_Proto_Metrics_V1_ResourceMetrics.init)
         }
-
         _ = try await client.export(request)
     }
 

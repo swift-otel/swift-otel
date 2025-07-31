@@ -13,6 +13,7 @@
 
 import struct Foundation.Data
 package import Tracing
+import OTLPCore
 
 extension Opentelemetry_Proto_Trace_V1_Span.Link {
     /// Create a span link from a `SpanLink`.
@@ -20,6 +21,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Link {
     /// - Parameter link: The `SpanLink` to cast.
     /// - Returns: `nil` if the `SpanLink`s context does not contain a span context.
     package init?(_ link: SpanLink) {
+        self.init()
         guard let spanContext = link.context.spanContext else { return nil }
         self.traceID = spanContext.traceID.data
         self.spanID = spanContext.spanID.data

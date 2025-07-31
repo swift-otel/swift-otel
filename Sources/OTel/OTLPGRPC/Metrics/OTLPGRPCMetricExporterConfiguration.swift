@@ -12,14 +12,15 @@
 //===----------------------------------------------------------------------===//
 
 package import NIOHPACK
-package import OTelCore
 
-/// Configuration of an ``OTLPGRPCSpanExporter``.
-package struct OTLPGRPCSpanExporterConfiguration: Sendable {
+/// Configuration for an ``OTLPGRPCMetricExporter``.
+///
+/// - TODO: This can probably be refactored to share a bunch of common logic with ``OTLPGRPCSpanExporterConfiguration``.
+package struct OTLPGRPCMetricExporterConfiguration: Sendable {
     let endpoint: OTLPGRPCEndpoint
     let headers: HPACKHeaders
 
-    /// Create a configuration for an ``OTLPGRPCSpanExporter``.
+    /// Create a configuration for an ``OTLPGRPCMetricExporter``.
     ///
     /// - Parameters:
     ///   - environment: The environment variables.
@@ -34,7 +35,7 @@ package struct OTLPGRPCSpanExporterConfiguration: Sendable {
     ) throws {
         let shouldUseAnInsecureConnection = try environment.value(
             programmaticOverride: shouldUseAnInsecureConnection,
-            signalSpecificKey: "OTEL_EXPORTER_OTLP_TRACES_INSECURE",
+            signalSpecificKey: "OTEL_EXPORTER_OTLP_METRICS_INSECURE",
             sharedKey: "OTEL_EXPORTER_OTLP_INSECURE"
         ) ?? false
 
@@ -45,7 +46,7 @@ package struct OTLPGRPCSpanExporterConfiguration: Sendable {
 
         self.endpoint = try environment.value(
             programmaticOverride: programmaticEndpoint,
-            signalSpecificKey: "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+            signalSpecificKey: "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
             sharedKey: "OTEL_EXPORTER_OTLP_ENDPOINT",
             transformValue: { value in
                 do {
@@ -59,7 +60,7 @@ package struct OTLPGRPCSpanExporterConfiguration: Sendable {
 
         self.headers = try environment.value(
             programmaticOverride: headers,
-            signalSpecificKey: "OTEL_EXPORTER_OTLP_TRACES_HEADERS",
+            signalSpecificKey: "OTEL_EXPORTER_OTLP_METRICS_HEADERS",
             sharedKey: "OTEL_EXPORTER_OTLP_HEADERS",
             transformValue: { value in
                 guard let keyValuePairs = OTelEnvironment.headers(parsingValue: value) else { return nil }

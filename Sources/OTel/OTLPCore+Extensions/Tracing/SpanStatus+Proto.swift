@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 package import Tracing
+import OTLPCore
 
 extension Opentelemetry_Proto_Trace_V1_Status {
     /// Create a status by casting a `SpanStatus`.

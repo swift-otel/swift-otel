@@ -49,17 +49,33 @@ let package = Package(
         .target(
             name: "OTel",
             dependencies: [
-                .target(name: "OTelCore"),
-                .target(name: "OTLPGRPC", condition: .when(traits: ["OTLPGRPC"])),
-                .target(name: "OTLPHTTP", condition: .when(traits: ["OTLPHTTP"])),
-
+                // API
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Metrics", package: "swift-metrics"),
                 .product(name: "Tracing", package: "swift-distributed-tracing"),
                 .product(name: "ServiceLifecycle", package: "swift-service-lifecycle"),
+                // Core
+                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
+                .product(name: "DequeModule", package: "swift-collections"),
+                .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
+                .product(name: "Atomics", package: "swift-atomics"),
+                .product(name: "W3CTraceContext", package: "swift-w3c-trace-context"),
+                // OTLP/HTTP exporter -- only when OTLPHTTP trait is enabled.
+                .target(name: "OTLPCore", condition: .when(traits: ["OTLPHTTP"])),
+                .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPHTTP"])),
+                .product(name: "AsyncHTTPClient", package: "async-http-client", condition: .when(traits: ["OTLPHTTP"])),
+                .product(name: "NIOSSL", package: "swift-nio-ssl", condition: .when(traits: ["OTLPHTTP"])),
+                // OTLP/GRPC exporter -- only when OTLPGRPC trait is enabled.
+                .target(name: "OTLPCore", condition: .when(traits: ["OTLPGRPC"])),
+                .target(name: "OTLPGRPC", condition: .when(traits: ["OTLPGRPC"])),
+                .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPGRPC"])),
+                .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf", condition: .when(traits: ["OTLPGRPC"])),
+                .product(name: "GRPCCore", package: "grpc-swift-2", condition: .when(traits: ["OTLPGRPC"])),
+                .product(name: "GRPCNIOTransportHTTP2", package: "grpc-swift-nio-transport", condition: .when(traits: ["OTLPGRPC"])),
             ],
             swiftSettings: sharedSwiftSettings
         ),
+
         .testTarget(
             name: "OTelTests",
             dependencies: [
@@ -70,54 +86,10 @@ let package = Package(
         ),
 
         .target(
-            name: "OTelCore",
-            dependencies: [
-                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
-                .product(name: "DequeModule", package: "swift-collections"),
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
-                .product(name: "ServiceLifecycle", package: "swift-service-lifecycle"),
-                .product(name: "Tracing", package: "swift-distributed-tracing"),
-                .product(name: "Atomics", package: "swift-atomics"),
-                .product(name: "CoreMetrics", package: "swift-metrics"),
-                .product(name: "W3CTraceContext", package: "swift-w3c-trace-context"),
-            ],
-            swiftSettings: sharedSwiftSettings
-        ),
-        .testTarget(
-            name: "OTelCoreTests",
-            dependencies: [
-                .target(name: "OTelCore"),
-                .target(name: "OTelTesting"),
-            ],
-            swiftSettings: sharedSwiftSettings
-        ),
-
-        .target(
-            name: "OTelTesting",
-            dependencies: [
-                .product(name: "Tracing", package: "swift-distributed-tracing"),
-                .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
-                .target(name: "OTelCore"),
-            ],
-            swiftSettings: sharedSwiftSettings
-        ),
-
-        // MARK: - OTLP
-
-        .target(
             name: "OTLPCore",
             dependencies: [
-                .target(name: "OTelCore"),
-                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
-            ],
-            swiftSettings: sharedSwiftSettings
-        ),
-        .testTarget(
-            name: "OTLPCoreTests",
-            dependencies: [
-                .target(name: "OTLPCore"),
-                .target(name: "OTelTesting"),
+                .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPHTTP"])),
+                .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPGRPC"])),
             ],
             swiftSettings: sharedSwiftSettings
         ),
@@ -125,47 +97,9 @@ let package = Package(
         .target(
             name: "OTLPGRPC",
             dependencies: [
-                .target(name: "OTelCore"),
-                .target(name: "OTLPCore"),
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "Tracing", package: "swift-distributed-tracing"),
-                .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf"),
-                .product(name: "GRPCCore", package: "grpc-swift-2"),
-                .product(name: "GRPCNIOTransportHTTP2", package: "grpc-swift-nio-transport"),
-                .product(name: "W3CTraceContext", package: "swift-w3c-trace-context"),
-            ],
-            swiftSettings: sharedSwiftSettings
-        ),
-        .testTarget(
-            name: "OTLPGRPCTests",
-            dependencies: [
-                .target(name: "OTLPGRPC"),
-                .target(name: "OTelTesting"),
-                .product(name: "NIOSSL", package: "swift-nio-ssl"),
-            ],
-            swiftSettings: sharedSwiftSettings
-        ),
-
-        .target(
-            name: "OTLPHTTP",
-            dependencies: [
-                .target(name: "OTelCore"),
-                .target(name: "OTLPCore"),
-                .product(name: "AsyncHTTPClient", package: "async-http-client"),
-                .product(name: "NIOSSL", package: "swift-nio-ssl"),
-                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
-            ],
-            swiftSettings: sharedSwiftSettings
-        ),
-        .testTarget(
-            name: "OTLPHTTPTests",
-            dependencies: [
-                .target(name: "OTel"),
-                .target(name: "OTelCore"),
-                .target(name: "OTelTesting"),
-                .target(name: "OTLPCore"),
-                .target(name: "OTLPHTTP"),
-                .product(name: "NIOTestUtils", package: "swift-nio"),
+                .target(name: "OTLPCore", condition: .when(traits: ["OTLPGRPC"])),
+                .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf", condition: .when(traits: ["OTLPGRPC"])),
+                .product(name: "GRPCCore", package: "grpc-swift-2", condition: .when(traits: ["OTLPGRPC"])),
             ],
             swiftSettings: sharedSwiftSettings
         ),

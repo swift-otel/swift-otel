@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import struct Foundation.Data
-package import OTelCore
+import OTLPCore
 import Tracing
 import W3CTraceContext
 
@@ -21,6 +21,7 @@ extension Opentelemetry_Proto_Trace_V1_Span {
     ///
     /// - Parameter finishedSpan: The `OTelFinishedSpan` to cast.
     package init(_ finishedSpan: OTelFinishedSpan) {
+        self.init()
         traceID = finishedSpan.spanContext.traceID.data
         spanID = finishedSpan.spanContext.spanID.data
 
@@ -50,6 +51,7 @@ extension Opentelemetry_Proto_Trace_V1_Span {
 
 extension Opentelemetry_Proto_Trace_V1_ResourceSpans {
     package init(_ finishedSpans: some Collection<OTelFinishedSpan>) {
+        self.init()
         if let resource = finishedSpans.first?.resource {
             self.resource = .init(resource)
         }

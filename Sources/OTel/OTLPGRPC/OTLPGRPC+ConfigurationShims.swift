@@ -11,7 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import OTelCore
 
 extension OTLPGRPCMetricExporterConfiguration {
     package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
