@@ -22,33 +22,33 @@
 // For information on using the generated types, please see the documentation:
 //   https://github.com/grpc/grpc-swift
 
-import GRPCCore
-import GRPCProtobuf
-import OTLPCore
+package import GRPCCore
+internal import GRPCProtobuf
+package import OTLPCore
 
 // MARK: - opentelemetry.proto.collector.trace.v1.TraceService
 
 /// Namespace containing generated types for the "opentelemetry.proto.collector.trace.v1.TraceService" service.
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
-internal enum Opentelemetry_Proto_Collector_Trace_V1_TraceService {
+package enum Opentelemetry_Proto_Collector_Trace_V1_TraceService {
     /// Service descriptor for the "opentelemetry.proto.collector.trace.v1.TraceService" service.
-    internal static let descriptor = GRPCCore.ServiceDescriptor(fullyQualifiedService: "opentelemetry.proto.collector.trace.v1.TraceService")
+    package static let descriptor = GRPCCore.ServiceDescriptor(fullyQualifiedService: "opentelemetry.proto.collector.trace.v1.TraceService")
     /// Namespace for method metadata.
-    internal enum Method {
+    package enum Method {
         /// Namespace for "Export" metadata.
-        internal enum Export {
+        package enum Export {
             /// Request type for "Export".
-            internal typealias Input = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest
+            package typealias Input = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest
             /// Response type for "Export".
-            internal typealias Output = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse
+            package typealias Output = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse
             /// Descriptor for "Export".
-            internal static let descriptor = GRPCCore.MethodDescriptor(
+            package static let descriptor = GRPCCore.MethodDescriptor(
                 service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "opentelemetry.proto.collector.trace.v1.TraceService"),
                 method: "Export"
             )
         }
         /// Descriptors for all methods in the "opentelemetry.proto.collector.trace.v1.TraceService" service.
-        internal static let descriptors: [GRPCCore.MethodDescriptor] = [
+        package static let descriptors: [GRPCCore.MethodDescriptor] = [
             Export.descriptor
         ]
     }
@@ -57,7 +57,7 @@ internal enum Opentelemetry_Proto_Collector_Trace_V1_TraceService {
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
 extension GRPCCore.ServiceDescriptor {
     /// Service descriptor for the "opentelemetry.proto.collector.trace.v1.TraceService" service.
-    internal static let opentelemetry_proto_collector_trace_v1_TraceService = GRPCCore.ServiceDescriptor(fullyQualifiedService: "opentelemetry.proto.collector.trace.v1.TraceService")
+    package static let opentelemetry_proto_collector_trace_v1_TraceService = GRPCCore.ServiceDescriptor(fullyQualifiedService: "opentelemetry.proto.collector.trace.v1.TraceService")
 }
 
 // MARK: opentelemetry.proto.collector.trace.v1.TraceService (client)
@@ -74,7 +74,7 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService {
     /// > Service that can be used to push spans between one Application instrumented with
     /// > OpenTelemetry and a collector, or between a collector and a central collector (in this
     /// > case spans are sent/received to/from multiple Applications).
-    internal protocol ClientProtocol: Sendable {
+    package protocol ClientProtocol: Sendable {
         /// Call the "Export" method.
         ///
         /// > Source IDL Documentation:
@@ -111,14 +111,14 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService {
     /// > Service that can be used to push spans between one Application instrumented with
     /// > OpenTelemetry and a collector, or between a collector and a central collector (in this
     /// > case spans are sent/received to/from multiple Applications).
-    internal struct Client<Transport>: ClientProtocol where Transport: GRPCCore.ClientTransport {
+    package struct Client<Transport>: ClientProtocol where Transport: GRPCCore.ClientTransport {
         private let client: GRPCCore.GRPCClient<Transport>
 
         /// Creates a new client wrapping the provided `GRPCCore.GRPCClient`.
         ///
         /// - Parameters:
         ///   - client: A `GRPCCore.GRPCClient` providing a communication channel to the service.
-        internal init(wrapping client: GRPCCore.GRPCClient<Transport>) {
+        package init(wrapping client: GRPCCore.GRPCClient<Transport>) {
             self.client = client
         }
 
@@ -138,7 +138,7 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService {
         ///       returned to the caller. Returning from the closure will cancel the RPC if it
         ///       hasn't already finished.
         /// - Returns: The result of `handleResponse`.
-        internal func export<Result>(
+        package func export<Result>(
             request: GRPCCore.ClientRequest<Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest>,
             serializer: some GRPCCore.MessageSerializer<Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest>,
             deserializer: some GRPCCore.MessageDeserializer<Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse>,
@@ -176,7 +176,7 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService.ClientProtocol {
     ///       returned to the caller. Returning from the closure will cancel the RPC if it
     ///       hasn't already finished.
     /// - Returns: The result of `handleResponse`.
-    internal func export<Result>(
+    package func export<Result>(
         request: GRPCCore.ClientRequest<Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest>,
         options: GRPCCore.CallOptions = .defaults,
         onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse>) async throws -> Result = { response in
@@ -211,7 +211,7 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService.ClientProtocol {
     ///       returned to the caller. Returning from the closure will cancel the RPC if it
     ///       hasn't already finished.
     /// - Returns: The result of `handleResponse`.
-    internal func export<Result>(
+    package func export<Result>(
         _ message: Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest,
         metadata: GRPCCore.Metadata = [:],
         options: GRPCCore.CallOptions = .defaults,
