@@ -11,14 +11,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
+import Logging
 import struct NIOConcurrencyHelpers.NIOLockedValueBox
 
 /// A registry for metric instruments.
 ///
 /// The registry owns the mapping from instrument identfier and attributes to the stateful instrument for recording
 /// measurements.
-package final class OTelMetricRegistry: Sendable {
+final class OTelMetricRegistry: Sendable {
     private let logger: Logger
 
     struct Storage {
@@ -56,7 +56,7 @@ package final class OTelMetricRegistry: Sendable {
     ///
     /// A duplicate instrument registration occurs when more than one instrument of the same name is created with
     /// different _identifying fields_.
-    package struct DuplicateRegistrationBehavior: Sendable {
+    struct DuplicateRegistrationBehavior: Sendable {
         enum Behavior: Sendable {
             case warn, crash
         }
@@ -64,10 +64,10 @@ package final class OTelMetricRegistry: Sendable {
         var behavior: Behavior
 
         /// Emits a log message at warning level.
-        package static let warn = Self(behavior: .warn)
+        static let warn = Self(behavior: .warn)
 
         /// Crashes with a fatal error.
-        package static let crash = Self(behavior: .crash)
+        static let crash = Self(behavior: .crash)
     }
 
     init(duplicateRegistrationHandler: some DuplicateRegistrationHandler, logger: Logger) {
@@ -81,7 +81,7 @@ package final class OTelMetricRegistry: Sendable {
     ///     different identifying fields.
     ///
     /// - Seealso: ``OTelMetricRegistry/DuplicateRegistrationBehavior``.
-    package convenience init(onDuplicateRegistration: DuplicateRegistrationBehavior = .warn, logger: Logger) {
+    convenience init(onDuplicateRegistration: DuplicateRegistrationBehavior = .warn, logger: Logger) {
         switch onDuplicateRegistration.behavior {
         case .warn:
             self.init(duplicateRegistrationHandler: WarningDuplicateRegistrationHandler(logger: logger), logger: logger)

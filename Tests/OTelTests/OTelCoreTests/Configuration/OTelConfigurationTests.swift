@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTel
+@testable import OTel
 import Testing
 
 @Suite struct ConfigurationTests {

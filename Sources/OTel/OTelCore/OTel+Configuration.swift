@@ -148,12 +148,12 @@ extension OTel {
 extension OTel.Configuration {
     /// Logger to use for internal diagnostics.
     public struct DiagnosticLoggerSelection: Sendable {
-        package enum Backing: Sendable {
+        enum Backing: Sendable {
             case console
             case custom(Logger)
         }
 
-        package var backing: Backing
+        var backing: Backing
 
         /// Console logger that logs to standard error.
         public static let console: Self = .init(backing: .console)
@@ -172,7 +172,7 @@ extension OTel.Configuration {
     ///
     /// This option is ignored for custom loggers.
     public struct LogLevel: Sendable {
-        package enum Backing: String, CaseIterable, Sendable {
+        enum Backing: String, CaseIterable, Sendable {
             case error
             case warning
             case info
@@ -180,7 +180,7 @@ extension OTel.Configuration {
             case trace
         }
 
-        package var backing: Backing
+        var backing: Backing
 
         /// Error log level - only critical errors are logged.
         public static let error: Self = .init(backing: .error)
@@ -205,7 +205,7 @@ extension OTel.Configuration {
     /// Propagators handle the injection and extraction of trace context and baggage
     /// from carriers such as HTTP headers, enabling trace continuity in distributed systems.
     public struct Propagator: Sendable {
-        package enum Backing: String, CaseIterable, Sendable {
+        enum Backing: String, CaseIterable, Sendable {
             case traceContext = "tracecontext"
             case baggage
             case b3
@@ -216,7 +216,7 @@ extension OTel.Configuration {
             case none
         }
 
-        package var backing: Backing
+        var backing: Backing
 
         /// W3C Trace Context propagator (recommended).
         public static let traceContext: Self = .init(backing: .traceContext)
@@ -413,7 +413,7 @@ extension OTel.Configuration {
 extension OTel.Configuration.TracesConfiguration {
     /// Selection of traces sampler.
     public struct SamplerConfiguration: Sendable {
-        package enum Backing: String, CaseIterable, Sendable {
+        enum Backing: String, CaseIterable, Sendable {
             case alwaysOn = "always_on"
             case alwaysOff = "always_off"
             case traceIDRatio = "traceidratio"
@@ -425,14 +425,14 @@ extension OTel.Configuration.TracesConfiguration {
             case xray
         }
 
-        package enum ArgumentBacking: Equatable, Sendable {
+        enum ArgumentBacking: Equatable, Sendable {
             case traceIDRatio(samplingProbability: Double)
             case jaegerRemote(endpoint: String, pollingInterval: Duration, initialSamplingRate: Double)
         }
 
-        package var backing: Backing
+        var backing: Backing
 
-        package var argument: ArgumentBacking?
+        var argument: ArgumentBacking?
 
         /// A sampler that always records the span.
         public static let alwaysOn: Self = .init(backing: .alwaysOn)
@@ -528,7 +528,7 @@ extension OTel.Configuration.TracesConfiguration {
     ///
     /// Determines how completed spans are exported from the application to observability backends.
     public struct ExporterSelection: Sendable {
-        package enum Backing: String, CaseIterable, Sendable {
+        enum Backing: String, CaseIterable, Sendable {
             case otlp
             case jaeger
             case zipkin
@@ -536,7 +536,7 @@ extension OTel.Configuration.TracesConfiguration {
             case none
         }
 
-        package var backing: Backing
+        var backing: Backing
 
         /// OTLP (OpenTelemetry Protocol) exporter for traces.
         public static let otlp: Self = .init(backing: .otlp)
@@ -563,14 +563,14 @@ extension OTel.Configuration.MetricsConfiguration {
     ///
     /// Determines how collected metrics are exported from the application to observability backends.
     public struct ExporterSelection: Sendable {
-        package enum Backing: String, CaseIterable, Sendable {
+        enum Backing: String, CaseIterable, Sendable {
             case otlp
             case prometheus
             case console
             case none
         }
 
-        package var backing: Backing
+        var backing: Backing
 
         /// OTLP (OpenTelemetry Protocol) exporter for metrics.
         public static let otlp: Self = .init(backing: .otlp)
@@ -593,13 +593,13 @@ extension OTel.Configuration.LogsConfiguration {
     ///
     /// Determines how log records are exported from the application to observability backends.
     public struct ExporterSelection: Sendable {
-        package enum Backing: String, CaseIterable, Sendable {
+        enum Backing: String, CaseIterable, Sendable {
             case otlp
             case console
             case none
         }
 
-        package var backing: Backing
+        var backing: Backing
 
         /// OTLP (OpenTelemetry Protocol) exporter for logs.
         public static let otlp: Self = .init(backing: .otlp)
@@ -719,7 +719,7 @@ extension OTel.Configuration {
         /// to tell if the value is default, or explicitly set, either in-code or by an environment override.
         internal var endpointHasBeenExplicitlySet: Bool = false
 
-        package var logsHTTPEndpoint: String {
+        var logsHTTPEndpoint: String {
             switch (endpointHasBeenExplicitlySet, endpoint.hasSuffix("/")) {
             case (true, _): endpoint
             case (false, true): "\(endpoint)v1/logs"
@@ -727,7 +727,7 @@ extension OTel.Configuration {
             }
         }
 
-        package var metricsHTTPEndpoint: String {
+        var metricsHTTPEndpoint: String {
             switch (endpointHasBeenExplicitlySet, endpoint.hasSuffix("/")) {
             case (true, _): endpoint
             case (false, true): "\(endpoint)v1/metrics"
@@ -735,7 +735,7 @@ extension OTel.Configuration {
             }
         }
 
-        package var tracesHTTPEndpoint: String {
+        var tracesHTTPEndpoint: String {
             switch (endpointHasBeenExplicitlySet, endpoint.hasSuffix("/")) {
             case (true, _): endpoint
             case (false, true): "\(endpoint)v1/traces"
@@ -743,7 +743,7 @@ extension OTel.Configuration {
             }
         }
 
-        package var grpcEndpoint: String {
+        var grpcEndpoint: String {
             endpointHasBeenExplicitlySet ? endpoint : "http://localhost:4317"
         }
 
@@ -884,12 +884,12 @@ extension OTel.Configuration.OTLPExporterConfiguration {
     /// Controls whether and how telemetry data is compressed before transmission to reduce
     /// network bandwidth usage.
     public struct Compression: Sendable {
-        package enum Backing: String, CaseIterable {
+        enum Backing: String, CaseIterable {
             case gzip
             case none
         }
 
-        package var backing: Backing
+        var backing: Backing
 
         /// No compression applied to export payloads.
         public static let none: Self = .init(backing: .none)
@@ -904,13 +904,13 @@ extension OTel.Configuration.OTLPExporterConfiguration {
     /// via the OpenTelemetry Protocol.
     // swiftformat:disable:next redundantBackticks
     public struct `Protocol`: Equatable, Sendable {
-        package enum Backing: String, CaseIterable {
+        enum Backing: String, CaseIterable {
             case grpc
             case httpProtobuf = "http/protobuf"
             case httpJSON = "http/json"
         }
 
-        package var backing: Backing
+        var backing: Backing
 
         /// gRPC transport protocol for OTLP.
         #if !OTLPGRPC

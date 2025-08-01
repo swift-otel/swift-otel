@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 extension OTel.Configuration {
-    package enum Error: Swift.Error, Equatable {
+    enum Error: Swift.Error, Equatable {
         case invalidConfiguration(String)
     }
 }

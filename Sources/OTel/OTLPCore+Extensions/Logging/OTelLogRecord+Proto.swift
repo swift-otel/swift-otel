@@ -15,7 +15,7 @@ import Logging
 import OTLPCore
 
 extension Opentelemetry_Proto_Logs_V1_LogRecord {
-    package init(_ logRecord: OTelLogRecord) {
+    init(_ logRecord: OTelLogRecord) {
         self.init()
         timeUnixNano = logRecord.timeNanosecondsSinceEpoch
         observedTimeUnixNano = logRecord.timeNanosecondsSinceEpoch
@@ -92,7 +92,7 @@ extension Opentelemetry_Proto_Common_V1_AnyValue {
 }
 
 extension Opentelemetry_Proto_Logs_V1_ResourceLogs {
-    package init(_ logRecords: some Collection<OTelLogRecord>) {
+    init(_ logRecords: some Collection<OTelLogRecord>) {
         self.init()
         if let resource = logRecords.first?.resource {
             self.resource = .init(resource)

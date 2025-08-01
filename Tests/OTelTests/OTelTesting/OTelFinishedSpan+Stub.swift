@@ -11,9 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Tracing
-package import W3CTraceContext
-@testable package import OTel
+@testable import OTel
+import Tracing
+import W3CTraceContext
 
 extension OTelFinishedSpan {
     /// A finished span stub.
@@ -36,7 +36,7 @@ extension OTelFinishedSpan {
     ///   - links: Defaults to no links.
     ///
     /// - Returns: A finished span stub.
-    package static func stub(
+    static func stub(
         traceID: TraceID = .allZeroes,
         spanID: SpanID = .allZeroes,
         parentSpanID: SpanID? = nil,

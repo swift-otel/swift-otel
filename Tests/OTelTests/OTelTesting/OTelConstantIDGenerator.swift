@@ -12,22 +12,22 @@
 //===----------------------------------------------------------------------===//
 
 @testable import OTel
-package import W3CTraceContext
+import W3CTraceContext
 
-package struct OTelConstantIDGenerator: OTelIDGenerator {
+struct OTelConstantIDGenerator: OTelIDGenerator {
     private let _traceID: TraceID
     private let _spanID: SpanID
 
-    package init(traceID: TraceID, spanID: SpanID) {
+    init(traceID: TraceID, spanID: SpanID) {
         _traceID = traceID
         _spanID = spanID
     }
 
-    package func nextTraceID() -> TraceID {
+    func nextTraceID() -> TraceID {
         _traceID
     }
 
-    package func nextSpanID() -> SpanID {
+    func nextSpanID() -> SpanID {
         _spanID
     }
 }

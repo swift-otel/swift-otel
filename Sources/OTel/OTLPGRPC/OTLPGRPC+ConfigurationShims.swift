@@ -11,9 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-
 extension OTLPGRPCMetricExporterConfiguration {
-    package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+    init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
         try self.init(
             environment: [:],
             endpoint: configuration.endpoint,
@@ -24,7 +23,7 @@ extension OTLPGRPCMetricExporterConfiguration {
 }
 
 extension OTLPGRPCSpanExporterConfiguration {
-    package init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+    init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
         try self.init(
             environment: [:],
             endpoint: configuration.endpoint,

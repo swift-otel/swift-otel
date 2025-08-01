@@ -10,10 +10,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-package import Logging
+import Logging
 
 extension OTel.Configuration {
-    package mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+    mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
         logs.disabled.override(using: .sdkDisabled, from: environment, logger: logger)
         metrics.disabled.override(using: .sdkDisabled, from: environment, logger: logger)
         traces.disabled.override(using: .sdkDisabled, from: environment, logger: logger)

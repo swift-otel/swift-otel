@@ -11,10 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
+import Logging
 
 extension Logger {
-    package static let _otelDisabled = Logger(
+    static let _otelDisabled = Logger(
         label: "swift-otel-logging-disabled",
         factory: { _ in SwiftLogNoOpLogHandler() }
     )

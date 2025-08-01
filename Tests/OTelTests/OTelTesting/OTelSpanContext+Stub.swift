@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import W3CTraceContext
-@testable package import OTel
+@testable import OTel
+import W3CTraceContext
 
 extension OTelSpanContext {
     /// A local span context stub.
@@ -25,7 +25,7 @@ extension OTelSpanContext {
     ///   - traceState: Defaults to no trace state.
     ///
     /// - Returns: A span context stub.
-    package static func localStub(
+    static func localStub(
         traceID: TraceID = .allZeroes,
         spanID: SpanID = .allZeroes,
         parentSpanID: SpanID? = nil,
@@ -50,7 +50,7 @@ extension OTelSpanContext {
     ///   - traceState: Defaults to no trace state.
     ///
     /// - Returns: A span context stub.
-    package static func remoteStub(
+    static func remoteStub(
         traceID: TraceID = .allZeroes,
         spanID: SpanID = .allZeroes,
         traceFlags: TraceFlags = [],

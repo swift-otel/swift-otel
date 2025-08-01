@@ -11,10 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Instrumentation
+import Instrumentation
 
 /// A propagator carries span context over asynchronous boundaries such as HTTP calls.
-package protocol OTelPropagator: Sendable {
+protocol OTelPropagator: Sendable {
     /// Try to extract a span context from the given carrier.
     ///
     /// - Parameters:

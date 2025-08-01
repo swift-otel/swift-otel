@@ -12,32 +12,32 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-package import W3CTraceContext
+import W3CTraceContext
 
 /// The default ID generator,
 /// based on a [`RandomNumberGenerator`](https://developer.apple.com/documentation/swift/randomnumbergenerator).
-package struct OTelRandomIDGenerator<NumberGenerator: RandomNumberGenerator & Sendable>: OTelIDGenerator {
+struct OTelRandomIDGenerator<NumberGenerator: RandomNumberGenerator & Sendable>: OTelIDGenerator {
     private let randomNumberGenerator: NIOLockedValueBox<NumberGenerator>
 
     /// Create a random ID generator with a given random number generator.
     ///
     /// - Parameter randomNumberGenerator: The random number generator, defaults to
     /// [`SystemRandomNumberGenerator`](https://developer.apple.com/documentation/swift/systemrandomnumbergenerator)
-    package init(randomNumberGenerator: NumberGenerator) {
+    init(randomNumberGenerator: NumberGenerator) {
         self.randomNumberGenerator = NIOLockedValueBox(randomNumberGenerator)
     }
 
-    package func nextTraceID() -> TraceID {
+    func nextTraceID() -> TraceID {
         randomNumberGenerator.withLockedValue { .random(using: &$0) }
     }
 
-    package func nextSpanID() -> SpanID {
+    func nextSpanID() -> SpanID {
         randomNumberGenerator.withLockedValue { .random(using: &$0) }
     }
 }
 
 extension OTelRandomIDGenerator where NumberGenerator == SystemRandomNumberGenerator {
-    package init() {
+    init() {
         randomNumberGenerator = NIOLockedValueBox(SystemRandomNumberGenerator())
     }
 }

@@ -16,7 +16,7 @@ import W3CTraceContext
 
 extension ServiceContext {
     /// The span context.
-    package internal(set) var spanContext: OTelSpanContext? {
+    var spanContext: OTelSpanContext? {
         get {
             self[SpanContextKey.self]
         }

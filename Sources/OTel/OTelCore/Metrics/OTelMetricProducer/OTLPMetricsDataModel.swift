@@ -33,107 +33,107 @@
 ///
 /// The types in this file represent the subset of the OTLP datamodel that we use, which map over the protobuf types.
 
-package struct OTelResourceMetrics: Equatable, Sendable {
-    package var resource: OTelResource?
-    package var scopeMetrics: [OTelScopeMetrics]
+struct OTelResourceMetrics: Equatable, Sendable {
+    var resource: OTelResource?
+    var scopeMetrics: [OTelScopeMetrics]
 }
 
-package struct OTelScopeMetrics: Equatable, Sendable {
-    package var scope: OTelInstrumentationScope?
-    package var metrics: [OTelMetricPoint]
+struct OTelScopeMetrics: Equatable, Sendable {
+    var scope: OTelInstrumentationScope?
+    var metrics: [OTelMetricPoint]
 }
 
-package struct OTelInstrumentationScope: Equatable, Sendable {
-    package var name: String?
-    package var version: String?
-    package var attributes: [OTelAttribute]
-    package var droppedAttributeCount: Int32
+struct OTelInstrumentationScope: Equatable, Sendable {
+    var name: String?
+    var version: String?
+    var attributes: [OTelAttribute]
+    var droppedAttributeCount: Int32
 }
 
-package struct OTelMetricPoint: Equatable, Sendable {
-    package var name: String
-    package var description: String
-    package var unit: String
-    package struct OTelMetricData: Equatable, Sendable {
-        package enum Data: Equatable, Sendable {
+struct OTelMetricPoint: Equatable, Sendable {
+    var name: String
+    var description: String
+    var unit: String
+    struct OTelMetricData: Equatable, Sendable {
+        enum Data: Equatable, Sendable {
             case gauge(OTelGauge)
             case sum(OTelSum)
             case histogram(OTelHistogram)
         }
 
-        package var data: Data
+        var data: Data
 
-        package static func gauge(_ data: OTelGauge) -> Self { self.init(data: .gauge(data)) }
-        package static func sum(_ data: OTelSum) -> Self { self.init(data: .sum(data)) }
-        package static func histogram(_ data: OTelHistogram) -> Self { self.init(data: .histogram(data)) }
+        static func gauge(_ data: OTelGauge) -> Self { self.init(data: .gauge(data)) }
+        static func sum(_ data: OTelSum) -> Self { self.init(data: .sum(data)) }
+        static func histogram(_ data: OTelHistogram) -> Self { self.init(data: .histogram(data)) }
     }
 
-    package var data: OTelMetricData
+    var data: OTelMetricData
 }
 
-package struct OTelSum: Equatable, Sendable {
-    package var points: [OTelNumberDataPoint]
-    package var aggregationTemporality: OTelAggregationTemporality
-    package var monotonic: Bool
+struct OTelSum: Equatable, Sendable {
+    var points: [OTelNumberDataPoint]
+    var aggregationTemporality: OTelAggregationTemporality
+    var monotonic: Bool
 }
 
-package struct OTelGauge: Equatable, Sendable {
-    package var points: [OTelNumberDataPoint]
+struct OTelGauge: Equatable, Sendable {
+    var points: [OTelNumberDataPoint]
 }
 
-package struct OTelHistogram: Equatable, Sendable {
-    package var aggregationTemporality: OTelAggregationTemporality
-    package var points: [OTelHistogramDataPoint]
+struct OTelHistogram: Equatable, Sendable {
+    var aggregationTemporality: OTelAggregationTemporality
+    var points: [OTelHistogramDataPoint]
 }
 
-package struct OTelAttribute: Hashable, Equatable, Sendable {
-    package var key: String
-    package var value: String
+struct OTelAttribute: Hashable, Equatable, Sendable {
+    var key: String
+    var value: String
 }
 
-package struct OTelAggregationTemporality: Equatable, Sendable {
-    package enum Temporality: Equatable, Sendable {
+struct OTelAggregationTemporality: Equatable, Sendable {
+    enum Temporality: Equatable, Sendable {
         case delta
         case cumulative
     }
 
-    package var temporality: Temporality
+    var temporality: Temporality
 
-    package static let delta: Self = .init(temporality: .delta)
-    package static let cumulative: Self = .init(temporality: .cumulative)
+    static let delta: Self = .init(temporality: .delta)
+    static let cumulative: Self = .init(temporality: .cumulative)
 }
 
-package struct OTelNumberDataPoint: Equatable, Sendable {
-    package var attributes: [OTelAttribute]
-    package var startTimeNanosecondsSinceEpoch: UInt64?
-    package var timeNanosecondsSinceEpoch: UInt64
-    package struct Value: Equatable, Sendable {
-        package enum Value: Equatable, Sendable {
+struct OTelNumberDataPoint: Equatable, Sendable {
+    var attributes: [OTelAttribute]
+    var startTimeNanosecondsSinceEpoch: UInt64?
+    var timeNanosecondsSinceEpoch: UInt64
+    struct Value: Equatable, Sendable {
+        enum Value: Equatable, Sendable {
             case int64(Int64)
             case double(Double)
         }
 
-        package var value: Value
+        var value: Value
 
-        package static func int64(_ value: Int64) -> Self { self.init(value: .int64(value)) }
-        package static func double(_ value: Double) -> Self { self.init(value: .double(value)) }
+        static func int64(_ value: Int64) -> Self { self.init(value: .int64(value)) }
+        static func double(_ value: Double) -> Self { self.init(value: .double(value)) }
     }
 
-    package var value: Value
+    var value: Value
 }
 
-package struct OTelHistogramDataPoint: Equatable, Sendable {
-    package struct Bucket: Equatable, Sendable {
-        package var upperBound: Double
-        package var count: UInt64
+struct OTelHistogramDataPoint: Equatable, Sendable {
+    struct Bucket: Equatable, Sendable {
+        var upperBound: Double
+        var count: UInt64
     }
 
-    package var attributes: [OTelAttribute]
-    package var startTimeNanosecondsSinceEpoch: UInt64?
-    package var timeNanosecondsSinceEpoch: UInt64
-    package var count: UInt64
-    package var sum: Double?
-    package var min: Double?
-    package var max: Double?
-    package var buckets: [Bucket]
+    var attributes: [OTelAttribute]
+    var startTimeNanosecondsSinceEpoch: UInt64?
+    var timeNanosecondsSinceEpoch: UInt64
+    var count: UInt64
+    var sum: Double?
+    var min: Double?
+    var max: Double?
+    var buckets: [Bucket]
 }

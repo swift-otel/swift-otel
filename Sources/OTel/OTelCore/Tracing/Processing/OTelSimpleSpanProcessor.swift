@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
-package import ServiceContextModule
+import Logging
+import ServiceContextModule
 
 /// A span processor that simply forwards finished spans to a configured exporter, one at a time as soon as their ended.
 ///
@@ -20,7 +20,7 @@ package import ServiceContextModule
 /// since it will lead to an unnecessary amount of network calls within the exporter. Instead it is recommended
 /// to use a batching span processor such as ``OTelBatchSpanProcessor`` that will forward multiple spans
 /// to the exporter at once.
-package struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProcessor {
+struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProcessor {
     private let exporter: Exporter
     private let stream: AsyncStream<OTelFinishedSpan>
     private let continuation: AsyncStream<OTelFinishedSpan>.Continuation
@@ -30,13 +30,13 @@ package struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProc
     ///
     /// - Parameter exporter: The exporter to receive finished spans.
     /// On processor shutdown this exporter will also automatically be shut down.
-    package init(exporter: Exporter, logger: Logger) {
+    init(exporter: Exporter, logger: Logger) {
         self.logger = logger.withMetadata(component: "OTelSimpleSpanProcessor")
         self.exporter = exporter
         (stream, continuation) = AsyncStream.makeStream()
     }
 
-    package func run() async throws {
+    func run() async throws {
         for try await span in stream.cancelOnGracefulShutdown() {
             do {
                 logger.trace("Received ended span.", metadata: ["span_id": "\(span.spanContext.spanID)"])
@@ -47,20 +47,20 @@ package struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProc
         }
     }
 
-    package func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
+    func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
         // no-op
     }
 
-    package func onEnd(_ span: OTelFinishedSpan) {
+    func onEnd(_ span: OTelFinishedSpan) {
         guard span.spanContext.traceFlags.contains(.sampled) else { return }
         continuation.yield(span)
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         try await exporter.forceFlush()
     }
 
-    package func shutdown() async throws {
+    func shutdown() async throws {
         await exporter.shutdown()
     }
 }

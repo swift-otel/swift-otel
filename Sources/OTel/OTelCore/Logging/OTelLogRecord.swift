@@ -11,18 +11,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
+import Logging
 
-package struct OTelLogRecord: Equatable, Sendable {
-    package var body: Logger.Message
-    package var level: Logger.Level
-    package var metadata: Logger.Metadata
-    package var timeNanosecondsSinceEpoch: UInt64
+struct OTelLogRecord: Equatable, Sendable {
+    var body: Logger.Message
+    var level: Logger.Level
+    var metadata: Logger.Metadata
+    var timeNanosecondsSinceEpoch: UInt64
 
-    package let resource: OTelResource
-    package let spanContext: OTelSpanContext?
+    let resource: OTelResource
+    let spanContext: OTelSpanContext?
 
-    package init(
+    init(
         body: Logger.Message,
         level: Logger.Level,
         metadata: Logger.Metadata,

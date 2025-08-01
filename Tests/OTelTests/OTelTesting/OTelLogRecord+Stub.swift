@@ -12,11 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
-package import Logging
-@testable package import OTel
+import Logging
+@testable import OTel
 
 extension OTelLogRecord {
-    package static func stub(
+    static func stub(
         body: Logger.Message = "🏎️",
         level: Logger.Level = .info,
         metadata: Logger.Metadata = [:],

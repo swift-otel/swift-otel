@@ -11,14 +11,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Tracing
 import OTLPCore
+import Tracing
 
 extension Opentelemetry_Proto_Trace_V1_Span.SpanKind {
     /// Create a span kind from a `SpanKind`.
     ///
     /// - Parameter kind: The `SpanKind` to cast.
-    package init(_ kind: SpanKind) {
+    init(_ kind: SpanKind) {
         switch kind {
         case .server:
             self = .server

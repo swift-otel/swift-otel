@@ -36,7 +36,7 @@ extension XCTestCase {
     /// - Note: If you do not specify a timeout when calling this function, it
     ///     is recommended that you enable test timeouts to prevent a runaway
     ///     expectation from hanging the test.
-    package func fulfillment(
+    func fulfillment(
         of expectations: [XCTestExpectation],
         timeout: TimeInterval,
         enforceOrder: Bool = false

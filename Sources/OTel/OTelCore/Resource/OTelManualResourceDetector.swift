@@ -11,18 +11,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
+import Logging
 
 @_documentation(visibility: private)
-package struct OTelManualResourceDetector: OTelResourceDetector, CustomStringConvertible {
-    package let description = "manual"
+struct OTelManualResourceDetector: OTelResourceDetector, CustomStringConvertible {
+    let description = "manual"
     private let _resource: OTelResource
 
     init(resource: OTelResource) {
         _resource = resource
     }
 
-    package func resource(logger: Logger) -> OTelResource {
+    func resource(logger: Logger) -> OTelResource {
         _resource
     }
 }
@@ -35,7 +35,7 @@ extension OTelResourceDetector where Self == OTelManualResourceDetector {
     ///
     /// - Parameter resource: The resource to return from ``OTelResourceDetector/resource(logger:)``.
     /// - Returns: A resource detector returning the given resource.
-    package static func manual(_ resource: OTelResource) -> OTelManualResourceDetector {
+    static func manual(_ resource: OTelResource) -> OTelManualResourceDetector {
         OTelManualResourceDetector(resource: resource)
     }
 }

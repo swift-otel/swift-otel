@@ -12,13 +12,13 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-package import Tracing
+import Tracing
 
 /// A distributed tracing span, conforming to the [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/api.md#span).
-package final class OTelSpan: Span {
+final class OTelSpan: Span {
     private let underlying: Underlying
 
-    package var context: ServiceContext {
+    var context: ServiceContext {
         switch underlying {
         case .noOp(let span):
             return span.context
@@ -27,7 +27,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package var isRecording: Bool {
+    var isRecording: Bool {
         switch underlying {
         case .noOp:
             return false
@@ -36,7 +36,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package var operationName: String {
+    var operationName: String {
         get {
             switch underlying {
             case .noOp(let span):
@@ -56,7 +56,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package var attributes: SpanAttributes {
+    var attributes: SpanAttributes {
         get {
             switch underlying {
             case .noOp:
@@ -76,7 +76,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package var events: [SpanEvent] {
+    var events: [SpanEvent] {
         switch underlying {
         case .noOp:
             return []
@@ -85,7 +85,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package var links: [SpanLink] {
+    var links: [SpanLink] {
         switch underlying {
         case .noOp:
             return []
@@ -94,7 +94,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package var status: SpanStatus? {
+    var status: SpanStatus? {
         switch underlying {
         case .noOp:
             return nil
@@ -103,7 +103,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package var endTimeNanosecondsSinceEpoch: UInt64? {
+    var endTimeNanosecondsSinceEpoch: UInt64? {
         switch underlying {
         case .noOp:
             return nil
@@ -112,7 +112,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package func setStatus(_ status: SpanStatus) {
+    func setStatus(_ status: SpanStatus) {
         switch underlying {
         case .noOp:
             break
@@ -122,7 +122,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package func addEvent(_ event: Tracing.SpanEvent) {
+    func addEvent(_ event: Tracing.SpanEvent) {
         switch underlying {
         case .noOp:
             break
@@ -132,7 +132,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package func recordError(
+    func recordError(
         _ error: Error,
         attributes: SpanAttributes,
         at instant: @autoclosure () -> some TracerInstant
@@ -146,7 +146,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package func addLink(_ link: SpanLink) {
+    func addLink(_ link: SpanLink) {
         switch underlying {
         case .noOp:
             break
@@ -156,7 +156,7 @@ package final class OTelSpan: Span {
         }
     }
 
-    package func end(at instant: @autoclosure () -> some TracerInstant) {
+    func end(at instant: @autoclosure () -> some TracerInstant) {
         switch underlying {
         case .noOp:
             break

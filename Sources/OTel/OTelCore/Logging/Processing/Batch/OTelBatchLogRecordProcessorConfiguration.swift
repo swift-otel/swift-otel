@@ -12,22 +12,22 @@
 //===----------------------------------------------------------------------===//
 
 /// The configuration options for an ``OTelBatchLogRecordProcessor``.
-package struct OTelBatchLogRecordProcessorConfiguration: Sendable {
+struct OTelBatchLogRecordProcessorConfiguration: Sendable {
     /// The maximum queue size.
     ///
     /// - Warning: After this size is reached log will be dropped.
-    package var maximumQueueSize: UInt
+    var maximumQueueSize: UInt
 
     /// The maximum delay between two consecutive log exports.
-    package var scheduleDelay: Duration
+    var scheduleDelay: Duration
 
     /// The maximum batch size of each export.
     ///
     /// - Note: If the queue reaches this size, a batch will be exported even if ``scheduleDelay`` has not elapsed.
-    package var maximumExportBatchSize: UInt
+    var maximumExportBatchSize: UInt
 
     /// The duration a single export can run until it is cancelled.
-    package var exportTimeout: Duration
+    var exportTimeout: Duration
 
     /// Create a batch log processor configuration.
     ///
@@ -37,7 +37,7 @@ package struct OTelBatchLogRecordProcessorConfiguration: Sendable {
     ///   - scheduleDelay: A schedule delay used even if `OTEL_BLRP_SCHEDULE_DELAY` is set. Defaults to `1` second if both are `nil`.
     ///   - maximumExportBatchSize: A maximum export batch size used even if `OTEL_BLRP_MAX_EXPORT_BATCH_SIZE` is set. Defaults to `512` if both are `nil`.
     ///   - exportTimeout: An export timeout used even if `OTEL_BLRP_EXPORT_TIMEOUT` is set. Defaults to `30` seconds if both are `nil`.
-    package init(
+    init(
         environment: OTelEnvironment,
         maximumQueueSize: UInt? = nil,
         scheduleDelay: Duration? = nil,

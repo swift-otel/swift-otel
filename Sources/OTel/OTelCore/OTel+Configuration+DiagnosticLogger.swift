@@ -12,10 +12,10 @@
 //===----------------------------------------------------------------------===//
 
 import class Foundation.ProcessInfo
-package import Logging
+import Logging
 
 extension OTel.Configuration {
-    package func makeDiagnosticLogger() -> Logger {
+    func makeDiagnosticLogger() -> Logger {
         var logger = switch self.diagnosticLogger.backing {
         case .console:
             Logger(label: "swift-otel", factory: { label in StreamLogHandler.standardError(label: label) })
@@ -42,7 +42,7 @@ extension OTel.Configuration {
     }()
 }
 
-package extension Logger {
+extension Logger {
     func withMetadata(component: String) -> Self {
         var result = self
         result[metadataKey: "component"] = "\(component)"

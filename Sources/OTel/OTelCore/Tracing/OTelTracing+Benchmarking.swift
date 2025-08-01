@@ -11,10 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import ServiceContextModule
+import ServiceContextModule
 
 extension ServiceContext {
-    package static func withSpanContext(_ spanContext: OTelSpanContext) -> Self {
+    static func withSpanContext(_ spanContext: OTelSpanContext) -> Self {
         var context = ServiceContext.topLevel
         context.spanContext = spanContext
         return context

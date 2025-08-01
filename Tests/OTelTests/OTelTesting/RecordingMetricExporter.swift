@@ -12,40 +12,38 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(XCTest)
-package import NIOConcurrencyHelpers
+import NIOConcurrencyHelpers
+@testable import OTel
 import XCTest
-@testable package import OTel
 
-package struct RecordingMetricExporter: OTelMetricExporter {
-    package typealias ExportCall = Collection<OTelResourceMetrics> & Sendable
+struct RecordingMetricExporter: OTelMetricExporter {
+    typealias ExportCall = Collection<OTelResourceMetrics> & Sendable
 
-    package struct RecordedCalls {
+    struct RecordedCalls {
         var exportCalls = [any ExportCall]()
         var forceFlushCallCount = 0
         var shutdownCallCount = 0
     }
 
-    package let recordedCalls = NIOLockedValueBox(RecordedCalls())
+    let recordedCalls = NIOLockedValueBox(RecordedCalls())
 
-    package init() {}
+    func run() async throws {}
 
-    package func run() async throws {}
-
-    package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) {
+    func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) {
         recordedCalls.withLockedValue { $0.exportCalls.append(batch) }
     }
 
-    package func forceFlush() {
+    func forceFlush() {
         recordedCalls.withLockedValue { $0.forceFlushCallCount += 1 }
     }
 
-    package func shutdown() {
+    func shutdown() {
         recordedCalls.withLockedValue { $0.shutdownCallCount += 1 }
     }
 }
 
 extension RecordingMetricExporter {
-    package func assert(
+    func assert(
         exportCallCount: Int,
         forceFlushCallCount: Int,
         shutdownCallCount: Int,

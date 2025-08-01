@@ -11,12 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import W3CTraceContext
+import W3CTraceContext
 
 /// An ID generator generates random trace and span IDs on demand.
 ///
 /// [OpenTelemetry Specification: ID generators](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/sdk.md#id-generators)
-package protocol OTelIDGenerator: Sendable {
+protocol OTelIDGenerator: Sendable {
     /// Get a generated trace ID.
     ///
     /// - Returns: A generated trace ID.

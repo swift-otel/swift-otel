@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import ServiceContextModule
-package import ServiceLifecycle
+import ServiceContextModule
+import ServiceLifecycle
 
 /// Span processor allow for processing spans throught their lifetime via ``onStart(_:parentContext:)`` and ``onEnd(_:)`` calls.
 /// Usually, span processors will forward ended spans to a configurable ``OTelSpanExporter``.
@@ -22,7 +22,7 @@ package import ServiceLifecycle
 /// ### Implementation Notes
 ///
 /// On shutdown, processors forwarding spans to an ``OTelSpanExporter`` MUST shutdown that exporter.
-package protocol OTelSpanProcessor: Service & Sendable {
+protocol OTelSpanProcessor: Service & Sendable {
     /// Called whenever a new recording span was started.
     ///
     /// - Parameters:
@@ -40,5 +40,5 @@ package protocol OTelSpanProcessor: Service & Sendable {
 }
 
 extension OTelSpanProcessor {
-    package func onStart(_ span: OTelSpan, parentContext: ServiceContext) async {}
+    func onStart(_ span: OTelSpan, parentContext: ServiceContext) async {}
 }

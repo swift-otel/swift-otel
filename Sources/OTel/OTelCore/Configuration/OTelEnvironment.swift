@@ -22,23 +22,23 @@ import Darwin.C
 import Foundation
 
 /// A wrapper for reading environment values.
-package struct OTelEnvironment: Sendable {
+struct OTelEnvironment: Sendable {
     /// The key-value pairs in the environment.
     ///
     /// - Note: All keys are lowercased to enable case-insensitive lookup.
-    package let values: [String: String]
+    let values: [String: String]
 
     /// Create an environment wrapping the given key-value pairs.
     ///
     /// - Parameter values: The key-value pairs to wrap.
-    package init(values: [String: String]) {
+    init(values: [String: String]) {
         self.values = Dictionary(uniqueKeysWithValues: values.map { ($0.key.lowercased(), $0.value) })
     }
 
     /// Accesses the value associated with the given key for reading by ignoring its case.
     ///
     /// - Parameter key: The key to look up case-insensitively.
-    package subscript(key: String) -> String? {
+    subscript(key: String) -> String? {
         values[key.lowercased()]
     }
 
@@ -57,7 +57,7 @@ package struct OTelEnvironment: Sendable {
     ///   - transformValue: A closure transforming an environment value into the given type.
     /// - Warning: This method crashes if transforming the environment value fails.
     /// - Returns: The configuration value with the highest specificity.
-    package func requiredValue<T>(
+    func requiredValue<T>(
         programmaticOverride: T?,
         key: String,
         defaultValue: T,
@@ -89,7 +89,7 @@ package struct OTelEnvironment: Sendable {
     ///   - transformValue: A closure transforming an environment value into the given type.
     /// - Returns: The configuration value with the highest specificity, or `nil` if the value was not configured.
     /// - Throws: ``OTelEnvironmentValueError`` if an environment value could not be transformed into the given type.
-    package func value<T>(
+    func value<T>(
         programmaticOverride: T?,
         key: String,
         transformValue: (_ value: String) -> T?
@@ -122,7 +122,7 @@ package struct OTelEnvironment: Sendable {
     ///
     /// - Returns: The configuration value with the highest specificity, or `nil` if the value was not configured.
     /// - Throws: ``OTelEnvironmentValueError`` is an environment value could not be transformed into the given type.
-    package func value<T>(
+    func value<T>(
         programmaticOverride: T?,
         signalSpecificKey: String,
         sharedKey: String,
@@ -150,7 +150,7 @@ package struct OTelEnvironment: Sendable {
     ///
     /// - Returns: The configuration value with the highest specificity, or `nil` if the value was not configured.
     /// - Throws: ``OTelEnvironmentValueError`` is an environment value could not be transformed into the given type.
-    package func value(
+    func value(
         programmaticOverride: Bool?,
         signalSpecificKey: String,
         sharedKey: String
@@ -174,7 +174,7 @@ package struct OTelEnvironment: Sendable {
     /// An ``OTelEnvironment`` exposing the process-wide environment values.
     ///
     /// - Returns: An ``OTelEnvironment`` exposing the process-wide environment values.
-    package static func detected() -> OTelEnvironment {
+    static func detected() -> OTelEnvironment {
         let values = ProcessInfo.processInfo.environment
         return OTelEnvironment(values: Dictionary(uniqueKeysWithValues: values.map { ($0.key.lowercased(), $0.value) }))
     }
@@ -183,7 +183,7 @@ package struct OTelEnvironment: Sendable {
     ///
     /// - Parameter value: The value containing a comma-separated list of headers.
     /// - Returns: The extracted headers as an array of key-value pairs, or nil if parsing fails.
-    package static func headers(parsingValue value: String) -> [(key: String, value: String)]? {
+    static func headers(parsingValue value: String) -> [(key: String, value: String)]? {
         var headers = [(key: String, value: String)]()
 
         let keyValuePairs = value.split(separator: ",")
@@ -215,7 +215,7 @@ package struct OTelEnvironment: Sendable {
 }
 
 extension OTelEnvironment: ExpressibleByDictionaryLiteral {
-    package init(dictionaryLiteral elements: (String, String)...) {
+    init(dictionaryLiteral elements: (String, String)...) {
         values = [String: String](uniqueKeysWithValues: elements.map { ($0.0.lowercased(), $0.1) })
     }
 }

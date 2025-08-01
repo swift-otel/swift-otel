@@ -11,17 +11,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Tracing
-package import W3CTraceContext
+import Tracing
+import W3CTraceContext
 
 /// A sampler that always takes the same sampling decision.
-package struct OTelConstantSampler: OTelSampler {
+struct OTelConstantSampler: OTelSampler {
     private let decision: OTelSamplingResult.Decision
 
     /// Create a sampler that always takes the given decision.
     ///
     /// - Parameter decision: The decision to take.
-    package init(decision: OTelSamplingResult.Decision) {
+    init(decision: OTelSamplingResult.Decision) {
         self.decision = decision
     }
 
@@ -33,11 +33,11 @@ package struct OTelConstantSampler: OTelSampler {
     /// - Parameter isOn: Whether to always decides to
     /// ``OTelSamplingResult/Decision-swift.enum/recordAndSample`` or
     /// ``OTelSamplingResult/Decision-swift.enum/drop``.
-    package init(isOn: Bool) {
+    init(isOn: Bool) {
         decision = isOn ? .recordAndSample : .drop
     }
 
-    package func samplingResult(
+    func samplingResult(
         operationName: String,
         kind: SpanKind,
         traceID: TraceID,

@@ -12,17 +12,17 @@
 //===----------------------------------------------------------------------===//
 
 /// A metric exporter that delegates to multiple other exports.
-package struct OTelMultiplexMetricExporter: OTelMetricExporter {
+struct OTelMultiplexMetricExporter: OTelMetricExporter {
     private let exporters: [any OTelMetricExporter]
 
     /// Initialize an ``OTelMultiplexMetricExporter``.
     ///
     /// - Parameter exporters: An array of ``OTelMetricExporter``s, each of which will receive the batches to export.
-    package init(exporters: [any OTelMetricExporter]) {
+    init(exporters: [any OTelMetricExporter]) {
         self.exporters = exporters
     }
 
-    package func run() async throws {
+    func run() async throws {
         try await withThrowingTaskGroup { group in
             for exporter in exporters {
                 group.addTask {
@@ -33,7 +33,7 @@ package struct OTelMultiplexMetricExporter: OTelMetricExporter {
         }
     }
 
-    package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
+    func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for exporter in exporters {
                 group.addTask { try await exporter.export(batch) }
@@ -42,7 +42,7 @@ package struct OTelMultiplexMetricExporter: OTelMetricExporter {
         }
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for exporter in exporters {
                 group.addTask { try await exporter.forceFlush() }
@@ -51,7 +51,7 @@ package struct OTelMultiplexMetricExporter: OTelMetricExporter {
         }
     }
 
-    package func shutdown() async {
+    func shutdown() async {
         await withTaskGroup(of: Void.self) { group in
             for exporter in exporters {
                 group.addTask { await exporter.shutdown() }

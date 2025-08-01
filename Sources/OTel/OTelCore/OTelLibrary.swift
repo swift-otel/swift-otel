@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 /// Information describing the `swift-otel` library itself.
-package enum OTelLibrary {
+enum OTelLibrary {
     /// The current project version of `swift-otel`.
-    package static let version = "1.0.0"
+    static let version = "1.0.0"
 }

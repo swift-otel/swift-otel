@@ -11,14 +11,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Tracing
 import OTLPCore
+import Tracing
 
 extension Opentelemetry_Proto_Trace_V1_Status {
     /// Create a status by casting a `SpanStatus`.
     ///
     /// - Parameter status: The `SpanStatus` to cast.
-    package init(_ status: SpanStatus) {
+    init(_ status: SpanStatus) {
         self = .with {
             switch status.code {
             case .ok:

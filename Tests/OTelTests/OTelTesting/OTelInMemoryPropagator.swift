@@ -11,23 +11,23 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Instrumentation
+import Instrumentation
 import NIOConcurrencyHelpers
-@testable package import OTel
+@testable import OTel
 
-package final class OTelInMemoryPropagator: OTelPropagator, Sendable {
+final class OTelInMemoryPropagator: OTelPropagator, Sendable {
     private let _injectedSpanContexts = NIOLockedValueBox([OTelSpanContext]())
-    package var injectedSpanContexts: [OTelSpanContext] { _injectedSpanContexts.withLockedValue { $0 } }
+    var injectedSpanContexts: [OTelSpanContext] { _injectedSpanContexts.withLockedValue { $0 } }
 
     private let _extractedCarriers = NIOLockedValueBox([any Sendable]())
-    package var extractedCarriers: [any Sendable] { _extractedCarriers.withLockedValue { $0 } }
+    var extractedCarriers: [any Sendable] { _extractedCarriers.withLockedValue { $0 } }
     private let extractionResult: Result<OTelSpanContext, Error>?
 
-    package init(extractionResult: Result<OTelSpanContext, Error>? = nil) {
+    init(extractionResult: Result<OTelSpanContext, Error>? = nil) {
         self.extractionResult = extractionResult
     }
 
-    package func inject<Carrier, Inject>(
+    func inject<Carrier, Inject>(
         _ spanContext: OTelSpanContext,
         into carrier: inout Carrier,
         using injector: Inject
@@ -35,7 +35,7 @@ package final class OTelInMemoryPropagator: OTelPropagator, Sendable {
         _injectedSpanContexts.withLockedValue { $0.append(spanContext) }
     }
 
-    package func extractSpanContext<Carrier, Extract>(
+    func extractSpanContext<Carrier, Extract>(
         from carrier: Carrier,
         using extractor: Extract
     ) throws -> OTelSpanContext? where Carrier == Extract.Carrier, Extract: Extractor {

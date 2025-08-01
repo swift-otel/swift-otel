@@ -13,10 +13,8 @@
 
 import struct Foundation.Date
 
-package struct OTelConsoleLogRecordExporter: OTelLogRecordExporter {
-    package init() {}
-
-    package func run() {
+struct OTelConsoleLogRecordExporter: OTelLogRecordExporter {
+    func run() {
         /// > The exporter’s output format is unspecified and can vary between implementations. Documentation SHOULD
         /// > warn users about this. The following wording is recommended (modify as needed):
         /// > >
@@ -38,15 +36,15 @@ package struct OTelConsoleLogRecordExporter: OTelLogRecordExporter {
         )
     }
 
-    package func export(_ batch: some Collection<OTelLogRecord> & Sendable) {
+    func export(_ batch: some Collection<OTelLogRecord> & Sendable) {
         for logRecord in batch {
             print(logRecord.consoleFormatted)
         }
     }
 
-    package func forceFlush() {}
+    func forceFlush() {}
 
-    package func shutdown() {}
+    func shutdown() {}
 }
 
 extension OTelLogRecord {

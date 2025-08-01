@@ -12,19 +12,19 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(XCTest)
+@testable import OTel
 import XCTest
-@testable package import OTel
 
 extension Counter {
-    package var atomicValue: Int64 { atomic.load(ordering: .relaxed) }
+    var atomicValue: Int64 { atomic.load(ordering: .relaxed) }
 }
 
 extension FloatingPointCounter {
-    package var atomicValue: Double { Double(bitPattern: atomic.load(ordering: .relaxed)) }
+    var atomicValue: Double { Double(bitPattern: atomic.load(ordering: .relaxed)) }
 }
 
 extension Gauge {
-    package var atomicValue: Double { Double(bitPattern: atomic.load(ordering: .relaxed)) }
+    var atomicValue: Double { Double(bitPattern: atomic.load(ordering: .relaxed)) }
 }
 
 extension Histogram {
@@ -33,7 +33,7 @@ extension Histogram {
         var count: Int
     }
 
-    package func assertStateEquals(
+    func assertStateEquals(
         count: Int,
         sum: Value,
         buckets: [(bound: Value, count: Int)],
@@ -55,22 +55,22 @@ extension Histogram {
 }
 
 extension OTelMetricPoint.OTelMetricData {
-    package var asSum: OTelSum? {
-        guard case .sum(let sum) = self.data else { return nil }
+    var asSum: OTelSum? {
+        guard case .sum(let sum) = data else { return nil }
         return sum
     }
 
-    package var asGauge: OTelGauge? {
-        guard case .gauge(let gauge) = self.data else { return nil }
+    var asGauge: OTelGauge? {
+        guard case .gauge(let gauge) = data else { return nil }
         return gauge
     }
 
-    package var asHistogram: OTelHistogram? {
-        guard case .histogram(let histogram) = self.data else { return nil }
+    var asHistogram: OTelHistogram? {
+        guard case .histogram(let histogram) = data else { return nil }
         return histogram
     }
 
-    package func assertIsCumulativeSumWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
+    func assertIsCumulativeSumWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
         guard
             case .sum(let sum) = data,
             sum.monotonic,
@@ -84,7 +84,7 @@ extension OTelMetricPoint.OTelMetricData {
         XCTAssertEqual(point.value, value, file: file, line: line)
     }
 
-    package func assertIsGaugeWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
+    func assertIsGaugeWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
         guard
             case .gauge(let gauge) = data,
             gauge.points.count == 1,
@@ -96,7 +96,7 @@ extension OTelMetricPoint.OTelMetricData {
         XCTAssertEqual(point.value, value, file: file, line: line)
     }
 
-    package func assertIsCumulativeHistogramWith(count: Int, sum: Double, buckets: [OTelHistogramDataPoint.Bucket], file: StaticString = #filePath, line: UInt = #line) {
+    func assertIsCumulativeHistogramWith(count: Int, sum: Double, buckets: [OTelHistogramDataPoint.Bucket], file: StaticString = #filePath, line: UInt = #line) {
         guard
             case .histogram(let histogram) = data,
             histogram.aggregationTemporality == .cumulative,

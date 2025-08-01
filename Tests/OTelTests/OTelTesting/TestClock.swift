@@ -13,49 +13,49 @@
 
 import NIOConcurrencyHelpers
 
-package final class TestClock: Clock, @unchecked Sendable {
-    package struct Instant: InstantProtocol {
-        package var offset: Duration
+final class TestClock: Clock, @unchecked Sendable {
+    struct Instant: InstantProtocol {
+        var offset: Duration
 
-        package init(offset: Duration = .zero) {
+        init(offset: Duration = .zero) {
             self.offset = offset
         }
 
-        package func advanced(by duration: Duration) -> Self {
+        func advanced(by duration: Duration) -> Self {
             .init(offset: offset + duration)
         }
 
-        package func duration(to other: Self) -> Duration {
+        func duration(to other: Self) -> Duration {
             other.offset - offset
         }
 
-        package static func < (lhs: Self, rhs: Self) -> Bool {
+        static func < (lhs: Self, rhs: Self) -> Bool {
             lhs.offset < rhs.offset
         }
 
-        package static func minutes(_ minutes: some BinaryInteger) -> Self {
+        static func minutes(_ minutes: some BinaryInteger) -> Self {
             .init(offset: .seconds(minutes * 60))
         }
 
-        package static func seconds(_ seconds: some BinaryInteger) -> Self {
+        static func seconds(_ seconds: some BinaryInteger) -> Self {
             .init(offset: .seconds(seconds))
         }
 
-        package static func milliseconds(_ milliseconds: some BinaryInteger) -> Self {
+        static func milliseconds(_ milliseconds: some BinaryInteger) -> Self {
             .init(offset: .milliseconds(milliseconds))
         }
 
-        package static func microseconds(_ microseconds: some BinaryInteger) -> Self {
+        static func microseconds(_ microseconds: some BinaryInteger) -> Self {
             .init(offset: .microseconds(microseconds))
         }
 
-        package static func nanoseconds(_ nanoseconds: some BinaryInteger) -> Self {
+        static func nanoseconds(_ nanoseconds: some BinaryInteger) -> Self {
             .init(offset: .nanoseconds(nanoseconds))
         }
     }
 
-    package var minimumResolution: Duration = .zero
-    package var now: Instant {
+    var minimumResolution: Duration = .zero
+    var now: Instant {
         state.withLockedValue { $0.now }
     }
 
@@ -65,19 +65,19 @@ package final class TestClock: Clock, @unchecked Sendable {
         var now: Instant
     }
 
-    package let sleepCalls: AsyncStream<Void>
+    let sleepCalls: AsyncStream<Void>
     private let sleepCallsContinuation: AsyncStream<Void>.Continuation
 
     private let state = NIOLockedValueBox(State(continuations: [], now: .init()))
 
-    package init(now: Instant = .init()) {
+    init(now: Instant = .init()) {
         state.withLockedValue { $0.now = now }
         let (stream, continunation) = AsyncStream<Void>.makeStream()
         sleepCalls = stream
         sleepCallsContinuation = continunation
     }
 
-    package func sleep(until deadline: Instant, tolerance: Duration? = nil) async throws {
+    func sleep(until deadline: Instant, tolerance: Duration? = nil) async throws {
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 enum Action {
@@ -116,7 +116,7 @@ package final class TestClock: Clock, @unchecked Sendable {
         }
     }
 
-    package func advance(by duration: Duration = .zero) {
+    func advance(by duration: Duration = .zero) {
         let continuationsToResume = state.withLockedValue { state in
             let deadline = state.now.advanced(by: duration)
             precondition(state.now < deadline)
@@ -131,7 +131,7 @@ package final class TestClock: Clock, @unchecked Sendable {
         }
     }
 
-    package func advance(to deadline: Instant) {
+    func advance(to deadline: Instant) {
         let continuationsToResume = state.withLockedValue { state in
             precondition(state.now < deadline)
             state.now = deadline

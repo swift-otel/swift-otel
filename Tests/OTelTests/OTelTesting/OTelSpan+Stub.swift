@@ -11,9 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import ServiceContextModule
-package import Tracing
-@testable package import OTel
+@testable import OTel
+import ServiceContextModule
+import Tracing
 
 extension OTelSpan {
     /// A no-op span stub.
@@ -21,7 +21,7 @@ extension OTelSpan {
     /// - Parameter context: Defaults to `ServiceContext.topLevel`.
     ///
     /// - Returns: A no-op span stub.
-    package static func noOpStub(context: ServiceContext = .topLevel) -> OTelSpan {
+    static func noOpStub(context: ServiceContext = .topLevel) -> OTelSpan {
         .noOp(.init(context: context))
     }
 
@@ -37,7 +37,7 @@ extension OTelSpan {
     ///   - onEnd: Defaults to a no-op closure.
     ///
     /// - Returns: A recording span stub.
-    package static func recordingStub(
+    static func recordingStub(
         operationName: String = "test",
         kind: SpanKind = .internal,
         context: ServiceContext = .topLevel,

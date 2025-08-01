@@ -11,12 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import NIOHPACK
+import NIOHPACK
 
 /// Configuration for an ``OTLPGRPCMetricExporter``.
 ///
 /// - TODO: This can probably be refactored to share a bunch of common logic with ``OTLPGRPCSpanExporterConfiguration``.
-package struct OTLPGRPCMetricExporterConfiguration: Sendable {
+struct OTLPGRPCMetricExporterConfiguration: Sendable {
     let endpoint: OTLPGRPCEndpoint
     let headers: HPACKHeaders
 
@@ -27,7 +27,7 @@ package struct OTLPGRPCMetricExporterConfiguration: Sendable {
     ///   - endpoint: An optional endpoint string that takes precedence over any environment values. Defaults to `localhost:4317` if `nil`.
     ///   - shouldUseAnInsecureConnection: Whether to use an insecure connection in the absence of a scheme inside an endpoint configuration value.
     ///   - headers: Optional headers that take precedence over any headers configured via environment values.
-    package init(
+    init(
         environment: OTelEnvironment,
         endpoint: String? = nil,
         shouldUseAnInsecureConnection: Bool? = nil,

@@ -11,15 +11,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import NIOConcurrencyHelpers
-@testable package import OTel
+import NIOConcurrencyHelpers
+@testable import OTel
 
-package final class RecordingDuplicateRegistrationHandler: DuplicateRegistrationHandler {
-    package let invocations = NIOLockedValueBox([(InstrumentIdentifier, Set<InstrumentIdentifier>)]())
+final class RecordingDuplicateRegistrationHandler: DuplicateRegistrationHandler {
+    let invocations = NIOLockedValueBox([(InstrumentIdentifier, Set<InstrumentIdentifier>)]())
 
-    package init() {}
-
-    package func handle(newRegistration: InstrumentIdentifier, existingRegistrations: Set<InstrumentIdentifier>) {
+    func handle(newRegistration: InstrumentIdentifier, existingRegistrations: Set<InstrumentIdentifier>) {
         invocations.withLockedValue { $0.append((newRegistration, existingRegistrations)) }
     }
 }

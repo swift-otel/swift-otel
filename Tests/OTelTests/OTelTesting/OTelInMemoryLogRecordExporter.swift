@@ -12,23 +12,23 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-@testable package import OTel
+@testable import OTel
 
-package actor OTelInMemoryLogRecordExporter: OTelLogRecordExporter {
-    package private(set) var exportedBatches = [[OTelLogRecord]]()
-    package private(set) var numberOfShutdowns = 0
-    package private(set) var numberOfForceFlushes = 0
-    package private(set) var numberOfExportCancellations = 0
+actor OTelInMemoryLogRecordExporter: OTelLogRecordExporter {
+    private(set) var exportedBatches = [[OTelLogRecord]]()
+    private(set) var numberOfShutdowns = 0
+    private(set) var numberOfForceFlushes = 0
+    private(set) var numberOfExportCancellations = 0
 
     private let exportDelay: Duration
 
-    package init(exportDelay: Duration = .zero) {
+    init(exportDelay: Duration = .zero) {
         self.exportDelay = exportDelay
     }
 
-    package func run() async throws {}
+    func run() async throws {}
 
-    package func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
+    func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {
         if exportDelay != .zero {
             do {
                 try await Task.sleep(for: exportDelay)
@@ -41,11 +41,11 @@ package actor OTelInMemoryLogRecordExporter: OTelLogRecordExporter {
         exportedBatches.append(Array(batch))
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         numberOfForceFlushes += 1
     }
 
-    package func shutdown() async {
+    func shutdown() async {
         numberOfShutdowns += 1
     }
 }

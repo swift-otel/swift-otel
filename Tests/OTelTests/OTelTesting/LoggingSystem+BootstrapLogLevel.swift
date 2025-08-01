@@ -11,13 +11,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable package import Logging
+@testable import Logging
 
 extension LoggingSystem {
     /// Bootstraps the logging system for testing with a minimum log level.
     ///
     /// - Parameter logLevel: The minimum log level.
-    package static func bootstrapInternal(logLevel: Logger.Level) {
+    static func bootstrapInternal(logLevel: Logger.Level) {
         LoggingSystem.bootstrapInternal { label in
             var handler = StreamLogHandler.standardOutput(label: label)
             handler.logLevel = logLevel

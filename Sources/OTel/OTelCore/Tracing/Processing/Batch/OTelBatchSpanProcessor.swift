@@ -13,19 +13,19 @@
 
 import AsyncAlgorithms
 import DequeModule
-package import Logging
+import Logging
 import ServiceLifecycle
 
 /// A span processor that batches finished spans and forwards them to a configured exporter.
 ///
 /// [OpenTelemetry Specification: Batching processor](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/sdk.md#batching-processor)
-package actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clock>:
+actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clock>:
     OTelSpanProcessor,
     Service,
     CustomStringConvertible
     where Clock.Duration == Duration
 {
-    package nonisolated let description = "OTelBatchSpanProcessor"
+    nonisolated let description = "OTelBatchSpanProcessor"
 
     internal /* for testing */ private(set) var buffer: Deque<OTelFinishedSpan>
 
@@ -37,7 +37,7 @@ package actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurr
     private let explicitTick: AsyncStream<Void>.Continuation
     private var batchID: UInt = 0
 
-    package init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, logger: Logger, clock: Clock) {
+    init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, logger: Logger, clock: Clock) {
         self.logger = logger.withMetadata(component: "OTelBatchSpanProcessor")
         self.exporter = exporter
         self.configuration = configuration
@@ -47,7 +47,7 @@ package actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurr
         (explicitTickStream, explicitTick) = AsyncStream.makeStream()
     }
 
-    package func onEnd(_ span: OTelFinishedSpan) {
+    func onEnd(_ span: OTelFinishedSpan) {
         guard span.spanContext.traceFlags.contains(.sampled) else { return }
         buffer.append(span)
 
@@ -56,7 +56,7 @@ package actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurr
         }
     }
 
-    package func run() async throws {
+    func run() async throws {
         let timerSequence = AsyncTimerSequence(interval: configuration.scheduleDelay, clock: clock).map { _ in }
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
 
@@ -77,7 +77,7 @@ package actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurr
         logger.debug("Shut down.")
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         let chunkSize = Int(configuration.maximumExportBatchSize)
         let batches = stride(from: 0, to: buffer.count, by: chunkSize).map {
             buffer[$0 ..< min($0 + Int(configuration.maximumExportBatchSize), buffer.count)]
@@ -151,7 +151,7 @@ extension OTelBatchSpanProcessor where Clock == ContinuousClock {
     /// - Parameters:
     ///   - exporter: The span exporter to receive batched spans to export.
     ///   - configuration: Further configuration parameters to tweak the batching behavior.
-    package init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, logger: Logger) {
+    init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, logger: Logger) {
         self.init(exporter: exporter, configuration: configuration, logger: logger, clock: .continuous)
     }
 }

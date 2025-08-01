@@ -46,7 +46,7 @@ import W3CTraceContext
 ///
 /// (2) is a better choice for a closed set of types since it introduces minimal overhead.
 ///
-/// Note that, in order to abstract over platform availability and provide the package on older platforms that are not
+/// Note that, in order to abstract over platform availability and provide the on older platforms that are not
 /// supported by gRPC Swift v2, some of the below wrapper enums _do_ hold an existential in one of their cases. In this
 /// case, they still add value because they:
 ///

@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import ServiceContextModule
-package import ServiceLifecycle
+import ServiceLifecycle
 
 /// Log processors allow for processing logs throughout their lifetime via ``onStart(_:parentContext:)`` and ``onEnd(_:)`` calls.
 /// Usually, log processors will forward logs to a configurable ``OTelLogRecordExporter``.
@@ -22,7 +22,7 @@ package import ServiceLifecycle
 /// ### Implementation Notes
 ///
 /// On shutdown, processors forwarding logs to an ``OTelLogRecordExporter`` MUST shutdown that exporter.
-package protocol OTelLogRecordProcessor: Service & Sendable {
+protocol OTelLogRecordProcessor: Service & Sendable {
     func onEmit(_ record: inout OTelLogRecord)
 
     /// Force log processors that batch logs to flush immediately.

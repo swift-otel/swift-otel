@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import ServiceContextModule
+import ServiceContextModule
 
 private enum StubContextKey: ServiceContextKey {
     typealias Value = Int
@@ -19,7 +19,7 @@ private enum StubContextKey: ServiceContextKey {
 
 extension ServiceContext {
     /// A stub integer value used for testing.
-    package var stubValue: Int? {
+    var stubValue: Int? {
         get {
             self[StubContextKey.self]
         }
@@ -32,7 +32,7 @@ extension ServiceContext {
     ///
     /// - Parameter value: The value to use for ``stubValue``.
     /// - Returns: A top-level service context with `stubValue` set to the given value.
-    package static func withStubValue(_ value: Int) -> ServiceContext {
+    static func withStubValue(_ value: Int) -> ServiceContext {
         var context = ServiceContext.topLevel
         context.stubValue = value
         return context

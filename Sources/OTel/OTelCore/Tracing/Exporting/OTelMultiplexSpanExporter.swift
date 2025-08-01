@@ -12,17 +12,17 @@
 //===----------------------------------------------------------------------===//
 
 /// A pseudo-``OTelSpanExporter`` that may be used to export using multiple other ``OTelSpanExporter``s.
-package struct OTelMultiplexSpanExporter: OTelSpanExporter {
+struct OTelMultiplexSpanExporter: OTelSpanExporter {
     private let exporters: [any OTelSpanExporter]
 
     /// Initialize an ``OTelMultiplexSpanExporter``.
     ///
     /// - Parameter exporters: An array of ``OTelSpanExporter``s, each of which will receive the exported batches.
-    package init(exporters: [any OTelSpanExporter]) {
+    init(exporters: [any OTelSpanExporter]) {
         self.exporters = exporters
     }
 
-    package func run() async throws {
+    func run() async throws {
         try await withThrowingTaskGroup { group in
             for exporter in exporters {
                 group.addTask {
@@ -33,7 +33,7 @@ package struct OTelMultiplexSpanExporter: OTelSpanExporter {
         }
     }
 
-    package func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws {
+    func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for exporter in exporters {
                 group.addTask { try await exporter.export(batch) }
@@ -43,7 +43,7 @@ package struct OTelMultiplexSpanExporter: OTelSpanExporter {
         }
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         try await withThrowingTaskGroup(of: Void.self) { group in
             for exporter in exporters {
                 group.addTask { try await exporter.forceFlush() }
@@ -53,7 +53,7 @@ package struct OTelMultiplexSpanExporter: OTelSpanExporter {
         }
     }
 
-    package func shutdown() async {
+    func shutdown() async {
         await withTaskGroup(of: Void.self) { group in
             for exporter in exporters {
                 group.addTask { await exporter.shutdown() }

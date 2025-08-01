@@ -11,36 +11,36 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable package import OTel
+@testable import OTel
 
 /// An in-memory span exporter, collecting exported batches into ``OTelInMemorySpanExporter/exportedBatches``.
-package final actor OTelInMemorySpanExporter: OTelSpanExporter {
-    package private(set) var exportedBatches = [[OTelFinishedSpan]]()
-    package private(set) var numberOfShutdowns = 0
-    package private(set) var numberOfForceFlushes = 0
+final actor OTelInMemorySpanExporter: OTelSpanExporter {
+    private(set) var exportedBatches = [[OTelFinishedSpan]]()
+    private(set) var numberOfShutdowns = 0
+    private(set) var numberOfForceFlushes = 0
 
     private let exportDelay: Duration
 
-    package init(exportDelay: Duration = .zero) {
+    init(exportDelay: Duration = .zero) {
         self.exportDelay = exportDelay
     }
 
-    package func run() async throws {
+    func run() async throws {
         // no-op
     }
 
-    package func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
+    func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
         if exportDelay != .zero {
             try await Task.sleep(for: exportDelay)
         }
         exportedBatches.append(Array(batch))
     }
 
-    package func shutdown() async {
+    func shutdown() async {
         numberOfShutdowns += 1
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         numberOfForceFlushes += 1
     }
 }

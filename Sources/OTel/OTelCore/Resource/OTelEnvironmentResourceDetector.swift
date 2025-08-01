@@ -11,22 +11,22 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
+import Logging
 import Tracing
 
 /// A resource detector parsing resource attributes from the `OTEL_RESOURCE_ATTRIBUTES` environment variable.
-package struct OTelEnvironmentResourceDetector: OTelResourceDetector, CustomStringConvertible {
-    package let description = "environment"
+struct OTelEnvironmentResourceDetector: OTelResourceDetector, CustomStringConvertible {
+    let description = "environment"
     private let environment: OTelEnvironment
 
     /// Create an environment resource detector.
     ///
     /// - Parameter environment: The environment to read `OTEL_RESOURCE_ATTRIBUTES` from.
-    package init(environment: OTelEnvironment) {
+    init(environment: OTelEnvironment) {
         self.environment = environment
     }
 
-    package func resource(logger: Logger) throws -> OTelResource {
+    func resource(logger: Logger) throws -> OTelResource {
         let environmentKey = "OTEL_RESOURCE_ATTRIBUTES"
         guard let environmentValue = environment[environmentKey] else { return OTelResource() }
 
@@ -49,10 +49,10 @@ package struct OTelEnvironmentResourceDetector: OTelResourceDetector, CustomStri
     }
 }
 
-package struct OTelEnvironmentResourceAttributeParsingError: Error, Equatable {
-    package let keyValuePair: [Substring]
+struct OTelEnvironmentResourceAttributeParsingError: Error, Equatable {
+    let keyValuePair: [Substring]
 
-    package init(keyValuePair: [Substring]) {
+    init(keyValuePair: [Substring]) {
         self.keyValuePair = keyValuePair
     }
 }

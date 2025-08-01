@@ -11,12 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
+import Logging
 
 /// A resource detector asynchronously detects attributes describing an ``OTelResource``.
 ///
 /// [OTel Specification: Resource Creation](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/resource/sdk.md#resource-creation)
-package protocol OTelResourceDetector: Sendable {
+protocol OTelResourceDetector: Sendable {
     /// Detect attributes describing a resource.
     ///
     /// - Important: A successful detection of zero attributes **should not** result in an error being thrown.

@@ -11,11 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable package import OTel
-package import Tracing
-package import W3CTraceContext
+@testable import OTel
+import Tracing
+import W3CTraceContext
 
-package struct OTelInlineSampler: OTelSampler {
+struct OTelInlineSampler: OTelSampler {
     private let onSamplingResult: @Sendable (
         _ operationName: String,
         _ kind: SpanKind,
@@ -25,7 +25,7 @@ package struct OTelInlineSampler: OTelSampler {
         _ parentContext: ServiceContext
     ) -> OTelSamplingResult
 
-    package init(
+    init(
         onSamplingResult: @escaping @Sendable (
             _ operationName: String,
             _ spanKind: SpanKind,
@@ -38,7 +38,7 @@ package struct OTelInlineSampler: OTelSampler {
         self.onSamplingResult = onSamplingResult
     }
 
-    package func samplingResult(
+    func samplingResult(
         operationName: String,
         kind: SpanKind,
         traceID: TraceID,

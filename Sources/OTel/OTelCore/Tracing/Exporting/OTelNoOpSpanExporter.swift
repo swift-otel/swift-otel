@@ -12,23 +12,22 @@
 //===----------------------------------------------------------------------===//
 
 /// A span exporter that ignores all operations, used when no spans should be exported.
-package struct OTelNoOpSpanExporter: OTelSpanExporter {
+struct OTelNoOpSpanExporter: OTelSpanExporter {
     /// Initialize a no-op span exporter.
-    package init() {}
 
-    package func run() async throws {
+    func run() async throws {
         // no-op
     }
 
-    package func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
+    func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
         // no-op
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         // no-op
     }
 
-    package func shutdown() async {
+    func shutdown() async {
         // no-op
     }
 }

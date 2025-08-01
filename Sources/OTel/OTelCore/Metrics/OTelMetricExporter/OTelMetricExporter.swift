@@ -11,12 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import ServiceLifecycle
+import ServiceLifecycle
 
 /// Exports a batch of metrics.
 ///
 /// - Seealso: [OTel Specification for Metric Exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/metrics/sdk.md#metricexporter)
-package protocol OTelMetricExporter: Service, Sendable {
+protocol OTelMetricExporter: Service, Sendable {
     /// Export the given batch of metrics.
     ///
     /// - Parameter batch: A batch of metrics to export.
@@ -34,6 +34,4 @@ package protocol OTelMetricExporter: Service, Sendable {
 }
 
 /// An error indicating that an exporter has already been shut down but has been asked to export a batch of metrics.
-package struct OTelMetricExporterAlreadyShutDownError: Error {
-    package init() {}
-}
+struct OTelMetricExporterAlreadyShutDownError: Error {}

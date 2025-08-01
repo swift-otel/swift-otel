@@ -11,21 +11,21 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
+import Logging
 
-package struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTelLogRecordProcessor {
+struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTelLogRecordProcessor {
     private let logger: Logger
     private let exporter: Exporter
     private let stream: AsyncStream<OTelLogRecord>
     private let continuation: AsyncStream<OTelLogRecord>.Continuation
 
-    package init(exporter: Exporter, logger: Logger) {
+    init(exporter: Exporter, logger: Logger) {
         self.logger = logger.withMetadata(component: "OTelSimpleLogRecordProcessor")
         self.exporter = exporter
         (stream, continuation) = AsyncStream.makeStream()
     }
 
-    package func run() async throws {
+    func run() async throws {
         logger.info("Starting.")
         try await withThrowingTaskGroup { group in
             group.addTask { try await exporter.run() }
@@ -44,17 +44,17 @@ package struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OT
         logger.info("Shut down.")
     }
 
-    package func onEmit(_ record: inout OTelLogRecord) {
+    func onEmit(_ record: inout OTelLogRecord) {
         logger.trace("Received log record.")
         continuation.yield(record)
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         logger.info("Force flushing exporter.")
         try await exporter.forceFlush()
     }
 
-    package func shutdown() async throws {
+    func shutdown() async throws {
         logger.info("Received shutdown request.")
         await exporter.shutdown()
     }

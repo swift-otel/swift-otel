@@ -11,33 +11,33 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import ServiceContextModule
+import ServiceContextModule
 
 /// A span processor that ignores all operations, used when no spans should be processed.
-package struct OTelNoOpSpanProcessor: OTelSpanProcessor, CustomStringConvertible {
-    package let description = "OTelNoOpSpanProcessor"
+struct OTelNoOpSpanProcessor: OTelSpanProcessor, CustomStringConvertible {
+    let description = "OTelNoOpSpanProcessor"
 
     private let stream: AsyncStream<Void>
     private let continuation: AsyncStream<Void>.Continuation
 
     /// Initialize a no-op span processor.
-    package init() {
+    init() {
         (stream, continuation) = AsyncStream.makeStream()
     }
 
-    package func run() async {
+    func run() async {
         for await _ in stream.cancelOnGracefulShutdown() {}
     }
 
-    package func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
+    func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
         // no-op
     }
 
-    package func onEnd(_ span: OTelFinishedSpan) {
+    func onEnd(_ span: OTelFinishedSpan) {
         // no-op
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         // no-op
     }
 }

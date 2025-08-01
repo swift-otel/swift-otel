@@ -12,19 +12,18 @@
 //===----------------------------------------------------------------------===//
 
 /// A metric exporter that logs metrics to the console for debugging.
-package struct OTelConsoleMetricExporter: OTelMetricExporter {
+struct OTelConsoleMetricExporter: OTelMetricExporter {
     /// Create a new ``OTelConsoleMetricExporter``.
-    package init() {}
 
-    package func run() async throws {}
+    func run() async throws {}
 
-    package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
+    func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
         for metric in batch {
             print(metric)
         }
     }
 
-    package func forceFlush() async throws {}
+    func forceFlush() async throws {}
 
-    package func shutdown() async {}
+    func shutdown() async {}
 }

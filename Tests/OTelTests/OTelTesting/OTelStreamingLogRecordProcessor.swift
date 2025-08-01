@@ -11,28 +11,28 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable package import OTel
+@testable import OTel
 
 /// A log record exporter streaming exported batches via an async sequence.
-package final actor OTelStreamingLogRecordExporter: OTelLogRecordExporter {
-    package let batches: AsyncStream<[OTelLogRecord]>
+final actor OTelStreamingLogRecordExporter: OTelLogRecordExporter {
+    let batches: AsyncStream<[OTelLogRecord]>
     private let batchContinuation: AsyncStream<[OTelLogRecord]>.Continuation
     private var errorDuringNextExport: (any Error)?
 
-    package private(set) var numberOfShutdowns = 0
-    package private(set) var numberOfForceFlushes = 0
+    private(set) var numberOfShutdowns = 0
+    private(set) var numberOfForceFlushes = 0
 
-    package init() {
+    init() {
         (batches, batchContinuation) = AsyncStream<[OTelLogRecord]>.makeStream()
     }
 
-    package func run() async throws {}
+    func run() async throws {}
 
-    package func setErrorDuringNextExport(_ error: some Error) {
+    func setErrorDuringNextExport(_ error: some Error) {
         errorDuringNextExport = error
     }
 
-    package func export(_ batch: some Collection<OTelLogRecord>) async throws {
+    func export(_ batch: some Collection<OTelLogRecord>) async throws {
         batchContinuation.yield(Array(batch))
         if let errorDuringNextExport {
             self.errorDuringNextExport = nil
@@ -40,11 +40,11 @@ package final actor OTelStreamingLogRecordExporter: OTelLogRecordExporter {
         }
     }
 
-    package func shutdown() async {
+    func shutdown() async {
         numberOfShutdowns += 1
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         numberOfForceFlushes += 1
     }
 }

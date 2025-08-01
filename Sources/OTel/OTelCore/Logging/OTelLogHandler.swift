@@ -12,19 +12,19 @@
 //===----------------------------------------------------------------------===//
 
 import AsyncAlgorithms
-package import Logging
+import Logging
 import NIOConcurrencyHelpers
 import ServiceLifecycle
 import Tracing
 
-package struct OTelLogHandler: Sendable, LogHandler {
-    package var metadata: Logger.Metadata
-    package var logLevel: Logger.Level
+struct OTelLogHandler: Sendable, LogHandler {
+    var metadata: Logger.Metadata
+    var logLevel: Logger.Level
     private let processor: any OTelLogRecordProcessor
     private let resource: OTelResource
     private let nanosecondsSinceEpoch: @Sendable () -> UInt64
 
-    package init(
+    init(
         processor: any OTelLogRecordProcessor,
         logLevel: Logger.Level,
         resource: OTelResource,
@@ -39,7 +39,7 @@ package struct OTelLogHandler: Sendable, LogHandler {
         )
     }
 
-    package init(
+    init(
         processor: any OTelLogRecordProcessor,
         logLevel: Logger.Level,
         resource: OTelResource,
@@ -53,12 +53,12 @@ package struct OTelLogHandler: Sendable, LogHandler {
         self.nanosecondsSinceEpoch = nanosecondsSinceEpoch
     }
 
-    package subscript(metadataKey key: String) -> Logger.Metadata.Value? {
+    subscript(metadataKey key: String) -> Logger.Metadata.Value? {
         get { metadata[key] }
         set { metadata[key] = newValue }
     }
 
-    package func log(
+    func log(
         level: Logger.Level,
         message: Logger.Message,
         metadata: Logger.Metadata?,

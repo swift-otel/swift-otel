@@ -12,12 +12,12 @@
 //===----------------------------------------------------------------------===//
 
 import class Foundation.ProcessInfo
-package import Logging
+import Logging
 import Tracing
 
 /// A resource detector retrieving process-related attributes.
-package struct OTelProcessResourceDetector: OTelResourceDetector, CustomStringConvertible {
-    package let description = "process"
+struct OTelProcessResourceDetector: OTelResourceDetector, CustomStringConvertible {
+    let description = "process"
 
     private let processIdentifier: @Sendable () -> Int32
     private let executableName: @Sendable () -> String
@@ -27,7 +27,7 @@ package struct OTelProcessResourceDetector: OTelResourceDetector, CustomStringCo
     private let owner: @Sendable () -> String?
 
     /// Create a process resource detector.
-    package init() {
+    init() {
         self.init(
             processIdentifier: { ProcessInfo.processInfo.processIdentifier },
             executableName: { ProcessInfo.processInfo.processName },
@@ -44,7 +44,7 @@ package struct OTelProcessResourceDetector: OTelResourceDetector, CustomStringCo
         )
     }
 
-    package init(
+    init(
         processIdentifier: @escaping @Sendable () -> Int32,
         executableName: @escaping @Sendable () -> String,
         executablePath: @escaping @Sendable () -> String,
@@ -60,7 +60,7 @@ package struct OTelProcessResourceDetector: OTelResourceDetector, CustomStringCo
         self.owner = owner
     }
 
-    package func resource(logger: Logger) -> OTelResource {
+    func resource(logger: Logger) -> OTelResource {
         var attributes: SpanAttributes = [:]
 
         attributes["process.pid"] = SpanAttribute.int32(processIdentifier())

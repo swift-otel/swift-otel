@@ -15,7 +15,7 @@ import Logging
 import Tracing
 
 extension OTelResource {
-    package init(configuration: OTel.Configuration) {
+    init(configuration: OTel.Configuration) {
         var attributes = configuration.resourceAttributes.mapValues { $0.toSpanAttribute() }
 
         // If service.name is also provided in OTEL_RESOURCE_ATTRIBUTES, then OTEL_SERVICE_NAME takes precedence.
@@ -32,7 +32,7 @@ extension OTelResource {
 }
 
 extension OTelBatchLogRecordProcessorConfiguration {
-    package init(configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration) {
+    init(configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration) {
         self.init(
             environment: [:],
             maximumQueueSize: UInt(configuration.maxQueueSize),
@@ -44,7 +44,7 @@ extension OTelBatchLogRecordProcessorConfiguration {
 }
 
 extension OTelPeriodicExportingMetricsReaderConfiguration {
-    package init(configuration: OTel.Configuration.MetricsConfiguration) {
+    init(configuration: OTel.Configuration.MetricsConfiguration) {
         self.init(
             environment: [:],
             exportInterval: configuration.exportInterval,
@@ -54,7 +54,7 @@ extension OTelPeriodicExportingMetricsReaderConfiguration {
 }
 
 extension OTelBatchSpanProcessorConfiguration {
-    package init(configuration: OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration) {
+    init(configuration: OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration) {
         self.init(
             environment: [:],
             maximumQueueSize: UInt(configuration.maxQueueSize),
@@ -66,7 +66,7 @@ extension OTelBatchSpanProcessorConfiguration {
 }
 
 extension Logging.Logger.Level {
-    package init(_ level: OTel.Configuration.LogLevel) {
+    init(_ level: OTel.Configuration.LogLevel) {
         switch level.backing {
         case .error: self = .error
         case .warning: self = .warning

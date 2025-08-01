@@ -11,20 +11,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Tracing
-package import W3CTraceContext
+import Tracing
+import W3CTraceContext
 
 /// An `OTelSampler` based on a given `TraceID` and `ratio`.
 ///
 /// [OpenTelemetry Specification: TraceIDRatioBased Sampler](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/sdk.md#traceidratiobased)
-package struct OTelTraceIDRatioBasedSampler: OTelSampler, Equatable, Hashable, CustomStringConvertible {
+struct OTelTraceIDRatioBasedSampler: OTelSampler, Equatable, Hashable, CustomStringConvertible {
     let idUpperBound: UInt64
-    package let ratio: Double
+    let ratio: Double
 
     /// Create a trace id ratio based sampler with the given sampling `ratio`.
     ///
     /// - Parameter ratio: The sampling ratio. Must be between 0.0 and 1.0.
-    package init(ratio: Double) {
+    init(ratio: Double) {
         precondition(ratio >= 0.0 && ratio <= 1.0, "ratio must be between 0.0 and 1.0")
 
         self.ratio = ratio
@@ -37,7 +37,7 @@ package struct OTelTraceIDRatioBasedSampler: OTelSampler, Equatable, Hashable, C
         }
     }
 
-    package func samplingResult(
+    func samplingResult(
         operationName: String,
         kind: SpanKind,
         traceID: TraceID,
@@ -63,15 +63,15 @@ package struct OTelTraceIDRatioBasedSampler: OTelSampler, Equatable, Hashable, C
         }
     }
 
-    package static func == (lhs: Self, rhs: Self) -> Bool {
+    static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.idUpperBound == rhs.idUpperBound
     }
 
-    package func hash(into hasher: inout Hasher) {
+    func hash(into hasher: inout Hasher) {
         hasher.combine(idUpperBound)
     }
 
-    package var description: String {
+    var description: String {
         "TraceIdRatioBased{\(ratio)}"
     }
 }

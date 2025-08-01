@@ -11,24 +11,24 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
-package import NIOConcurrencyHelpers
+import Logging
+import NIOConcurrencyHelpers
 
-package struct RecordingLogHandler: LogHandler {
-    package typealias LogFunctionCall = (level: Logger.Level, message: Logger.Message, metadata: Logger.Metadata?)
+struct RecordingLogHandler: LogHandler {
+    typealias LogFunctionCall = (level: Logger.Level, message: Logger.Message, metadata: Logger.Metadata?)
 
     private let _level = NIOLockedValueBox(Logger.Level.trace)
     private let _metadata = NIOLockedValueBox(Logger.Metadata())
-    package let recordedLogMessages = NIOLockedValueBox([LogFunctionCall]())
+    let recordedLogMessages = NIOLockedValueBox([LogFunctionCall]())
     let recordedLogMessageStream: AsyncStream<LogFunctionCall>
     let recordedLogMessageContinuation: AsyncStream<LogFunctionCall>.Continuation
-    package let counts = NIOLockedValueBox([Logger.Level: Int]())
+    let counts = NIOLockedValueBox([Logger.Level: Int]())
 
-    package init() {
+    init() {
         (recordedLogMessageStream, recordedLogMessageContinuation) = AsyncStream<LogFunctionCall>.makeStream()
     }
 
-    package func log(
+    func log(
         level: Logger.Level,
         message: Logger.Message,
         metadata: Logger.Metadata?,
@@ -42,28 +42,28 @@ package struct RecordingLogHandler: LogHandler {
         recordedLogMessageContinuation.yield((level, message, metadata))
     }
 
-    package var metadata: Logging.Logger.Metadata {
-        get { self._metadata.withLockedValue { $0 } }
-        set(newValue) { self._metadata.withLockedValue { $0 = newValue } }
+    var metadata: Logging.Logger.Metadata {
+        get { _metadata.withLockedValue { $0 } }
+        set(newValue) { _metadata.withLockedValue { $0 = newValue } }
     }
 
-    package var logLevel: Logging.Logger.Level {
-        get { self._level.withLockedValue { $0 } }
-        set(newValue) { self._level.withLockedValue { $0 = newValue } }
+    var logLevel: Logging.Logger.Level {
+        get { _level.withLockedValue { $0 } }
+        set(newValue) { _level.withLockedValue { $0 = newValue } }
     }
 
-    package subscript(metadataKey metadataKey: String) -> Logging.Logger.Metadata.Value? {
+    subscript(metadataKey metadataKey: String) -> Logging.Logger.Metadata.Value? {
         get { _metadata.withLockedValue { $0[metadataKey] } }
         set(newValue) { _metadata.withLockedValue { $0[metadataKey] = newValue } }
     }
 }
 
 extension RecordingLogHandler {
-    package var warningCount: Int {
+    var warningCount: Int {
         counts.withLockedValue { $0[.warning, default: 0] }
     }
 
-    package var errorCount: Int {
+    var errorCount: Int {
         counts.withLockedValue { $0[.error, default: 0] }
     }
 }

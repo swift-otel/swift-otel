@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
+import Logging
 private import ServiceContextModule
 
 extension Logger.MetadataProvider {
@@ -25,7 +25,7 @@ extension Logger.MetadataProvider {
     ///   - traceFlagsKey: The metadata key of the trace flags. Defaults to `"trace_flags"`.
     ///   - parentSpanIDKey: The metadata key of the parent span ID. Defaults to `nil`, i.e. not included.
     /// - Returns: A metadata provider ready to use with Logging.
-    package static func otel(
+    static func otel(
         traceIDKey: String = "trace_id",
         spanIDKey: String = "span_id",
         traceFlagsKey: String = "trace_flags",
@@ -46,5 +46,5 @@ extension Logger.MetadataProvider {
     }
 
     /// A metadata provider exposing the current trace and span ID.
-    package static let otel = Logger.MetadataProvider.otel()
+    static let otel = Logger.MetadataProvider.otel()
 }

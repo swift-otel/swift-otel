@@ -12,13 +12,13 @@
 //===----------------------------------------------------------------------===//
 
 import OTLPCore
-package import Tracing
+import Tracing
 
 extension Opentelemetry_Proto_Trace_V1_Span.Event {
     /// Create an event from a `SpanEvent`.
     ///
     /// - Parameter event: The `SpanEvent` to cast.
-    package init(_ event: SpanEvent) {
+    init(_ event: SpanEvent) {
         self.init()
         name = event.name
         timeUnixNano = event.nanosecondsSinceEpoch

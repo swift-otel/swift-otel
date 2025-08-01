@@ -11,12 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import W3CTraceContext
+import W3CTraceContext
 
 extension TraceID {
     /// A trace ID stub with bytes from one to sixteen.
-    package static let oneToSixteen = TraceID(bytes: .init((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)))
+    static let oneToSixteen = TraceID(bytes: .init((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)))
 
     /// A trace ID stub with all bytes being zero.
-    package static let allZeroes = TraceID(bytes: .init((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)))
+    static let allZeroes = TraceID(bytes: .init((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)))
 }

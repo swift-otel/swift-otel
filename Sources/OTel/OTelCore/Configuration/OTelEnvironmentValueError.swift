@@ -12,15 +12,15 @@
 //===----------------------------------------------------------------------===//
 
 /// An error indicating that the value for a given key in an ``OTelEnvironment`` is malformed.
-package struct OTelEnvironmentValueError: Error, Equatable {
+struct OTelEnvironmentValueError: Error, Equatable {
     /// The environment key.
-    package let key: String
+    let key: String
 
     /// The malformed environment value.
-    package let value: String
+    let value: String
 
     /// The name of the type ``value`` should have been transformed into.
-    package let valueTypeName: String
+    let valueTypeName: String
 
     /// Create an ``OTelEnvironmentValueError`` with the given key and malformed value.
     ///
@@ -28,7 +28,7 @@ package struct OTelEnvironmentValueError: Error, Equatable {
     ///   - key: The environment key.
     ///   - value: The malformed environment value.
     ///   - valueType: The type the given should have been transformed into.
-    package init(key: String, value: String, valueType: Any.Type) {
+    init(key: String, value: String, valueType: Any.Type) {
         self.key = key
         self.value = value
         valueTypeName = "\(valueType)"
@@ -36,7 +36,7 @@ package struct OTelEnvironmentValueError: Error, Equatable {
 }
 
 extension OTelEnvironmentValueError: CustomStringConvertible {
-    package var description: String {
+    var description: String {
         #"Failed converting string value "\#(value)" into "\#(valueTypeName)"."#
     }
 }

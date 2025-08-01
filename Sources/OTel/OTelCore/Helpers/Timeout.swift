@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-package func withTimeout<ClockType: Clock, ChildTaskResult>(
+func withTimeout<ClockType: Clock, ChildTaskResult>(
     _ timeout: ClockType.Duration,
     priority: TaskPriority? = nil,
     clock: ClockType,
@@ -29,7 +29,7 @@ package func withTimeout<ClockType: Clock, ChildTaskResult>(
     }
 }
 
-package func withTimeout<ChildTaskResult>(
+func withTimeout<ChildTaskResult>(
     _ timeout: Duration,
     priority: TaskPriority? = nil,
     operation: @escaping @Sendable () async throws -> ChildTaskResult

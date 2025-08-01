@@ -16,7 +16,7 @@ import struct Foundation.Data
 import Logging
 import Metrics
 import NIOTestUtils
-import OTel
+import OTel // NOTE: Not @testable import because this test only uses public API.
 import OTLPCore
 import ServiceLifecycle
 import Testing
@@ -326,8 +326,8 @@ import Tracing
                     #expect(message.resourceLogs.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
-                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Waffle party privileges have been revoked due to insufficient team spirit"))
-                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value == .init("milchick"))
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue == "Waffle party privileges have been revoked due to insufficient team spirit")
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
                     #expect(message.resourceLogs.first?.resource.attributes.count == 2)
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
@@ -393,8 +393,8 @@ import Tracing
                     #expect(message.resourceLogs.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
-                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Waffle party privileges have been revoked due to insufficient team spirit"))
-                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value == .init("milchick"))
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue == "Waffle party privileges have been revoked due to insufficient team spirit")
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
                     #expect(message.resourceLogs.first?.resource.attributes.count == 2)
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
@@ -565,21 +565,30 @@ import Tracing
         }
     }
 
-    @Test func testMakeBackendThrowsWhenSignalIsDisabled() {
-        #expect(throws: OTel.Configuration.Error.invalidConfiguration("makeLoggingBackend called but config has logs disabled")) {
-            var config = OTel.Configuration.default
-            config.logs.enabled = false
-            _ = try OTel.makeLoggingBackend(configuration: config)
+    @Test func testMakeBackendThrowsWhenSignalIsDisabled() throws {
+        do {
+            let error = try #require(throws: (any Error).self) {
+                var config = OTel.Configuration.default
+                config.logs.enabled = false
+                _ = try OTel.makeLoggingBackend(configuration: config)
+            }
+            #expect("\(error)" == #"invalidConfiguration("makeLoggingBackend called but config has logs disabled")"#)
         }
-        #expect(throws: OTel.Configuration.Error.invalidConfiguration("makeMetricsBackend called but config has metrics disabled")) {
-            var config = OTel.Configuration.default
-            config.metrics.enabled = false
-            _ = try OTel.makeMetricsBackend(configuration: config)
+        do {
+            let error = try #require(throws: (any Error).self) {
+                var config = OTel.Configuration.default
+                config.metrics.enabled = false
+                _ = try OTel.makeMetricsBackend(configuration: config)
+            }
+            #expect("\(error)" == #"invalidConfiguration("makeMetricsBackend called but config has metrics disabled")"#)
         }
-        #expect(throws: OTel.Configuration.Error.invalidConfiguration("makeTracingBackend called but config has traces disabled")) {
-            var config = OTel.Configuration.default
-            config.traces.enabled = false
-            _ = try OTel.makeTracingBackend(configuration: config)
+        do {
+            let error = try #require(throws: (any Error).self) {
+                var config = OTel.Configuration.default
+                config.traces.enabled = false
+                _ = try OTel.makeTracingBackend(configuration: config)
+            }
+            #expect("\(error)" == #"invalidConfiguration("makeTracingBackend called but config has traces disabled")"#)
         }
     }
 }

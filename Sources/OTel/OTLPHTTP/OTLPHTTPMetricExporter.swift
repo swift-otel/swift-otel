@@ -11,25 +11,25 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
+import Logging
 import OTLPCore
 
-package final class OTLPHTTPMetricExporter: OTelMetricExporter {
+final class OTLPHTTPMetricExporter: OTelMetricExporter {
     typealias Request = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest
     typealias Response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse
     let exporter: OTLPHTTPExporter<Request, Response>
     private let logger: Logger
 
-    package init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
+    init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
         self.logger = logger.withMetadata(component: "OTLPHTTPMetricExporter")
         var configuration = configuration
         configuration.endpoint = configuration.metricsHTTPEndpoint
         exporter = try OTLPHTTPExporter(configuration: configuration)
     }
 
-    package func run() async throws {}
+    func run() async throws {}
 
-    package func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
+    func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
         guard batch.contains(where: { $0.scopeMetrics.contains(where: { !$0.metrics.isEmpty }) }) else { return }
         let proto = Request.with { request in
             request.resourceMetrics = batch.map(Opentelemetry_Proto_Metrics_V1_ResourceMetrics.init)
@@ -44,11 +44,11 @@ package final class OTLPHTTPMetricExporter: OTelMetricExporter {
         }
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         try await exporter.forceFlush()
     }
 
-    package func shutdown() async {
+    func shutdown() async {
         await exporter.shutdown()
     }
 }

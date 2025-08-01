@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@testable import OTel
 import OTLPCore
 import Tracing
 import XCTest
@@ -145,7 +146,7 @@ final class SpanAttributesProtoTests: XCTestCase {
     }
 
     func test_initAnyValue_withString_setsStringValue() {
-        let anyValue = Opentelemetry_Proto_Common_V1_AnyValue(.string("test"))
+        let anyValue = Opentelemetry_Proto_Common_V1_AnyValue(SpanAttribute.string("test"))
 
         XCTAssertEqual(anyValue, .with { $0.stringValue = "test" })
     }
@@ -167,7 +168,7 @@ final class SpanAttributesProtoTests: XCTestCase {
     }
 
     func test_initAnyValue_withStringConvertible_setsStringValue() {
-        let anyValue = Opentelemetry_Proto_Common_V1_AnyValue(.stringConvertible(42))
+        let anyValue = Opentelemetry_Proto_Common_V1_AnyValue(SpanAttribute.stringConvertible(42))
 
         XCTAssertEqual(anyValue, .with { $0.stringValue = "42" })
     }

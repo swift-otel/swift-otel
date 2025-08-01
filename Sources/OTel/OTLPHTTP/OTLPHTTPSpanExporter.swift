@@ -11,25 +11,25 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Logging
+import Logging
 import OTLPCore
 
-package final class OTLPHTTPSpanExporter: OTelSpanExporter {
+final class OTLPHTTPSpanExporter: OTelSpanExporter {
     typealias Request = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest
     typealias Response = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse
     let exporter: OTLPHTTPExporter<Request, Response>
     private let logger: Logger
 
-    package init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
+    init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
         self.logger = logger.withMetadata(component: "OTLPHTTPSpanExporter")
         var configuration = configuration
         configuration.endpoint = configuration.tracesHTTPEndpoint
         exporter = try OTLPHTTPExporter(configuration: configuration)
     }
 
-    package func run() async throws {}
+    func run() async throws {}
 
-    package func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws {
+    func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws {
         guard !batch.isEmpty else { return }
         let proto = Request.with { request in
             request.resourceSpans = [Opentelemetry_Proto_Trace_V1_ResourceSpans(batch)]
@@ -44,11 +44,11 @@ package final class OTLPHTTPSpanExporter: OTelSpanExporter {
         }
     }
 
-    package func forceFlush() async throws {
+    func forceFlush() async throws {
         try await exporter.forceFlush()
     }
 
-    package func shutdown() async {
+    func shutdown() async {
         await exporter.shutdown()
     }
 }

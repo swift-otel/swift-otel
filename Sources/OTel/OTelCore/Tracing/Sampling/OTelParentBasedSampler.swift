@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-package import Tracing
-package import W3CTraceContext
+import Tracing
+import W3CTraceContext
 
 /// A sampler relaying a sampling decision to any of the configured samplers,
 /// based on whether a given span has a remote and/or sampled parent.
@@ -25,21 +25,21 @@ package import W3CTraceContext
 /// | ✅ | ✅ | ❌ | ``remoteParentNotSampledSampler`` |
 /// | ✅ | ❌ | ✅ | ``localParentSampledSampler`` |
 /// | ✅ | ❌ | ❌ | ``localParentNotSampledSampler`` |
-package struct OTelParentBasedSampler: OTelSampler {
+struct OTelParentBasedSampler: OTelSampler {
     /// The sampler invoked if a given span does not have a parent.
-    package let rootSampler: any OTelSampler
+    let rootSampler: any OTelSampler
 
     /// The sampler invoked if a given span has a remote parent span that's sampled.
-    package let remoteParentSampledSampler: any OTelSampler
+    let remoteParentSampledSampler: any OTelSampler
 
     /// The sampler invoked if a given span has a remote parent span that's not sampled.
-    package let remoteParentNotSampledSampler: any OTelSampler
+    let remoteParentNotSampledSampler: any OTelSampler
 
     /// The sampler invoked if a given span has a local parent span that's sampled.
-    package let localParentSampledSampler: any OTelSampler
+    let localParentSampledSampler: any OTelSampler
 
     /// The sampler invoked if a given span has a local parent span that's not sampled.
-    package let localParentNotSampledSampler: any OTelSampler
+    let localParentNotSampledSampler: any OTelSampler
 
     /// Create a parent-based sampler delegating to the given samplers.
     ///
@@ -53,7 +53,7 @@ package struct OTelParentBasedSampler: OTelSampler {
     ///   Defaults to a constantly sampling sampler.
     ///   - localParentNotSampledSampler: The sampler to invoke if a given span has a local parent span that's not sampled.
     ///   Defaults to a constantly dropping sampler.
-    package init(
+    init(
         rootSampler: any OTelSampler,
         remoteParentSampledSampler: any OTelSampler = OTelConstantSampler(isOn: true),
         remoteParentNotSampledSampler: any OTelSampler = OTelConstantSampler(isOn: false),
@@ -67,7 +67,7 @@ package struct OTelParentBasedSampler: OTelSampler {
         self.localParentNotSampledSampler = localParentNotSampledSampler
     }
 
-    package func samplingResult(
+    func samplingResult(
         operationName: String,
         kind: SpanKind,
         traceID: TraceID,
