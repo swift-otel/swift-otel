@@ -1,26 +1,11 @@
 # ``OTel``
-<!--
-We need to play some tricks to have the DocC catalog play nicely with the Swift OTel package structure.
-
-The only product module, `OTel`, doesn't actually provide any public top-level symbols. Rather it provides public
-extensions on `enum OTel`, which actually lives in the internal `OTelCore` module, and makes this available using
-`@_exported import OTelCore.OTel`. The end experience is that folks just `import OTel` and they get the API.
-
-By default, this leads to a sub-par DocC experience, but DocC exposes enough levers that we can workaround it and
-present the reader with the same illusion: that there's one module/symbol, `OTel`, where all the APIs live.
-
-We do this by using a careful combination @Options and @Metadata, so take care when adjusting these.
--->
 @Options {
     @AutomaticSeeAlso(disabled)
-    @TopicsVisualStyle(hidden)
-
     @AutomaticArticleSubheading(disabled)
     @AutomaticTitleHeading(disabled)
 }
 @Metadata {
     @DisplayName("Swift OTel")
-    @DocumentationExtension(mergeBehavior: override)
     @PageImage(purpose: icon, source: "otel-logo")
 }
 
@@ -133,6 +118,7 @@ try await app.runService()
 [opentelemetry-swift]: https://github.com/open-telemetry/opentelemetry-swift
 
 ## Topics
-<!-- Even though this page uses @TopicsVisualStyle(hidden), topics here impact the sidebar in the compiled docs. -->
 
-- ``OTelCore/OTel``
+### API documentation
+
+- ``OTel``

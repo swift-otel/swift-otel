@@ -1,22 +1,18 @@
-# ``OTel/OTelCore/OTel``
-
-@Metadata {
-    @DisplayName(OTel, style: symbol)
-    @PageImage(purpose: icon, source: "otel-logo")
-}
+# ``OTel/OTel``
 
 ## Topics
 
-### Bootstrap
+### Streamlined bootstrap
 
 - ``bootstrap(configuration:)``
 
-### Backends
+### Configuration
+
+- ``Configuration``
+
+### Manual bootstrap
 
 - ``makeLoggingBackend(configuration:)``
 - ``makeMetricsBackend(configuration:)``
 - ``makeTracingBackend(configuration:)``
-
-### Logging metadata provider
-
 - ``makeLoggingMetadataProvider(configuration:)``
