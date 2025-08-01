@@ -11,6 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !OTLPHTTP
+// Empty when above trait(s) are disabled.
+#else
 import AsyncHTTPClient
 import Logging
 import NIOFoundationCompat
@@ -173,3 +176,4 @@ extension HTTPClient.Configuration {
         }
     }
 }
+#endif

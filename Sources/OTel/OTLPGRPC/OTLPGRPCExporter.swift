@@ -11,6 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !OTLPGRPC
+// Empty when above trait(s) are disabled.
+#else
 import struct Foundation.URLComponents
 import GRPCCore
 import GRPCNIOTransportHTTP2
@@ -182,3 +185,4 @@ extension Metadata {
         self.replaceOrAddString("OTel-OTLP-Exporter-Swift/\(OTelLibrary.version)", forKey: "User-Agent")
     }
 }
+#endif

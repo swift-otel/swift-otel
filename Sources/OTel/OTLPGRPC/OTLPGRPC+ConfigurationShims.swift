@@ -11,6 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !OTLPGRPC
+// Empty when above trait(s) are disabled.
+#else
 extension OTLPGRPCMetricExporterConfiguration {
     init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
         try self.init(
@@ -32,3 +35,4 @@ extension OTLPGRPCSpanExporterConfiguration {
         )
     }
 }
+#endif

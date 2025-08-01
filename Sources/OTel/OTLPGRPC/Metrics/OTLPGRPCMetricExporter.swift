@@ -11,6 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !OTLPGRPC
+// Empty when above trait(s) are disabled.
+#else
 import GRPCNIOTransportHTTP2
 import Logging
 import OTLPCore
@@ -45,3 +48,4 @@ final class OTLPGRPCMetricExporter: OTelMetricExporter {
         await client.shutdown()
     }
 }
+#endif

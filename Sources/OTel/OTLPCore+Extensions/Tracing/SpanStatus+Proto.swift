@@ -11,6 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !(OTLPHTTP || OTLPGRPC)
+// Empty when above trait(s) are disabled.
+#else
 import OTLPCore
 import Tracing
 
@@ -30,3 +33,4 @@ extension Opentelemetry_Proto_Trace_V1_Status {
         }
     }
 }
+#endif

@@ -11,6 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !OTLPGRPC
+// Empty when above trait(s) are disabled.
+#else
 import struct Foundation.URL
 
 struct OTLPGRPCEndpoint: Equatable {
@@ -61,3 +64,4 @@ struct OTLPGRPCEndpoint: Equatable {
 struct OTLPGRPCEndpointConfigurationError: Error {
     let value: String
 }
+#endif

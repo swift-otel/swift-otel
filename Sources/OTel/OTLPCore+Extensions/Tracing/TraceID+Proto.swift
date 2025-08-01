@@ -11,6 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !(OTLPHTTP || OTLPGRPC)
+// Empty when above trait(s) are disabled.
+#else
 import struct Foundation.Data
 import W3CTraceContext
 
@@ -19,3 +22,4 @@ extension TraceID {
         Data(bytes)
     }
 }
+#endif

@@ -11,6 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !OTLPHTTP
+// Empty when above trait(s) are disabled.
+#else
 import Logging
 import OTLPCore
 
@@ -52,3 +55,4 @@ final class OTLPHTTPLogRecordExporter: OTelLogRecordExporter {
         await exporter.shutdown()
     }
 }
+#endif

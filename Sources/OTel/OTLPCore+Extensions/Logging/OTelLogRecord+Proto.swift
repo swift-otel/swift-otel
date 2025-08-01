@@ -11,6 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !(OTLPHTTP || OTLPGRPC)
+// Empty when above trait(s) are disabled.
+#else
 import Logging
 import OTLPCore
 
@@ -111,3 +114,4 @@ extension Opentelemetry_Proto_Common_V1_InstrumentationScope {
         $0.version = OTelLibrary.version
     }
 }
+#endif

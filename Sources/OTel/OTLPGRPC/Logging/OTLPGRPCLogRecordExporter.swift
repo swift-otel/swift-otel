@@ -10,8 +10,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-// TODO: trait guard
 
+#if !OTLPGRPC
+// Empty when above trait(s) are disabled.
+#else
 import GRPCNIOTransportHTTP2
 import Logging
 import OTLPCore
@@ -46,3 +48,4 @@ final class OTLPGRPCLogRecordExporter: OTelLogRecordExporter {
         await client.shutdown()
     }
 }
+#endif

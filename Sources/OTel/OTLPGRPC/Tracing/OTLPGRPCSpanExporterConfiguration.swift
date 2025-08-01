@@ -11,6 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !OTLPGRPC
+// Empty when above trait(s) are disabled.
+#else
 import NIOHPACK
 
 /// Configuration of an ``OTLPGRPCSpanExporter``.
@@ -67,3 +70,4 @@ struct OTLPGRPCSpanExporterConfiguration: Sendable {
         ) ?? [:]
     }
 }
+#endif
