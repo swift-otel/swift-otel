@@ -125,6 +125,8 @@ jobs:
       - name: Run example package tests
         run: swift test
         if: steps.check-for-tests.outputs.example_has_tests == 'true'
+      - name: Check example package dependencies
+        run: ${{ github.workspace }}/scripts/check-example-dependencies.sh
 
   collect-examples:
     name: Example Package (All)
