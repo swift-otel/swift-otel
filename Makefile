@@ -107,8 +107,31 @@ $(OTLP_SERVER_GRPC_SWIFTS): $(OTLP_GRPC_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_
 		--swift_opt=ProtoPathModuleMappings=$(PROTO_MODULEMAP) \
 		--grpc-swift-2_out=Client=false,Server=true:$(OTLP_SERVER_GRPC_SWIFT_ROOT)
 
+.PHONY: add-trait-guards
+add-trait-guards: $(OTLP_CORE_SWIFTS) $(OTLP_CLIENT_GRPC_SWIFTS) $(OTLP_SERVER_GRPC_SWIFTS)
+	@for file in $(OTLP_CORE_SWIFTS); do \
+		mv "$$file" "$$file.orig"; \
+		echo "Adding trait guard to: $$file"; \
+		echo "#if !(OTLPHTTP || OTLPGRPC)" >> "$$file"; \
+		echo "// Empty when above trait(s) are disabled." >> "$$file"; \
+		echo "#else" >> "$$file"; \
+		cat "$$file.orig" >> "$$file"; \
+		echo "#endif" >> "$$file"; \
+		rm "$$file.orig"; \
+	done
+	@for file in $(OTLP_CLIENT_GRPC_SWIFTS) $(OTLP_SERVER_GRPC_SWIFTS); do \
+		mv "$$file" "$$file.orig"; \
+		echo "Adding trait guard to: $$file"; \
+		echo "#if !OTLPGRPC" >> "$$file"; \
+		echo "// Empty when above trait(s) are disabled." >> "$$file"; \
+		echo "#else" >> "$$file"; \
+		cat "$$file.orig" >> "$$file"; \
+		echo "#endif" >> "$$file"; \
+		rm "$$file.orig"; \
+	done
+
 .PHONY: generate
-generate: $(OTLP_CORE_SWIFTS) $(OTLP_CLIENT_GRPC_SWIFTS) $(OTLP_SERVER_GRPC_SWIFTS)  # Generate Swift files from Protobuf.
+generate: $(OTLP_CORE_SWIFTS) $(OTLP_CLIENT_GRPC_SWIFTS) $(OTLP_SERVER_GRPC_SWIFTS) add-trait-guards  # Generate Swift files from Protobuf.
 
 .PHONY: delete-generated-code
 delete-generated-code:  # Delete all pb.swift and .grpc.swift files.
