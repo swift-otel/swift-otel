@@ -1,3 +1,6 @@
+#if !(OTLPHTTP || OTLPGRPC)
+// Empty when above trait(s) are disabled.
+#else
 // DO NOT EDIT.
 // swift-format-ignore-file
 // swiftlint:disable all
@@ -221,3 +224,4 @@ extension Opentelemetry_Proto_Collector_Logs_V1_ExportLogsPartialSuccess: SwiftP
     return true
   }
 }
+#endif

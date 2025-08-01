@@ -1,3 +1,6 @@
+#if !(OTLPHTTP || OTLPGRPC)
+// Empty when above trait(s) are disabled.
+#else
 // DO NOT EDIT.
 // swift-format-ignore-file
 // swiftlint:disable all
@@ -500,3 +503,4 @@ extension Opentelemetry_Proto_Common_V1_InstrumentationScope: SwiftProtobuf.Mess
     return true
   }
 }
+#endif

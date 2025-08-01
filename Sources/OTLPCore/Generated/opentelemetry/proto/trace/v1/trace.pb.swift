@@ -1,3 +1,6 @@
+#if !(OTLPHTTP || OTLPGRPC)
+// Empty when above trait(s) are disabled.
+#else
 // DO NOT EDIT.
 // swift-format-ignore-file
 // swiftlint:disable all
@@ -861,3 +864,4 @@ extension Opentelemetry_Proto_Trace_V1_Status.StatusCode: SwiftProtobuf._ProtoNa
     2: .same(proto: "STATUS_CODE_ERROR"),
   ]
 }
+#endif

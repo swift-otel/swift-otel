@@ -1,3 +1,6 @@
+#if !OTLPGRPC
+// Empty when above trait(s) are disabled.
+#else
 // Copyright 2020, OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -215,4 +218,4 @@ extension Opentelemetry_Proto_Collector_Logs_V1_LogsService.SimpleServiceProtoco
             metadata: [:]
         )
     }
-}
+}#endif
