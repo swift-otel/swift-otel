@@ -27,7 +27,6 @@
 
 package import GRPCCore
 internal import GRPCProtobuf
-package import OTLPCore
 
 // MARK: - opentelemetry.proto.collector.metrics.v1.MetricsService
 
@@ -61,6 +60,164 @@ package enum Opentelemetry_Proto_Collector_Metrics_V1_MetricsService {
 extension GRPCCore.ServiceDescriptor {
     /// Service descriptor for the "opentelemetry.proto.collector.metrics.v1.MetricsService" service.
     package static let opentelemetry_proto_collector_metrics_v1_MetricsService = GRPCCore.ServiceDescriptor(fullyQualifiedService: "opentelemetry.proto.collector.metrics.v1.MetricsService")
+}
+
+// MARK: opentelemetry.proto.collector.metrics.v1.MetricsService (server)
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService {
+    /// Streaming variant of the service protocol for the "opentelemetry.proto.collector.metrics.v1.MetricsService" service.
+    ///
+    /// This protocol is the lowest-level of the service protocols generated for this service
+    /// giving you the most flexibility over the implementation of your service. This comes at
+    /// the cost of more verbose and less strict APIs. Each RPC requires you to implement it in
+    /// terms of a request stream and response stream. Where only a single request or response
+    /// message is expected, you are responsible for enforcing this invariant is maintained.
+    ///
+    /// Where possible, prefer using the stricter, less-verbose ``ServiceProtocol``
+    /// or ``SimpleServiceProtocol`` instead.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Service that can be used to push metrics between one Application
+    /// > instrumented with OpenTelemetry and a collector, or between a collector and a
+    /// > central collector.
+    package protocol StreamingServiceProtocol: GRPCCore.RegistrableRPCService {
+        /// Handle the "Export" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > For performance reasons, it is recommended to keep this RPC
+        /// > alive for the entire life of the application.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse` messages.
+        func export(
+            request: GRPCCore.StreamingServerRequest<Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse>
+    }
+
+    /// Service protocol for the "opentelemetry.proto.collector.metrics.v1.MetricsService" service.
+    ///
+    /// This protocol is higher level than ``StreamingServiceProtocol`` but lower level than
+    /// the ``SimpleServiceProtocol``, it provides access to request and response metadata and
+    /// trailing response metadata. If you don't need these then consider using
+    /// the ``SimpleServiceProtocol``. If you need fine grained control over your RPCs then
+    /// use ``StreamingServiceProtocol``.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Service that can be used to push metrics between one Application
+    /// > instrumented with OpenTelemetry and a collector, or between a collector and a
+    /// > central collector.
+    package protocol ServiceProtocol: Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.StreamingServiceProtocol {
+        /// Handle the "Export" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > For performance reasons, it is recommended to keep this RPC
+        /// > alive for the entire life of the application.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse` message.
+        func export(
+            request: GRPCCore.ServerRequest<Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse>
+    }
+
+    /// Simple service protocol for the "opentelemetry.proto.collector.metrics.v1.MetricsService" service.
+    ///
+    /// This is the highest level protocol for the service. The API is the easiest to use but
+    /// doesn't provide access to request or response metadata. If you need access to these
+    /// then use ``ServiceProtocol`` instead.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Service that can be used to push metrics between one Application
+    /// > instrumented with OpenTelemetry and a collector, or between a collector and a
+    /// > central collector.
+    package protocol SimpleServiceProtocol: Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.ServiceProtocol {
+        /// Handle the "Export" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > For performance reasons, it is recommended to keep this RPC
+        /// > alive for the entire life of the application.
+        ///
+        /// - Parameters:
+        ///   - request: A `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse` to respond with.
+        func export(
+            request: Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse
+    }
+}
+
+// Default implementation of 'registerMethods(with:)'.
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.StreamingServiceProtocol {
+    package func registerMethods<Transport>(with router: inout GRPCCore.RPCRouter<Transport>) where Transport: GRPCCore.ServerTransport {
+        router.registerHandler(
+            forMethod: Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Method.Export.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse>(),
+            handler: { request, context in
+                try await self.export(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+    }
+}
+
+// Default implementation of streaming methods from 'StreamingServiceProtocol'.
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.ServiceProtocol {
+    package func export(
+        request: GRPCCore.StreamingServerRequest<Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse> {
+        let response = try await self.export(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+}
+
+// Default implementation of methods from 'ServiceProtocol'.
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.SimpleServiceProtocol {
+    package func export(
+        request: GRPCCore.ServerRequest<Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse> {
+        return GRPCCore.ServerResponse<Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse>(
+            message: try await self.export(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
 }
 
 // MARK: opentelemetry.proto.collector.metrics.v1.MetricsService (client)
