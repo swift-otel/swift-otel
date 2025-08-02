@@ -126,7 +126,8 @@ jobs:
         run: swift test
         if: steps.check-for-tests.outputs.example_has_tests == 'true'
       - name: Check example package dependencies
-        if: matrix.swift == '6.2-snapshot'
+        # Right now trait-based dependency resolution doesn't work on Linux.
+        if: matrix.swift == '6.2-snapshot' && runner.os != 'Linux'
         run: ${{ github.workspace }}/scripts/check-example-dependencies.sh
 
   collect-examples:
