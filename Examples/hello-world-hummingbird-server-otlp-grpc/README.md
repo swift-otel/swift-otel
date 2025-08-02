@@ -13,6 +13,15 @@ It then starts a Hummingbird HTTP server along with its associated middleware fo
 
 Telemetry data is exported using OTLP/gRPC.
 
+## Package traits
+
+This example package depends on Swift OTel with only the `OTLPGRPC` trait enabled.
+
+This is not strictly necessary because the default traits include both `OTLPHTTP` and `OTLPGRPC`, but it will reduce
+ the dependency graph with a new enough Swift toolchain.
+
+To use the OTLP/HTTP exporter, enable the `OTLPHTTP` trait or remove the `traits:` parameter on the package dependency.
+
 ## Notable Configuration
 
 ```swift
