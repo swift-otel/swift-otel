@@ -14,8 +14,6 @@
 @testable import Logging
 import NIO
 @testable import OTel
-import OTLPCore
-@testable import OTLPGRPC
 import XCTest
 
 @available(gRPCSwift, *)

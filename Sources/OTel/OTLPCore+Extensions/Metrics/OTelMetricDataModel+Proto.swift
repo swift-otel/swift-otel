@@ -14,7 +14,6 @@
 #if !(OTLPHTTP || OTLPGRPC)
 // Empty when above trait(s) are disabled.
 #else
-import OTLPCore
 
 extension Opentelemetry_Proto_Metrics_V1_ResourceMetrics {
     init(_ resourceMetrics: OTelResourceMetrics) {

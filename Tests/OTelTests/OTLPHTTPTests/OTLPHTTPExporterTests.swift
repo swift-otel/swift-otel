@@ -15,7 +15,6 @@ import struct Foundation.Data
 import Metrics
 import NIOTestUtils
 @testable import OTel
-import OTLPCore
 import ServiceLifecycle
 import Testing
 import Tracing

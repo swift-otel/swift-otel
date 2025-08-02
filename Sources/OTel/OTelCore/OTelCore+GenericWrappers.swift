@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 
 #if OTLPGRPC
-import OTLPGRPC
 #endif
 import Logging
 import Tracing

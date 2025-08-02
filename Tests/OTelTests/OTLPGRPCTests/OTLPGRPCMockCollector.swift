@@ -14,7 +14,7 @@
 import GRPCCore
 import GRPCNIOTransportHTTP2Posix
 import NIOConcurrencyHelpers
-import OTLPGRPC
+import OTel
 import SwiftProtobuf
 import XCTest
 

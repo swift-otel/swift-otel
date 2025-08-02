@@ -15,7 +15,6 @@
 // Empty when above trait(s) are disabled.
 #else
 import Logging
-import OTLPCore
 
 final class OTLPHTTPSpanExporter: OTelSpanExporter {
     typealias Request = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest

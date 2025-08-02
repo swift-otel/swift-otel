@@ -14,7 +14,6 @@
 @testable import Logging
 import NIO
 @testable import OTel
-@testable import OTLPGRPC
 import Tracing
 import XCTest
 

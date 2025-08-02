@@ -15,7 +15,6 @@
 // Empty when above trait(s) are disabled.
 #else
 import struct Foundation.Data
-import OTLPCore
 import Tracing
 import W3CTraceContext
 

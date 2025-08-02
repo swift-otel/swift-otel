@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 
 @testable import OTel
-import OTLPGRPC
 import Testing
 
 @Suite struct OTelBackendTests {

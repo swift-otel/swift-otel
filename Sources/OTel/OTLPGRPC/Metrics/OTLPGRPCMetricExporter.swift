@@ -16,8 +16,6 @@
 #else
 import GRPCNIOTransportHTTP2
 import Logging
-import OTLPCore
-import OTLPGRPC
 
 /// A metrics exporter emitting metric batches to an OTel collector via gRPC.
 @available(gRPCSwift, *)

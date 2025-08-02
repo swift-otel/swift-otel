@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 
 @testable import OTel
-import OTLPCore
 import Tracing
 import W3CTraceContext
 import XCTest

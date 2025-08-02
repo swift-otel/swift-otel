@@ -16,7 +16,6 @@ public import Logging
 public import ServiceLifecycle
 public import Tracing
 #if OTLPGRPC
-import OTLPGRPC
 #endif
 
 extension OTel {

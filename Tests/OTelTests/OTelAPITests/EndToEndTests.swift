@@ -17,7 +17,6 @@ import Logging
 import Metrics
 import NIOTestUtils
 import OTel // NOTE: Not @testable import because this test only uses public API.
-import OTLPCore
 import ServiceLifecycle
 import Testing
 import Tracing

@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 
 @testable import OTel
-@testable import OTLPGRPC
 import XCTest
 
 final class OTLPGRPCEndpointTests: XCTestCase {

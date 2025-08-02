@@ -16,8 +16,6 @@
 #else
 import GRPCNIOTransportHTTP2
 import Logging
-import OTLPCore
-import OTLPGRPC
 
 /// A span exporter emitting span batches to an OTel collector via gRPC.
 @available(gRPCSwift, *)

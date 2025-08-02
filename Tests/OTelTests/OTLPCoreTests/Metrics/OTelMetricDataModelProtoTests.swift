@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 
 @testable import OTel
-import OTLPCore
 import XCTest
 
 final class OTelMetricDataModelProtoTests: XCTestCase {

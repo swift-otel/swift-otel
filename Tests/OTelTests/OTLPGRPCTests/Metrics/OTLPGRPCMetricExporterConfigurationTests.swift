@@ -13,7 +13,6 @@
 
 import NIOHPACK
 @testable import OTel
-@testable import OTLPGRPC
 import XCTest
 
 final class OTLPGRPCMetricExporterConfigurationTests: XCTestCase {
