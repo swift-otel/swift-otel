@@ -49,11 +49,9 @@ $(PROTOC_GEN_GRPC_SWIFT):
 # Code generation
 # -----------------------------------------------------------------------------
 PROTO_ROOT = opentelemetry-proto
-PROTO_MODULEMAP = module-mapping.proto
 
-OTLP_CORE_SWIFT_ROOT = Sources/OTLPCore/Generated
-OTLP_CLIENT_GRPC_SWIFT_ROOT = Sources/OTLPGRPC/Generated
-OTLP_SERVER_GRPC_SWIFT_ROOT = Tests/OTelTests/OTLPGRPCTests/Generated
+OTLP_CORE_SWIFT_ROOT = Sources/OTel/OTLPCore/Generated
+OTLP_GRPC_SWIFT_ROOT = Sources/OTel/OTLPCore/Generated
 
 OTLP_CORE_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/common/v1/common.proto
 OTLP_CORE_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/resource/v1/resource.proto
@@ -68,10 +66,9 @@ OTLP_GRPC_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/collector/trace/v1/trace_s
 OTLP_CORE_SWIFTS += $(subst $(PROTO_ROOT),$(OTLP_CORE_SWIFT_ROOT),$(OTLP_CORE_PROTOS:.proto=.pb.swift))
 OTLP_CORE_SWIFTS += $(subst $(PROTO_ROOT),$(OTLP_CORE_SWIFT_ROOT),$(OTLP_GRPC_PROTOS:.proto=.pb.swift))
 
-OTLP_CLIENT_GRPC_SWIFTS += $(subst $(PROTO_ROOT),$(OTLP_CLIENT_GRPC_SWIFT_ROOT),$(OTLP_GRPC_PROTOS:.proto=.grpc.swift))
-OTLP_SERVER_GRPC_SWIFTS += $(subst $(PROTO_ROOT),$(OTLP_SERVER_GRPC_SWIFT_ROOT),$(OTLP_GRPC_PROTOS:.proto=.grpc.swift))
+OTLP_GRPC_SWIFTS += $(subst $(PROTO_ROOT),$(OTLP_GRPC_SWIFT_ROOT),$(OTLP_GRPC_PROTOS:.proto=.grpc.swift))
 
-$(OTLP_CORE_SWIFTS): $(OTLP_CORE_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_SWIFT)
+$(OTLP_CORE_SWIFTS): $(OTLP_CORE_PROTOS) $(PROTOC_GEN_SWIFT)
 	@mkdir -pv $(OTLP_CORE_SWIFT_ROOT)
 	protoc $(OTLP_CORE_PROTOS) \
 		--proto_path=$(PROTO_ROOT) \
@@ -88,27 +85,17 @@ $(OTLP_CORE_SWIFTS): $(OTLP_CORE_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_SWIFT)
 		--swift_opt=UseAccessLevelOnImports=true \
 		--experimental_allow_proto3_optional
 
-$(OTLP_CLIENT_GRPC_SWIFTS): $(OTLP_GRPC_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_GRPC_SWIFT)
-	@mkdir -pv $(OTLP_CLIENT_GRPC_SWIFT_ROOT)
+$(OTLP_GRPC_SWIFTS): $(OTLP_GRPC_PROTOS) $(PROTOC_GEN_GRPC_SWIFT)
+	@mkdir -pv $(OTLP_GRPC_SWIFT_ROOT)
 	protoc $(OTLP_GRPC_PROTOS) \
 		--proto_path=$(PROTO_ROOT) \
 		--plugin=$(PROTOC_GEN_GRPC_SWIFT) \
 		--grpc-swift-2_opt=Visibility=Package \
 		--grpc-swift-2_opt=UseAccessLevelOnImports=true \
-		--grpc-swift-2_opt=ProtoPathModuleMappings=$(PROTO_MODULEMAP) \
-		--grpc-swift-2_out=Client=true,Server=false:$(OTLP_CLIENT_GRPC_SWIFT_ROOT)
-
-$(OTLP_SERVER_GRPC_SWIFTS): $(OTLP_GRPC_PROTOS) $(PROTO_MODULEMAP) $(PROTOC_GEN_GRPC_SWIFT)
-	@mkdir -pv $(OTLP_SERVER_GRPC_SWIFT_ROOT)
-	protoc $(OTLP_GRPC_PROTOS) \
-		--proto_path=$(PROTO_ROOT) \
-		--plugin=$(PROTOC_GEN_GRPC_SWIFT) \
-		--swift_out=$(OTLP_SERVER_GRPC_SWIFT_ROOT) \
-		--swift_opt=ProtoPathModuleMappings=$(PROTO_MODULEMAP) \
-		--grpc-swift-2_out=Client=false,Server=true:$(OTLP_SERVER_GRPC_SWIFT_ROOT)
+		--grpc-swift-2_out=Client=true,Server=true:$(OTLP_GRPC_SWIFT_ROOT)
 
 .PHONY: add-trait-guards
-add-trait-guards: $(OTLP_CORE_SWIFTS) $(OTLP_CLIENT_GRPC_SWIFTS) $(OTLP_SERVER_GRPC_SWIFTS)
+add-trait-guards: $(OTLP_CORE_SWIFTS) $(OTLP_GRPC_SWIFTS)
 	@for file in $(OTLP_CORE_SWIFTS); do \
 		mv "$$file" "$$file.orig"; \
 		echo "Adding trait guard to: $$file"; \
@@ -119,7 +106,7 @@ add-trait-guards: $(OTLP_CORE_SWIFTS) $(OTLP_CLIENT_GRPC_SWIFTS) $(OTLP_SERVER_G
 		echo "#endif" >> "$$file"; \
 		rm "$$file.orig"; \
 	done
-	@for file in $(OTLP_CLIENT_GRPC_SWIFTS) $(OTLP_SERVER_GRPC_SWIFTS); do \
+	@for file in $(OTLP_GRPC_SWIFTS); do \
 		mv "$$file" "$$file.orig"; \
 		echo "Adding trait guard to: $$file"; \
 		echo "#if !OTLPGRPC" >> "$$file"; \
@@ -131,25 +118,22 @@ add-trait-guards: $(OTLP_CORE_SWIFTS) $(OTLP_CLIENT_GRPC_SWIFTS) $(OTLP_SERVER_G
 	done
 
 .PHONY: generate
-generate: $(OTLP_CORE_SWIFTS) $(OTLP_CLIENT_GRPC_SWIFTS) $(OTLP_SERVER_GRPC_SWIFTS) add-trait-guards  # Generate Swift files from Protobuf.
+generate: $(OTLP_CORE_SWIFTS) $(OTLP_GRPC_SWIFTS) add-trait-guards  # Generate Swift files from Protobuf.
 
 .PHONY: delete-generated-code
 delete-generated-code:  # Delete all pb.swift and .grpc.swift files.
 	@read -p "Delete all *.pb.swift and *.grpc.swift files in Sources/? [y/N]" ans && [ $${ans:-N} = y ]
-	find Sources -name *.pb.swift -delete -o -name *.grpc.swift -delete
+	find Sources Tests -name *.pb.swift -delete -o -name *.grpc.swift -delete
 
 .PHONY: dump
 dump:  # Dump internal variables for debugging the Makefile.
 	@$(foreach v, \
 		PROTO_ROOT \
-		PROTO_MODULEMAP \
 		OTLP_CORE_SWIFT_ROOT \
-		OTLP_CLIENT_GRPC_SWIFT_ROOT \
-		OTLP_SERVER_GRPC_SWIFT_ROOT \
+		OTLP_GRPC_SWIFT_ROOT \
 		OTLP_CORE_PROTOS \
 		OTLP_CORE_SWIFTS \
-		OTLP_CLIENT_GRPC_SWIFTS \
-		OTLP_SERVER_GRPC_SWIFTS \
+		OTLP_GRPC_SWIFTS \
 	,echo $(v) = $($v);)
 
 # Xcode workspace with examples
