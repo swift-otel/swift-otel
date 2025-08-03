@@ -166,11 +166,7 @@ extension OTel.Configuration {
 }
 
 extension OTel.Configuration {
-    /// Log level for internal diagnostic messages.
-    ///
-    /// Controls the minimum severity level for diagnostic output.
-    ///
-    /// This option is ignored for custom loggers.
+    /// Minimum severity of logging to enable.
     public struct LogLevel: Sendable {
         enum Backing: String, CaseIterable, Sendable {
             case error
@@ -295,6 +291,7 @@ extension OTel.Configuration {
         ///
         /// See individual property documentation for specific default values, which respect the OTel specification
         /// where possible.
+        @_documentation(visibility: internal)
         public static let `default`: Self = .init(
             enabled: true,
             sampler: .parentBasedAlwaysOn,
@@ -348,6 +345,7 @@ extension OTel.Configuration {
         ///
         /// See individual property documentation for specific default values, which respect the OTel specification
         /// where possible.
+        @_documentation(visibility: internal)
         public static let `default`: Self = .init(
             enabled: true,
             exportInterval: .seconds(60),
@@ -400,6 +398,7 @@ extension OTel.Configuration {
         ///
         /// See individual property documentation for specific default values, which respect the OTel specification
         /// where possible.
+        @_documentation(visibility: internal)
         public static let `default`: Self = .init(
             enabled: true,
             level: .info,
@@ -514,6 +513,7 @@ extension OTel.Configuration.TracesConfiguration {
         ///
         /// See individual property documentation for specific default values, which respect the OTel specification
         /// where possible.
+        @_documentation(visibility: internal)
         public static let `default`: Self = .init(
             scheduleDelay: .seconds(5),
             exportTimeout: .seconds(30),
@@ -648,6 +648,7 @@ extension OTel.Configuration.LogsConfiguration {
         ///
         /// See individual property documentation for specific default values, which respect the OTel specification
         /// where possible.
+        @_documentation(visibility: internal)
         public static let `default`: Self = .init(
             scheduleDelay: .seconds(1),
             exportTimeout: .seconds(30),
@@ -864,6 +865,7 @@ extension OTel.Configuration {
         ///
         /// See individual property documentation for specific default values, which respect the OTel specification
         /// where possible.
+        @_documentation(visibility: internal)
         public static let `default`: Self = .init(
             endpoint: "http://localhost:4318",
             insecure: false,
@@ -935,11 +937,26 @@ extension OTel.Configuration.OTLPExporterConfiguration {
 
 extension OTel.Configuration {
     /// Configuration for the batch logging metadata provider.
+    /// - TODO: should this be a property of the Configuratino struct?
     public struct LoggingMetadataProviderConfiguration: Sendable {
+        /// Logging metadata key used to record the trace ID.
+        ///
+        /// - Default value: `"trace_id"`
         public var traceIDKey: String
+
+        /// Logging metadata key used to record the span ID.
+        ///
+        /// - Default value: `"span_id"`
         public var spanIDKey: String
+
+        /// Logging metadata key used to record the trace flags.
+        ///
+        /// - Default value: `"trace_flags"`
         public var traceFlagsKey: String
 
+        /// Default logging metadata provider configuration.
+        ///
+        /// See individual property documentation for specific default values.
         public static let `default`: Self = .init(
             traceIDKey: "trace_id",
             spanIDKey: "span_id",
