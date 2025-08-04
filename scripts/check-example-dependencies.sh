@@ -27,7 +27,7 @@ fi
 
 swift_otel_dependencies=$(swift package show-dependencies --format json | jq -er '
   .dependencies[]
-  | select((.identity | startswith("swift-otel")))
+  | select(.name == "swift-otel")
   | .dependencies[].identity')
 
 log "Checking traits used for swift-otel dependency..."
