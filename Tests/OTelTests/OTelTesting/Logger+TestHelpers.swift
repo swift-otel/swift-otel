@@ -18,4 +18,13 @@ extension Logger {
         label: "swift-otel-logging-disabled",
         factory: { _ in SwiftLogNoOpLogHandler() }
     )
+
+    static let _otelDebug = Logger(
+        label: "swift-otel-debug",
+        factory: { label in
+            var handler = StreamLogHandler.standardError(label: label)
+            handler.logLevel = .debug
+            return handler
+        }
+    )
 }
