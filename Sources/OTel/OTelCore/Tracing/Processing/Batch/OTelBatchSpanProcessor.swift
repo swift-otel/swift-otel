@@ -59,35 +59,13 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
     func run() async throws {
         let timerSequence = AsyncTimerSequence(interval: configuration.scheduleDelay, clock: clock).map { _ in }
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
-
-        try await withTaskCancellationOrGracefulShutdownHandler {
-            try await withThrowingTaskGroup { group in
-                group.addTask {
-                    try await self.exporter.run()
-                }
-                group.addTask {
-                    for await _ in mergedSequence where await !self.buffer.isEmpty {
-                        await self.tick()
-                    }
-                    self.logger.debug("Shutting down.")
-                    try? await self.forceFlush()
-                    await self.exporter.shutdown()
-                    self.logger.debug("Shut down.")
-                }
-                do {
-                    try await group.next()
-                    self.logger.warning("Exporter finished")
-                    group.cancelAll()
-                    try await group.waitForAll()
-                } catch {
-                    self.logger.warning("Exporter threw an error")
-                    group.cancelAll()
-                    try await group.waitForAll()
-                }
-            }
-        } onCancelOrGracefulShutdown: {
-            self.explicitTick.finish()
+        for await _ in mergedSequence where !buffer.isEmpty {
+            await self.tick()
         }
+        logger.debug("Shutting down.")
+        try? await forceFlush()
+        await exporter.shutdown()
+        logger.debug("Shut down.")
     }
 
     func forceFlush() async throws {

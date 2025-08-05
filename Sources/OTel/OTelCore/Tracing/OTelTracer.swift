@@ -98,39 +98,23 @@ extension OTelTracer where Clock == ContinuousClock {
 
 extension OTelTracer: Service {
     func run() async throws {
-        try await withGracefulShutdownHandler {
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                group.addTask {
-                    try await self.processor.run()
-                    self.logger.debug("Shut down.")
+        for await event in eventStream.cancelOnGracefulShutdown() {
+            /*
+             We don't want to propagate the current span's service context into
+             processing or exporting since it's not part of the span's scope.
+             */
+            await ServiceContext.$current.withValue(nil) {
+                switch event {
+                case .spanStarted(let span, let parentContext):
+                    await self.processor.onStart(span, parentContext: parentContext)
+                case .spanEnded(let span):
+                    await self.processor.onEnd(span)
+                case .forceFlushed:
+                    try? await self.processor.forceFlush()
                 }
-
-                group.addTask {
-                    for await event in self.eventStream {
-                        /*
-                         We don't want to propagate the current span's service context into
-                         processing or exporting since it's not part of the span's scope.
-                         */
-                        await ServiceContext.$current.withValue(nil) {
-                            switch event {
-                            case .spanStarted(let span, let parentContext):
-                                await self.processor.onStart(span, parentContext: parentContext)
-                            case .spanEnded(let span):
-                                await self.processor.onEnd(span)
-                            case .forceFlushed:
-                                try? await self.processor.forceFlush()
-                            }
-                        }
-                    }
-
-                    self.logger.debug("Shutting down.")
-                }
-
-                try await group.waitForAll()
             }
-        } onGracefulShutdown: {
-            self.eventStreamContinuation.finish()
         }
+        logger.debug("Shutting down.")
     }
 }
 

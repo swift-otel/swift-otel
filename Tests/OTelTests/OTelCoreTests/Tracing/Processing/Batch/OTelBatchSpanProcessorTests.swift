@@ -33,7 +33,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         let span2 = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "2")
         let span3 = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "3")
 
-        let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
+        let serviceGroup = ServiceGroup(services: [exporter, processor], logger: Logger(label: #function))
         Task {
             try await serviceGroup.run()
         }
@@ -66,7 +66,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         let span1 = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "1")
         let span2 = OTelFinishedSpan.stub(traceFlags: [], operationName: "2")
 
-        let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
+        let serviceGroup = ServiceGroup(services: [exporter, processor], logger: Logger(label: #function))
         Task {
             try await serviceGroup.run()
         }
@@ -100,7 +100,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         let span2 = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "2")
         let span3 = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "3")
 
-        let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
+        let serviceGroup = ServiceGroup(services: [exporter, processor], logger: Logger(label: #function))
         Task {
             try await serviceGroup.run()
         }
@@ -137,7 +137,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         let span1 = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "1")
         let span2 = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "2")
 
-        let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
+        let serviceGroup = ServiceGroup(services: [exporter, processor], logger: Logger(label: #function))
         Task {
             try await serviceGroup.run()
         }
@@ -186,7 +186,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
 
         let finishExpectation = expectation(description: "Expected processor to finish shutting down.")
 
-        let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
+        let serviceGroup = ServiceGroup(services: [exporter, processor], logger: Logger(label: #function))
         Task {
             try await serviceGroup.run()
             finishExpectation.fulfill()
@@ -229,7 +229,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
 
         let finishExpectation = expectation(description: "Expected processor to finish shutting down.")
 
-        let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
+        let serviceGroup = ServiceGroup(services: [exporter, processor], logger: Logger(label: #function))
         Task {
             do {
                 try await serviceGroup.run()
@@ -281,7 +281,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
 
         try await withThrowingTaskGroup { group in
             group.addTask {
-                let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
+                let serviceGroup = ServiceGroup(services: [exporter, processor], logger: Logger(label: #function))
                 try await serviceGroup.run()
                 XCTFail("Expected service group task throw")
             }
@@ -324,7 +324,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
 
         try await withThrowingTaskGroup { group in
             group.addTask {
-                let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
+                let serviceGroup = ServiceGroup(services: [exporter, processor], logger: Logger(label: #function))
                 try await serviceGroup.run()
                 XCTFail("Expected service group task throw")
             }
