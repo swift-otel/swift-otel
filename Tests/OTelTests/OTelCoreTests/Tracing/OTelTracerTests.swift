@@ -266,14 +266,11 @@ final class OTelTracerTests: XCTestCase {
         )
 
         let logger = Logger(label: #function)
-        let canary = Canary()
-        let serviceGroup = ServiceGroup(services: [exporter, processor, tracer, canary], logger: logger)
+        let serviceGroup = ServiceGroup(services: [exporter, processor, tracer], logger: logger)
 
         Task {
             try await serviceGroup.run()
         }
-
-        await canary.running
 
         let span = tracer.startSpan("test")
         span.end()
@@ -419,8 +416,7 @@ final class OTelTracerTests: XCTestCase {
         )
 
         let logger = Logger(label: #function)
-        let canary = Canary()
-        let serviceGroup = ServiceGroup(services: [exporter, processor, tracer, canary], logger: logger)
+        let serviceGroup = ServiceGroup(services: [exporter, processor, tracer], logger: logger)
         Task {
             try await serviceGroup.run()
         }
@@ -430,8 +426,6 @@ final class OTelTracerTests: XCTestCase {
 
         let span = tracer.startSpan("test")
         span.end()
-
-        await canary.running
 
         await serviceGroup.triggerGracefulShutdown()
 

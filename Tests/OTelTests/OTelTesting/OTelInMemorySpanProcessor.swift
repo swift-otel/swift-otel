@@ -13,6 +13,7 @@
 
 @testable import OTel
 import ServiceContextModule
+import ServiceLifecycle
 
 /// An in-memory span processor, collecting started spans into ``OTelInMemorySpanProcessor/startedSpans``
 /// and finished spans into ``OTelInMemorySpanProcessor/finishedSpans``.
@@ -30,7 +31,11 @@ final actor OTelInMemorySpanProcessor: OTelSpanProcessor {
     }
 
     func run() async throws {
-        for await _ in stream.cancelOnGracefulShutdown() {}
+        await withGracefulShutdownHandler {
+            for await _ in stream.cancelOnGracefulShutdown() {}
+        } onGracefulShutdown: {
+            self.continuation.finish()
+        }
         numberOfShutdowns += 1
     }
 

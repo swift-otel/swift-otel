@@ -66,19 +66,27 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
 
         await withTaskGroup { taskGroup in
-            taskGroup.addTask {
-                for await log in self.logStream.cancelOnGracefulShutdown() {
-                    await self._onLog(log)
+            await withGracefulShutdownHandler {
+                taskGroup.addTask {
+                    for await log in self.logStream {
+                        self.logger.debug("Consuming log from stream")
+                        await self._onLog(log)
+                        self.logger.debug("Consumed log from stream")
+                    }
+                    self.logger.debug("Log stream finished")
                 }
+                for await _ in mergedSequence where !(self.buffer.isEmpty) {
+                    await self.tick()
+                }
+                await taskGroup.waitForAll()
+            } onGracefulShutdown: {
+                self.logger.debug("Shutting down.")
+                self.logContinuation.finish()
+                self.explicitTick.finish()
             }
-            for await _ in mergedSequence where !(self.buffer.isEmpty) {
-                await self.tick()
-            }
-            self.logger.debug("Shutting down.")
             try? await self.forceFlush()
             await self.exporter.shutdown()
             self.logger.debug("Shut down.")
-            await taskGroup.waitForAll()
         }
     }
 

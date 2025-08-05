@@ -18,6 +18,7 @@ import struct Foundation.URLComponents
 import GRPCCore
 import GRPCNIOTransportHTTP2
 import Logging
+import ServiceLifecycle
 
 /// Unifying protocol for shared OTLP/gRPC exporter across signals.
 @available(gRPCSwift, *)
@@ -63,7 +64,11 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sen
     }
 
     func run() async throws {
-        try await underlyingClient.runConnections()
+        try await withGracefulShutdownHandler {
+            try await underlyingClient.runConnections()
+        } onGracefulShutdown: {
+            self.underlyingClient.beginGracefulShutdown()
+        }
     }
 
     func export(_ request: Client.Request) async throws -> Client.Response {

@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 @testable import OTel
+import ServiceLifecycle
 import XCTest
 
 final class OTelSimpleSpanProcessorTests: XCTestCase {
@@ -19,18 +20,22 @@ final class OTelSimpleSpanProcessorTests: XCTestCase {
         let exporter = OTelStreamingSpanExporter()
         let processor = OTelSimpleSpanProcessor(exporter: exporter)
 
-        Task {
-            try await processor.run()
+        try await withThrowingTaskGroup { group in
+            let serviceGroup = ServiceGroup(services: [processor], logger: ._otelDebug)
+            group.addTask { try await serviceGroup.run() }
+
+            let span = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "test")
+            processor.onEnd(span)
+
+            // wait for batch to be exported
+            var exportedBatchess = exporter.batches.makeAsyncIterator()
+            let batch = await exportedBatchess.next()
+
+            XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["test"])
+
+            await serviceGroup.triggerGracefulShutdown()
+            try await group.waitForAll()
         }
-
-        let span = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "test")
-        processor.onEnd(span)
-
-        // wait for batch to be exported
-        var exportedBatchess = exporter.batches.makeAsyncIterator()
-        let batch = await exportedBatchess.next()
-
-        XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["test"])
     }
 
     func test_onEnd_withNonSampledSpan_doesNotForwardSpanToExporter() async throws {
@@ -61,7 +66,13 @@ final class OTelSimpleSpanProcessorTests: XCTestCase {
         let exporter = OTelInMemorySpanExporter()
         let processor = OTelSimpleSpanProcessor(exporter: exporter)
 
-        try await processor.shutdown()
+        try await withThrowingTaskGroup { group in
+            let serviceGroup = ServiceGroup(services: [processor], logger: ._otelDebug)
+            group.addTask { try await serviceGroup.run() }
+            try await Task.sleep(for: .seconds(0.1))
+            await serviceGroup.triggerGracefulShutdown()
+            try await group.waitForAll()
+        }
 
         let numberOfShutdowns = await exporter.numberOfShutdowns
         XCTAssertEqual(numberOfShutdowns, 1)

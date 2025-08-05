@@ -13,6 +13,7 @@
 
 import Logging
 import ServiceContextModule
+import ServiceLifecycle
 
 /// A span processor that simply forwards finished spans to a configured exporter, one at a time as soon as their ended.
 ///
@@ -37,14 +38,23 @@ struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProcessor {
     }
 
     func run() async throws {
-        for try await span in stream.cancelOnGracefulShutdown() {
-            do {
-                logger.trace("Received ended span.", metadata: ["span_id": "\(span.spanContext.spanID)"])
-                try await exporter.export([span])
-            } catch {
-                // simple span processor does not attempt retries, so this is no-op
+        logger.info("Starting.")
+        await withGracefulShutdownHandler {
+            for await span in stream {
+                do {
+                    logger.trace("Received ended span.", metadata: ["span_id": "\(span.spanContext.spanID)"])
+                    try await exporter.export([span])
+                } catch {
+                    logger.warning("Exporting log record failed", metadata: ["error": "\(error)"])
+                    // simple log processor does not attempt retries
+                }
             }
+        } onGracefulShutdown: {
+            logger.info("Shutting down.")
+            continuation.finish()
         }
+        await exporter.shutdown()
+        logger.info("Shut down.")
     }
 
     func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
@@ -58,9 +68,5 @@ struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProcessor {
 
     func forceFlush() async throws {
         try await exporter.forceFlush()
-    }
-
-    func shutdown() async throws {
-        await exporter.shutdown()
     }
 }

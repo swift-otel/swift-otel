@@ -13,6 +13,7 @@
 
 import NIOConcurrencyHelpers
 @testable import OTel
+import ServiceLifecycle
 
 /// An in-memory log record processor, collecting emitted log records into ``onEmit(_:)``.
 final class OTelInMemoryLogRecordProcessor: OTelLogRecordProcessor {
@@ -33,7 +34,11 @@ final class OTelInMemoryLogRecordProcessor: OTelLogRecordProcessor {
     }
 
     func run() async throws {
-        for await _ in stream.cancelOnGracefulShutdown() {}
+        await withGracefulShutdownHandler {
+            for await _ in stream.cancelOnGracefulShutdown() {}
+        } onGracefulShutdown: {
+            self.continuation.finish()
+        }
         _numberOfShutdowns.withLockedValue { $0 += 1 }
     }
 

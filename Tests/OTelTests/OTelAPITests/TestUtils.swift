@@ -24,8 +24,6 @@ import Musl
 #endif
 
 import struct Foundation.URL
-import Logging
-import ServiceLifecycle
 
 extension Testing.Test {
     /// Update the `LLVM_PROFILE_PATH` with per-process pattern.
@@ -59,22 +57,4 @@ extension Testing.Test {
         print("Replacing \(key)=\(previousValue) with \(key)=\(newValue)")
         setenv(key, newValue, 1)
     }
-}
-
-struct Canary: Service, CustomStringConvertible {
-    private var (runningStream, runningContinuation) = AsyncStream<Void>.makeStream(of: Void.self)
-    private var (finishedStream, finishedContinuation) = AsyncStream<Void>.makeStream(of: Void.self)
-    private let logger: Logger = ._otelDebug
-    func run() async throws {
-        try await Task.sleep(for: .milliseconds(10))
-        logger.debug("Canary running")
-        runningContinuation.yield()
-        await AsyncStream.makeStream(of: Void.self).stream.cancelOnGracefulShutdown().first { true }
-        logger.debug("Canary finished")
-        finishedContinuation.yield()
-    }
-
-    var running: Void { get async { await runningStream.first { true } } }
-    var finished: Void { get async { await finishedStream.first { true } } }
-    var description: String { "Canary" }
 }
