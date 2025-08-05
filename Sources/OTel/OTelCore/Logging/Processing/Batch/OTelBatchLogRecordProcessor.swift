@@ -75,15 +75,17 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
                         await self.tick()
                     }
                 }
-                for await log in self.logStream {
-                    self._onLog(log)
+                taskGroup.addTask {
+                    for await log in self.logStream {
+                        await self._onLog(log)
+                    }
+                    self.logger.debug("Shutting down.")
+                    self.explicitTick.finish()
+                    try? await self.forceFlush()
+                    await self.exporter.shutdown()
+                    self.logger.debug("Shut down.")
                 }
-                logger.debug("Shutting down.")
-                self.explicitTick.finish()
-                try? await forceFlush()
-                await exporter.shutdown()
-                try await taskGroup.waitForAll()
-                logger.debug("Shut down.")
+                try await taskGroup.next()
             }
         } onCancelOrGracefulShutdown: {
             self.logContinuation.finish()
