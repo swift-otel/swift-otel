@@ -121,8 +121,29 @@ extension CallOptions {
         case .gzip: .gzip
         case .none: CompressionAlgorithm.none
         }
-        // TODO: retry/backoff policy here
+        self.executionPolicy = .retry(.otel)
     }
+}
+
+@available(gRPCSwift, *)
+extension GRPCCore.RetryPolicy {
+    /// A policy for use with the OTLP/gRPC exporter, following guidance from the spec.
+    ///
+    /// - See: [](https://opentelemetry.io/docs/specs/otlp/#failures)
+    static let otel = Self(
+        maxAttempts: 3,
+        initialBackoff: .seconds(2),
+        maxBackoff: .seconds(10),
+        backoffMultiplier: 2,
+        retryableStatusCodes: [
+            .cancelled,
+            .deadlineExceeded,
+            .aborted,
+            .outOfRange,
+            .unavailable,
+            .dataLoss,
+        ]
+    )
 }
 
 @available(gRPCSwift, *)
