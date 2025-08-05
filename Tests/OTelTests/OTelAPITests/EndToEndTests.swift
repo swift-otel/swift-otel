@@ -406,8 +406,7 @@ import Tracing
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
                     let canary = Canary()
-                    // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
-                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDisabled)
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDebug)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
@@ -477,8 +476,7 @@ import Tracing
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
                     let canary = Canary()
-                    // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
-                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDisabled)
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDebug)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
@@ -589,7 +587,7 @@ import Tracing
 
             try await withThrowingTaskGroup { group in
                 let canary = Canary()
-                let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDisabled)
+                let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDebug)
                 group.addTask { try await serviceGroup.run() }
                 await canary.running
                 group.addTask {
@@ -629,8 +627,7 @@ import Tracing
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
                     let canary = Canary()
-                    // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
-                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDisabled)
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDebug)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
