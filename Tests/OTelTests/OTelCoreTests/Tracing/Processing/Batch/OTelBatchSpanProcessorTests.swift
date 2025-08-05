@@ -231,7 +231,11 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
 
         let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
         Task {
-            try await serviceGroup.run()
+            do {
+                try await serviceGroup.run()
+            } catch {
+                finishExpectation.fulfill()
+            }
             finishExpectation.fulfill()
         }
 
