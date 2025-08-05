@@ -31,7 +31,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             clock: clock
         )
 
-        let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
+        let serviceGroup = ServiceGroup(services: [exporter, processor], logger: Logger(label: #function))
 
         try await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask(operation: serviceGroup.run)
@@ -41,6 +41,9 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 var record = OTelLogRecord.stub(body: message)
                 processor.onEmit(&record)
             }
+
+            // Wait for the processor task to drain them from the stream, and into the buffer.
+            while await processor.buffer.count != 3 { await Task.yield() }
 
             // await first sleep for "tick"
             var sleeps = clock.sleepCalls.makeAsyncIterator()

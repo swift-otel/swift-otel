@@ -117,7 +117,18 @@ extension OTel {
             logLevel: Logger.Level(configuration.logs.level),
             resource: resource
         )
-        return ({ _ in handler }, processor)
+
+        // Return a nested service group, which will handle the ordered shutdown.
+        var serviceConfigs: [ServiceGroupConfiguration.ServiceConfiguration] = []
+        for service in [exporter, processor] as [Service] {
+            serviceConfigs.append(.init(
+                service: service,
+                successTerminationBehavior: .gracefullyShutdownGroup,
+                failureTerminationBehavior: .gracefullyShutdownGroup
+            ))
+        }
+        let serviceGroup = ServiceGroup(configuration: .init(services: serviceConfigs, logger: logger))
+        return ({ _ in handler }, serviceGroup)
     }
 
     /// Create a metrics backend with an OTLP exporter.

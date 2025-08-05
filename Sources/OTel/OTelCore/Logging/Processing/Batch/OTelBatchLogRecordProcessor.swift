@@ -65,31 +65,20 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
         let timerSequence = AsyncTimerSequence(interval: configuration.scheduleDelay, clock: clock).map { _ in }
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
 
-        try await withTaskCancellationOrGracefulShutdownHandler {
-            try await withThrowingTaskGroup { taskGroup in
-                taskGroup.addTask {
-                    try await self.exporter.run()
+        await withTaskGroup { taskGroup in
+            taskGroup.addTask {
+                for await log in self.logStream.cancelOnGracefulShutdown() {
+                    await self._onLog(log)
                 }
-                taskGroup.addTask {
-                    for try await _ in mergedSequence where await !(self.buffer.isEmpty) {
-                        await self.tick()
-                    }
-                }
-                taskGroup.addTask {
-                    for await log in self.logStream {
-                        await self._onLog(log)
-                    }
-                    self.logger.debug("Shutting down.")
-                    self.explicitTick.finish()
-                    try? await self.forceFlush()
-                    await self.exporter.shutdown()
-                    self.logger.debug("Shut down.")
-                }
-                try await taskGroup.next()
             }
-        } onCancelOrGracefulShutdown: {
-            self.logContinuation.finish()
-            self.explicitTick.finish()
+            for await _ in mergedSequence where !(self.buffer.isEmpty) {
+                await self.tick()
+            }
+            self.logger.debug("Shutting down.")
+            try? await self.forceFlush()
+            await self.exporter.shutdown()
+            self.logger.debug("Shut down.")
+            await taskGroup.waitForAll()
         }
     }
 
