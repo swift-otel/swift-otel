@@ -281,6 +281,90 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         let numberOfShutdowns = await exporter.numberOfShutdowns
         XCTAssertEqual(numberOfShutdowns, 1)
     }
+
+    func test_run_exporterRunMethodFinishes_shutsDownProcessor() async throws {
+        struct ExitingExporter: OTelLogRecordExporter {
+            let trigger = AsyncStream<Void>.makeStream(of: Void.self)
+            func run() async throws {
+                await trigger.stream.first { true }
+            }
+
+            func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {}
+            func forceFlush() async throws {}
+            func shutdown() async {}
+        }
+
+        let exporter = ExitingExporter()
+        let processorClock = TestClock()
+        let processor = OTelBatchLogRecordProcessor(
+            exporter: exporter,
+            configuration: .init(environment: [:], scheduleDelay: .seconds(1), exportTimeout: .seconds(1)),
+            clock: processorClock
+        )
+
+        try await withThrowingTaskGroup { group in
+            group.addTask {
+                let serviceGroup = ServiceGroup(services: [exporter, processor], logger: Logger(label: #function))
+                try await serviceGroup.run()
+                XCTFail("Expected service group task throw")
+            }
+
+            var processorSleeps = processorClock.sleepCalls.makeAsyncIterator()
+            await processorSleeps.next()
+            exporter.trigger.continuation.yield()
+
+            do {
+                try await group.next()
+                XCTFail("Expected service group task throw")
+            } catch {
+                let serviceGroupError = try XCTUnwrap(error as? ServiceGroupError)
+                XCTAssertEqual(serviceGroupError, ServiceGroupError.serviceFinishedUnexpectedly())
+            }
+        }
+    }
+
+    func test_run_exporterRunMethodThrows_shutsDownProcessor() async throws {
+        struct ThrowingExporter: OTelLogRecordExporter {
+            let trigger = AsyncStream<Void>.makeStream(of: Void.self)
+            func run() async throws {
+                await trigger.stream.first(where: { true })
+                throw ExporterFailed()
+            }
+
+            struct ExporterFailed: Error {}
+            func export(_ batch: some Collection<OTelLogRecord> & Sendable) async throws {}
+            func forceFlush() async throws {}
+            func shutdown() async {}
+        }
+
+        let exporter = ThrowingExporter()
+        let processorClock = TestClock()
+        let processor = OTelBatchLogRecordProcessor(
+            exporter: exporter,
+            configuration: .init(environment: [:], scheduleDelay: .seconds(1), exportTimeout: .seconds(1)),
+            clock: processorClock
+        )
+
+        try await withThrowingTaskGroup { group in
+            group.addTask {
+                let serviceGroup = ServiceGroup(services: [exporter, processor], logger: Logger(label: #function))
+                try await serviceGroup.run()
+                XCTFail("Expected service group task throw")
+            }
+
+            var processorSleeps = processorClock.sleepCalls.makeAsyncIterator()
+            await processorSleeps.next()
+            exporter.trigger.continuation.yield()
+
+            do {
+                try await group.next()
+                XCTFail("Expected service group task throw")
+            } catch {
+                XCTAssert(error is ThrowingExporter.ExporterFailed, "Different error: \(error)")
+            }
+            try await group.waitForAll()
+        }
+    }
 }
 
 private struct ShutdownTrigger: Service {
