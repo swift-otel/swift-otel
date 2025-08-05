@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 @testable import OTel
+import ServiceLifecycle
 
 /// A log record exporter streaming exported batches via an async sequence.
 final actor OTelStreamingLogRecordExporter: OTelLogRecordExporter {
@@ -26,9 +27,9 @@ final actor OTelStreamingLogRecordExporter: OTelLogRecordExporter {
         (batches, batchContinuation) = AsyncStream<[OTelLogRecord]>.makeStream()
     }
 
-    func run() async {
+    func run() async throws {
         // No background work needed, but we'll keep the run method running until its cancelled.
-        await AsyncStream.makeStream(of: Void.self).stream.cancelOnGracefulShutdown().first { _ in true }
+        try await gracefulShutdown()
     }
 
     func setErrorDuringNextExport(_ error: some Error) {

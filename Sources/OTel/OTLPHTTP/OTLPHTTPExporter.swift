@@ -19,6 +19,7 @@ import Logging
 import NIOFoundationCompat
 import NIOHTTP1
 import NIOSSL
+import ServiceLifecycle
 import SwiftProtobuf
 
 import struct Foundation.Data
@@ -46,9 +47,9 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         try? self.httpClient.syncShutdown()
     }
 
-    func run() async {
+    func run() async throws {
         // No background work needed, but we'll keep the run method running until its cancelled.
-        await AsyncStream.makeStream(of: Void.self).stream.cancelOnGracefulShutdown().first { _ in true }
+        try await gracefulShutdown()
     }
 
     func send(_ proto: Request) async throws -> Response {

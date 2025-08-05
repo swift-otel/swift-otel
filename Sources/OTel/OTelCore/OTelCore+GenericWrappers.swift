@@ -70,7 +70,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.run()
         #endif
-        case .console(let exporter): await exporter.run()
+        case .console(let exporter): try await exporter.run()
         case .none: break
         }
     }

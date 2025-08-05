@@ -12,9 +12,10 @@
 //===----------------------------------------------------------------------===//
 
 import struct Foundation.Date
+import ServiceLifecycle
 
 struct OTelConsoleLogRecordExporter: OTelLogRecordExporter {
-    func run() async {
+    func run() async throws {
         /// > The exporter’s output format is unspecified and can vary between implementations. Documentation SHOULD
         /// > warn users about this. The following wording is recommended (modify as needed):
         /// > >
@@ -35,7 +36,7 @@ struct OTelConsoleLogRecordExporter: OTelLogRecordExporter {
             """
         )
         // No background work needed, but we'll keep the run method running until its cancelled.
-        await AsyncStream.makeStream(of: Void.self).stream.cancelOnGracefulShutdown().first { _ in true }
+        try await gracefulShutdown()
     }
 
     func export(_ batch: some Collection<OTelLogRecord> & Sendable) {

@@ -11,13 +11,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+import ServiceLifecycle
+
 /// A span exporter that ignores all operations, used when no spans should be exported.
 struct OTelNoOpSpanExporter: OTelSpanExporter {
     /// Initialize a no-op span exporter.
 
-    func run() async {
+    func run() async throws {
         // No background work needed, but we'll keep the run method running until its cancelled.
-        await AsyncStream.makeStream(of: Void.self).stream.cancelOnGracefulShutdown().first { _ in true }
+        try await gracefulShutdown()
     }
 
     func export(_ batch: some Collection<OTelFinishedSpan>) async throws {

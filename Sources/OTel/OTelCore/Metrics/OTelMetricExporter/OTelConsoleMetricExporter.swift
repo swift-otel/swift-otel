@@ -11,13 +11,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+import ServiceLifecycle
+
 /// A metric exporter that logs metrics to the console for debugging.
 struct OTelConsoleMetricExporter: OTelMetricExporter {
     /// Create a new ``OTelConsoleMetricExporter``.
 
-    func run() async {
+    func run() async throws {
         // No background work needed, but we'll keep the run method running until its cancelled.
-        await AsyncStream.makeStream(of: Void.self).stream.cancelOnGracefulShutdown().first { _ in true }
+        try await gracefulShutdown()
     }
 
     func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
