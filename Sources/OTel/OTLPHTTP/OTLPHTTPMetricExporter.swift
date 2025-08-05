@@ -40,8 +40,32 @@ final class OTLPHTTPMetricExporter: OTelMetricExporter {
         }
         let response = try await exporter.send(proto)
         if response.hasPartialSuccess {
-            // https://opentelemetry.io/docs/specs/otlp/#partial-success-1
-            logger.warning("Partial success", metadata: [
+            /// > If the request is only partially accepted ... the server MUST initialize the `partial_success` field
+            /// > ... and it MUST set the respective `rejected_spans`, `rejected_data_points`, `rejected_log_records`
+            /// > or `rejected_profiles` field with the number of spans/data points/log records it rejected.
+            /// >
+            /// > The server SHOULD populate the `error_message` field ...
+            /// >
+            /// > Servers MAY also use the `partial_success` field to convey warnings/suggestions to clients even when
+            /// > it fully accepts the request. In such cases, the `rejected_<signal>` field MUST have a value of `0`,
+            /// > and the `error_message` field MUST be non-empty.
+            /// - source: https://opentelemetry.io/docs/specs/otlp/#partial-success-1
+            ///
+            /// The OTel Collector is known to return a non-compliant response, where it doesn't drop any telemetry, but
+            /// the protobuf message has the `partial_success` field set on the wire with a rejected count of `0` and an
+            /// empty `error_message`.
+            ///
+            /// https://github.com/open-telemetry/opentelemetry-collector-contrib/discussions/17833
+            ///
+            /// Since this is a useless response and ostensibly all is fine (the rejected count is 0 and there's no
+            /// message), we'll log that at debug instead of warning.
+            let logLevel: Logger.Level
+            if response.partialSuccess.rejectedDataPoints == 0, response.partialSuccess.errorMessage.isEmpty {
+                logLevel = .debug
+            } else {
+                logLevel = .warning
+            }
+            logger.log(level: logLevel, "Partial success", metadata: [
                 "message": "\(response.partialSuccess.errorMessage)",
                 "rejected_data_points": "\(response.partialSuccess.rejectedDataPoints)",
             ])
