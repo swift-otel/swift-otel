@@ -61,7 +61,7 @@ let package = Package(
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "W3CTraceContext", package: "swift-w3c-trace-context"),
                 /// NOTE: Using `.when(traits: ["A", "B"])` is supposed to work as an OR, but is currently broken.
-                ///       so we "splat" it into two conditional dependencies. This probuces a build warning about a
+                ///       so we "splat" it into two conditional dependencies. This produces a build warning about a
                 ///       duplicate dependency when both traits are enabled (which is the default, too), but it's the
                 ///       best we can do until the SwiftPM issue is addressed.
                 // Depend on this if either trait is enabled.
