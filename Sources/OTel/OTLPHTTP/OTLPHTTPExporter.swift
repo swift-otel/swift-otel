@@ -46,6 +46,11 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         try? self.httpClient.syncShutdown()
     }
 
+    func run() async {
+        // No background work needed, but we'll keep the run method running until its cancelled.
+        await AsyncStream.makeStream(of: Void.self).stream.cancelOnGracefulShutdown().first { _ in true }
+    }
+
     func send(_ proto: Request) async throws -> Response {
         // https://opentelemetry.io/docs/specs/otlp/#otlphttp-request
         var request = HTTPClientRequest(url: self.configuration.endpoint)

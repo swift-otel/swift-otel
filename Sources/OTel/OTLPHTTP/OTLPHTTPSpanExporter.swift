@@ -29,7 +29,9 @@ final class OTLPHTTPSpanExporter: OTelSpanExporter {
         exporter = try OTLPHTTPExporter(configuration: configuration)
     }
 
-    func run() async throws {}
+    func run() async throws {
+        try await exporter.run()
+    }
 
     func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws {
         guard !batch.isEmpty else { return }

@@ -17,16 +17,12 @@ import ServiceContextModule
 struct OTelNoOpSpanProcessor: OTelSpanProcessor, CustomStringConvertible {
     let description = "OTelNoOpSpanProcessor"
 
-    private let stream: AsyncStream<Void>
-    private let continuation: AsyncStream<Void>.Continuation
-
     /// Initialize a no-op span processor.
-    init() {
-        (stream, continuation) = AsyncStream.makeStream()
-    }
+    init() {}
 
     func run() async {
-        for await _ in stream.cancelOnGracefulShutdown() {}
+        // No background work needed, but we'll keep the run method running until its cancelled.
+        await AsyncStream.makeStream(of: Void.self).stream.cancelOnGracefulShutdown().first { _ in true }
     }
 
     func onStart(_ span: OTelSpan, parentContext: ServiceContext) {

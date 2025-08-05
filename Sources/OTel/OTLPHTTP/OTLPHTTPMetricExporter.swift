@@ -29,7 +29,9 @@ final class OTLPHTTPMetricExporter: OTelMetricExporter {
         exporter = try OTLPHTTPExporter(configuration: configuration)
     }
 
-    func run() async throws {}
+    func run() async throws {
+        try await exporter.run()
+    }
 
     func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {
         guard batch.contains(where: { $0.scopeMetrics.contains(where: { !$0.metrics.isEmpty }) }) else { return }

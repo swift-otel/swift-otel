@@ -30,7 +30,10 @@ final actor OTelStreamingSpanExporter: OTelSpanExporter {
         errorDuringNextExport = error
     }
 
-    func run() async throws {}
+    func run() async {
+        // No background work needed, but we'll keep the run method running until its cancelled.
+        await AsyncStream.makeStream(of: Void.self).stream.cancelOnGracefulShutdown().first { _ in true }
+    }
 
     func export(_ batch: some Collection<OTelFinishedSpan>) async throws {
         batchContinuation.yield(Array(batch))
