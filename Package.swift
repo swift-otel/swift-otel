@@ -60,12 +60,18 @@ let package = Package(
                 .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "W3CTraceContext", package: "swift-w3c-trace-context"),
-                // OTLP/HTTP exporter -- only when OTLPHTTP trait is enabled.
+                /// NOTE: Using `.when(traits: ["A", "B"])` is supposed to work as an OR, but is currently broken.
+                ///       so we "splat" it into two conditional dependencies. This probuces a build warning about a
+                ///       duplicate dependency when both traits are enabled (which is the default, too), but it's the
+                ///       best we can do until the SwiftPM issue is addressed.
+                // Depend on this if either trait is enabled.
+                // .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPHTTP", "OTLPGRPC"])),
                 .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPHTTP"])),
+                .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPGRPC"])),
+                // OTLP/HTTP exporter -- only when OTLPHTTP trait is enabled.
                 .product(name: "AsyncHTTPClient", package: "async-http-client", condition: .when(traits: ["OTLPHTTP"])),
                 .product(name: "NIOSSL", package: "swift-nio-ssl", condition: .when(traits: ["OTLPHTTP"])),
                 // OTLP/GRPC exporter -- only when OTLPGRPC trait is enabled.
-                .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPGRPC"])),
                 .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf", condition: .when(traits: ["OTLPGRPC"])),
                 .product(name: "GRPCCore", package: "grpc-swift-2", condition: .when(traits: ["OTLPGRPC"])),
                 .product(name: "GRPCNIOTransportHTTP2", package: "grpc-swift-nio-transport", condition: .when(traits: ["OTLPGRPC"])),
