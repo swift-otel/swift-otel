@@ -57,7 +57,7 @@ struct OTelPeriodicExportingMetricsReader<Clock: _Concurrency.Clock> where Clock
             try await withTimeout(configuration.exportTimeout, clock: clock) {
                 try await exporter.export(batch)
             }
-        } catch is CancellationError {
+        } catch is TimeoutError {
             logger.warning("Timed out exporting metrics.", metadata: ["timeout": "\(configuration.exportTimeout)"])
         } catch {
             logger.error("Failed to export metrics.", metadata: ["error": "\(error)"])

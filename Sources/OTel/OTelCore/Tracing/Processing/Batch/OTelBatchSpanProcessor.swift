@@ -125,7 +125,7 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
         do {
             try await exporter.export(batch)
             exportLogger.trace("Exported batch.")
-        } catch is CancellationError {
+        } catch is TimeoutError {
             exportLogger.debug("Export timed out.")
         } catch {
             exportLogger.debug("Failed to export batch.", metadata: [
