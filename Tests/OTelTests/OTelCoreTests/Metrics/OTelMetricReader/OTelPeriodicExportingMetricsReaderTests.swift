@@ -267,6 +267,106 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
         )
         XCTAssert(type(of: reader.clock) == ContinuousClock.self)
     }
+
+    func test_run_exporterRunMethodFinishes_shutsDownReader() async throws {
+        struct ExitingExporter: OTelMetricExporter {
+            let trigger = AsyncStream<Void>.makeStream(of: Void.self)
+            func run() async throws {
+                await trigger.stream.first { true }
+            }
+
+            func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {}
+            func forceFlush() async throws {}
+            func shutdown() async {}
+        }
+
+        let readerClock = TestClock()
+        let exporter = ExitingExporter()
+        let producer = MockMetricProducer()
+        let reader = OTelPeriodicExportingMetricsReader(
+            resource: .init(),
+            producer: producer,
+            exporter: exporter,
+            configuration: .init(
+                environment: .detected(),
+                exportInterval: .seconds(1),
+                exportTimeout: .milliseconds(100)
+            ),
+            logger: ._otelDebug,
+            clock: readerClock
+        )
+
+        try await withThrowingTaskGroup { group in
+            group.addTask {
+                let serviceGroup = ServiceGroup(services: [exporter, reader], logger: Logger(label: #function))
+                try await serviceGroup.run()
+                XCTFail("Expected service group task throw")
+            }
+
+            var readerSleeps = readerClock.sleepCalls.makeAsyncIterator()
+            await readerSleeps.next()
+            exporter.trigger.continuation.yield()
+
+            do {
+                try await group.next()
+                XCTFail("Expected service group task throw")
+            } catch {
+                let serviceGroupError = try XCTUnwrap(error as? ServiceGroupError)
+                XCTAssertEqual(serviceGroupError, ServiceGroupError.serviceFinishedUnexpectedly())
+            }
+        }
+    }
+
+    func test_run_exporterRunMethodThrows_shutsDownReader() async throws {
+        struct ThrowingExporter: OTelMetricExporter {
+            let trigger = AsyncStream<Void>.makeStream(of: Void.self)
+            func run() async throws {
+                await trigger.stream.first(where: { true })
+                throw ExporterFailed()
+            }
+
+            struct ExporterFailed: Error {}
+            func export(_ batch: some Collection<OTelResourceMetrics> & Sendable) async throws {}
+            func forceFlush() async throws {}
+            func shutdown() async {}
+        }
+
+        let readerClock = TestClock()
+        let exporter = ThrowingExporter()
+        let producer = MockMetricProducer()
+        let reader = OTelPeriodicExportingMetricsReader(
+            resource: .init(),
+            producer: producer,
+            exporter: exporter,
+            configuration: .init(
+                environment: .detected(),
+                exportInterval: .seconds(1),
+                exportTimeout: .milliseconds(100)
+            ),
+            logger: ._otelDebug,
+            clock: readerClock
+        )
+
+        try await withThrowingTaskGroup { group in
+            group.addTask {
+                let serviceGroup = ServiceGroup(services: [exporter, reader], logger: Logger(label: #function))
+                try await serviceGroup.run()
+                XCTFail("Expected service group task throw")
+            }
+
+            var readerSleeps = readerClock.sleepCalls.makeAsyncIterator()
+            await readerSleeps.next()
+            exporter.trigger.continuation.yield()
+
+            do {
+                try await group.next()
+                XCTFail("Expected service group task throw")
+            } catch {
+                XCTAssert(error is ThrowingExporter.ExporterFailed, "Different error: \(error)")
+            }
+            try await group.waitForAll()
+        }
+    }
 }
 
 // MARK: - Helpers
