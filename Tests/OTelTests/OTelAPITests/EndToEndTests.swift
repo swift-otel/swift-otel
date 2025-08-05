@@ -161,6 +161,51 @@ import Tracing
         }
     }
 
+    @available(gRPCSwift, *)
+    @Test func testTracesGRPCExportUsingBootstrap() async throws {
+        /// Note: It's easier to debug this test by commenting out the surrounding `#expect(procesExitsWith:_:)`.
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            try await OTLPGRPCMockCollector.withInsecureServer { collector, endpoint in
+                try await withThrowingTaskGroup { group in
+                    var config = OTel.Configuration.default
+                    config.logs.enabled = false
+                    config.metrics.enabled = false
+                    config.traces.otlpExporter.endpoint = endpoint
+                    config.traces.otlpExporter.protocol = .grpc
+                    config.serviceName = "innie"
+                    config.resourceAttributes = ["deployment.environment": "prod"]
+                    config.diagnosticLogLevel = .debug
+                    let observability = try OTel.bootstrap(configuration: config)
+                    let canary = Canary()
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDebug)
+                    group.addTask {
+                        try await serviceGroup.run()
+                    }
+                    await canary.running
+                    group.addTask {
+                        withSpan("mysterious and important work") { _ in
+                            withSpan("macrodata refinement") { _ in
+                                withSpan("cold harbor") { _ in }
+                                withSpan("billings") { _ in }
+                                withSpan("homestead") { _ in }
+                            }
+                        }
+                        await serviceGroup.triggerGracefulShutdown()
+                    }
+                    try await group.waitForAll()
+                }
+                #expect(collector.recordingTraceService.recordingService.requests.count == 1)
+                let message = try #require(collector.recordingTraceService.recordingService.requests.first?.message)
+                #expect(message.resourceSpans.count == 1)
+                #expect(message.resourceSpans.first?.scopeSpans.count == 1)
+                #expect(message.resourceSpans.first?.scopeSpans.first?.spans.count == 5)
+                #expect(message.resourceSpans.first?.resource.attributes.count == 2)
+                #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
+                #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+            }
+        }
+    }
+
     @Test func testMetricsProtobufExportUsingBootstrap() async throws {
         /// Note: It's easier to debug this test by commenting out the surrounding `#expect(procesExitsWith:_:)`.
         await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
@@ -283,6 +328,46 @@ import Tracing
                 try testServer.writeOutbound(.end(nil))
 
                 try await group.waitForAll()
+            }
+        }
+    }
+
+    @available(gRPCSwift, *)
+    @Test func testMetricsGRPCExportUsingBootstrap() async throws {
+        /// Note: It's easier to debug this test by commenting out the surrounding `#expect(procesExitsWith:_:)`.
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            try await OTLPGRPCMockCollector.withInsecureServer { collector, endpoint in
+                try await withThrowingTaskGroup { group in
+                    var config = OTel.Configuration.default
+                    config.logs.enabled = false
+                    config.traces.enabled = false
+                    config.metrics.otlpExporter.endpoint = endpoint
+                    config.metrics.otlpExporter.protocol = .grpc
+                    config.serviceName = "innie"
+                    config.resourceAttributes = ["deployment.environment": "prod"]
+                    let observability = try OTel.bootstrap(configuration: config)
+                    let canary = Canary()
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDebug)
+                    group.addTask {
+                        try await serviceGroup.run()
+                    }
+                    await canary.running
+                    group.addTask {
+                        Gauge(label: "break_room.coffee_temperature").record(85)
+                        Counter(label: "macro_data_refinement.files.processed").increment(by: 12)
+                        Counter(label: "optics_design.revisions.count").increment(by: 99)
+                        await serviceGroup.triggerGracefulShutdown()
+                    }
+                    try await group.waitForAll()
+                }
+                #expect(collector.recordingMetricsService.recordingService.requests.count == 1)
+                let message = try #require(collector.recordingMetricsService.recordingService.requests.first?.message)
+                #expect(message.resourceMetrics.count == 1)
+                #expect(message.resourceMetrics.first?.scopeMetrics.count == 1)
+                #expect(message.resourceMetrics.first?.scopeMetrics.first?.metrics.count == 3)
+                #expect(message.resourceMetrics.first?.resource.attributes.count == 2)
+                #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
+                #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
             }
         }
     }
@@ -421,6 +506,53 @@ import Tracing
                 try testServer.writeOutbound(.end(nil))
 
                 try await group.waitForAll()
+            }
+        }
+    }
+
+    @available(gRPCSwift, *)
+    @Test func testLoggingGRPCExportUsingBootstrap() async throws {
+        /// Note: It's easier to debug this test by commenting out the surrounding `#expect(procesExitsWith:_:)`.
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            try await OTLPGRPCMockCollector.withInsecureServer { collector, endpoint in
+                try await withThrowingTaskGroup { group in
+                    var config = OTel.Configuration.default
+                    config.metrics.enabled = false
+                    config.traces.enabled = false
+                    config.logs.level = .debug
+                    config.logs.otlpExporter.endpoint = endpoint
+                    config.logs.otlpExporter.protocol = .grpc
+                    config.serviceName = "innie"
+                    config.resourceAttributes = ["deployment.environment": "prod"]
+                    config.diagnosticLogLevel = .debug
+                    let observability = try OTel.bootstrap(configuration: config)
+                    let canary = Canary()
+                    // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDebug)
+                    group.addTask {
+                        try await serviceGroup.run()
+                    }
+                    await canary.running
+                    group.addTask {
+                        let logger = Logger(label: "logger")
+                        logger.debug(
+                            "Waffle party privileges have been revoked due to insufficient team spirit",
+                            metadata: ["person": "milchick"]
+                        )
+                        await serviceGroup.triggerGracefulShutdown()
+                    }
+                    try await group.waitForAll()
+                }
+                #expect(collector.recordingLogsService.recordingService.requests.count == 1)
+                let message = try #require(collector.recordingLogsService.recordingService.requests.first?.message)
+                #expect(message.resourceLogs.count == 1)
+                #expect(message.resourceLogs.first?.scopeLogs.count == 1)
+                #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
+                #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue == "Waffle party privileges have been revoked due to insufficient team spirit")
+                #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
+                #expect(message.resourceLogs.first?.resource.attributes.count == 2)
+                #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
+                #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
             }
         }
     }

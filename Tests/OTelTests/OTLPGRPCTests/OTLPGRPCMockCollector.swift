@@ -20,6 +20,7 @@ import XCTest
 
 @available(gRPCSwift, *)
 final class OTLPGRPCMockCollector: Sendable {
+    let recordingLogsService = RecordingLogsService()
     let recordingMetricsService = RecordingMetricsService()
     let recordingTraceService = RecordingTraceService()
 
@@ -28,7 +29,7 @@ final class OTLPGRPCMockCollector: Sendable {
         let collector = self.init()
         let server = GRPCServer(
             transport: .http2NIOPosix(address: .ipv4(host: "127.0.0.1", port: 0), transportSecurity: .plaintext),
-            services: [collector.recordingMetricsService, collector.recordingTraceService]
+            services: [collector.recordingLogsService, collector.recordingMetricsService, collector.recordingTraceService]
         )
 
         return try await withThrowingTaskGroup { group in
@@ -111,6 +112,16 @@ final class RecordingTraceService: Opentelemetry_Proto_Collector_Trace_V1_TraceS
 final class RecordingMetricsService: Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.ServiceProtocol {
     typealias Request = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest
     typealias Response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse
+    let recordingService = RecordingService<Request, Response>()
+    func export(request: ServerRequest<Request>, context: ServerContext) async throws -> ServerResponse<Response> {
+        try await recordingService.export(request: request, context: context)
+    }
+}
+
+@available(gRPCSwift, *)
+final class RecordingLogsService: Opentelemetry_Proto_Collector_Logs_V1_LogsService.ServiceProtocol {
+    typealias Request = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest
+    typealias Response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse
     let recordingService = RecordingService<Request, Response>()
     func export(request: ServerRequest<Request>, context: ServerContext) async throws -> ServerResponse<Response> {
         try await recordingService.export(request: request, context: context)
