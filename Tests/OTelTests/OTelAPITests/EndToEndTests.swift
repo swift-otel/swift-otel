@@ -43,12 +43,14 @@ import Tracing
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
-                    let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
+                    let canary = Canary()
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDebug)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
                             try await serviceGroup.run()
                         }
+                        await canary.running
                         group.addTask {
                             withSpan("mysterious and important work") { _ in
                                 withSpan("macrodata refinement") { _ in
@@ -107,13 +109,16 @@ import Tracing
                     config.traces.otlpExporter.protocol = .httpJSON
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
+                    config.diagnosticLogLevel = .debug
                     let observability = try OTel.bootstrap(configuration: config)
-                    let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
+                    let canary = Canary()
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDebug)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
                             try await serviceGroup.run()
                         }
+                        await canary.running
                         group.addTask {
                             withSpan("mysterious and important work") { _ in
                                 withSpan("macrodata refinement") { _ in
@@ -173,12 +178,14 @@ import Tracing
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
-                    let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
+                    let canary = Canary()
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDebug)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
                             try await serviceGroup.run()
                         }
+                        await canary.running
                         group.addTask {
                             Gauge(label: "break_room.coffee_temperature").record(85)
                             Counter(label: "macro_data_refinement.files.processed").increment(by: 12)
@@ -234,12 +241,14 @@ import Tracing
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
-                    let serviceGroup = ServiceGroup(services: [observability], logger: .init(label: "service group"))
+                    let canary = Canary()
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDebug)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
                             try await serviceGroup.run()
                         }
+                        await canary.running
                         group.addTask {
                             Gauge(label: "break_room.coffee_temperature").record(85)
                             Counter(label: "macro_data_refinement.files.processed").increment(by: 12)
@@ -296,13 +305,15 @@ import Tracing
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
+                    let canary = Canary()
                     // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
-                    let serviceGroup = ServiceGroup(services: [observability], logger: ._otelDisabled)
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDisabled)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
                             try await serviceGroup.run()
                         }
+                        await canary.running
                         group.addTask {
                             let logger = Logger(label: "logger")
                             logger.debug(
@@ -363,13 +374,15 @@ import Tracing
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
+                    let canary = Canary()
                     // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
-                    let serviceGroup = ServiceGroup(services: [observability], logger: ._otelDisabled)
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDisabled)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
                             try await serviceGroup.run()
                         }
+                        await canary.running
                         group.addTask {
                             let logger = Logger(label: "logger")
                             logger.debug(
@@ -422,11 +435,11 @@ import Tracing
             let observability = try OTel.bootstrap(configuration: config)
 
             try await withThrowingTaskGroup { group in
-                let serviceGroup = ServiceGroup(services: [observability], logger: ._otelDisabled)
+                let canary = Canary()
+                let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDisabled)
                 group.addTask { try await serviceGroup.run() }
+                await canary.running
                 group.addTask {
-                    // There's no API in Swift Service Lifecycle to wait for it to be "ready".
-                    try await Task.sleep(for: .seconds(0.1))
                     let logger = Logger(label: "Foo")
                     logger.info(
                         "Waffle party privileges have been revoked due to insufficient team spirit",
@@ -462,13 +475,15 @@ import Tracing
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
+                    let canary = Canary()
                     // In this test we intentionally disable logging from Service Lifecycle to isolate the user logging.
-                    let serviceGroup = ServiceGroup(services: [observability], logger: ._otelDisabled)
+                    let serviceGroup = ServiceGroup(services: [observability, canary], logger: ._otelDisabled)
 
                     try await withThrowingTaskGroup { group in
                         group.addTask {
                             try await serviceGroup.run()
                         }
+                        await canary.running
                         group.addTask {
                             let logger = Logger(label: "logger")
                             withSpan("waffle party") { _ in

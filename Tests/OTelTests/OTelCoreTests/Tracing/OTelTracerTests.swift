@@ -266,15 +266,14 @@ final class OTelTracerTests: XCTestCase {
         )
 
         let logger = Logger(label: #function)
-        let serviceGroup = ServiceGroup(services: [tracer], logger: logger)
+        let canary = Canary()
+        let serviceGroup = ServiceGroup(services: [tracer, canary], logger: logger)
 
         Task {
             try await serviceGroup.run()
         }
 
-        // We use the processor's first sleep as an indicator for when the tracer started running.
-        var sleeps = clock.sleepCalls.makeAsyncIterator()
-        await sleeps.next()
+        await canary.running
 
         let span = tracer.startSpan("test")
         span.end()
@@ -420,7 +419,8 @@ final class OTelTracerTests: XCTestCase {
         )
 
         let logger = Logger(label: #function)
-        let serviceGroup = ServiceGroup(services: [tracer], logger: logger)
+        let canary = Canary()
+        let serviceGroup = ServiceGroup(services: [tracer, canary], logger: logger)
         Task {
             try await serviceGroup.run()
         }
@@ -431,9 +431,7 @@ final class OTelTracerTests: XCTestCase {
         let span = tracer.startSpan("test")
         span.end()
 
-        // We use the processor's first sleep as an indicator for when the tracer started running.
-        var sleeps = clock.sleepCalls.makeAsyncIterator()
-        await sleeps.next()
+        await canary.running
 
         await serviceGroup.triggerGracefulShutdown()
 
