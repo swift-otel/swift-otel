@@ -27,7 +27,7 @@ final class OTelSimpleSpanProcessorTests: XCTestCase {
         processor.onEnd(span)
 
         // wait for batch to be exported
-        var exportedBatchess = await exporter.batches.makeAsyncIterator()
+        var exportedBatchess = exporter.batches.makeAsyncIterator()
         let batch = await exportedBatchess.next()
 
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["test"])

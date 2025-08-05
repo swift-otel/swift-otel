@@ -48,7 +48,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             // advance past "tick"
             clock.advance(by: scheduleDelay)
 
-            var batches = await exporter.batches.makeAsyncIterator()
+            var batches = exporter.batches.makeAsyncIterator()
             let batch = await batches.next()
             XCTAssertEqual(try XCTUnwrap(batch).map(\.body), messages)
 
@@ -75,7 +75,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             var record2 = OTelLogRecord.stub(body: "2")
             processor.onEmit(&record2)
 
-            var batches = await exporter.batches.makeAsyncIterator()
+            var batches = exporter.batches.makeAsyncIterator()
             let batch = await batches.next()
             XCTAssertEqual(try XCTUnwrap(batch).map(\.body), ["1", "2"])
 
@@ -114,7 +114,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             // await sleep for export timeout
             await sleeps.next()
 
-            var batches = await exporter.batches.makeAsyncIterator()
+            var batches = exporter.batches.makeAsyncIterator()
             let failedBatch = await batches.next()
             XCTAssertEqual(try XCTUnwrap(failedBatch).map(\.body), ["1"])
 
@@ -212,7 +212,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
 
             shutdownTrigger.triggerGracefulShutdown()
 
-            var batches = await exporter.batches.makeAsyncIterator()
+            var batches = exporter.batches.makeAsyncIterator()
             /*
              Forced flush exports occur concurrently, so we check that all messages got exported,
              without checking the specific order they were exported in.

@@ -180,7 +180,7 @@ final class OTelTracerTests: XCTestCase {
         let sampler = OTelConstantSampler(isOn: true)
         let propagator = OTelW3CPropagator()
         let exporter = OTelStreamingSpanExporter()
-        var batches = await exporter.batches.makeAsyncIterator()
+        var batches = exporter.batches.makeAsyncIterator()
         let processor = OTelSimpleSpanProcessor(exporter: exporter)
 
         let tracer = OTelTracer(
@@ -217,7 +217,7 @@ final class OTelTracerTests: XCTestCase {
         }
         let propagator = OTelW3CPropagator()
         let exporter = OTelStreamingSpanExporter()
-        var batches = await exporter.batches.makeAsyncIterator()
+        var batches = exporter.batches.makeAsyncIterator()
         let processor = OTelSimpleSpanProcessor(exporter: exporter)
 
         let tracer = OTelTracer(
@@ -280,7 +280,7 @@ final class OTelTracerTests: XCTestCase {
 
         tracer.forceFlush()
 
-        var batches = await exporter.batches.makeAsyncIterator()
+        var batches = exporter.batches.makeAsyncIterator()
         let batch = await batches.next()
 
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["test"])
@@ -435,7 +435,7 @@ final class OTelTracerTests: XCTestCase {
 
         await serviceGroup.triggerGracefulShutdown()
 
-        var batches = await exporter.batches.makeAsyncIterator()
+        var batches = exporter.batches.makeAsyncIterator()
         let batch = await batches.next()
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["test"])
     }

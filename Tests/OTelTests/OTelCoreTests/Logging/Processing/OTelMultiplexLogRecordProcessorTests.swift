@@ -37,11 +37,11 @@ final class OTelMultiplexLogRecordProcessorTests: XCTestCase {
 
             try await processor.forceFlush()
 
-            var exporter1Iterator = await exporter1.batches.makeAsyncIterator()
+            var exporter1Iterator = exporter1.batches.makeAsyncIterator()
             let exporter1Batch = await exporter1Iterator.next()
             XCTAssertEqual(try XCTUnwrap(exporter1Batch).map(\.body), ["test"])
 
-            var exporter2Iterator = await exporter2.batches.makeAsyncIterator()
+            var exporter2Iterator = exporter2.batches.makeAsyncIterator()
             let exporter2Batch = await exporter2Iterator.next()
             XCTAssertEqual(try XCTUnwrap(exporter2Batch).map(\.body), ["test"])
 

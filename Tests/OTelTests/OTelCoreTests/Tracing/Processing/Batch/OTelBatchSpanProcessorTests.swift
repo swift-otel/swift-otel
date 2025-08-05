@@ -46,7 +46,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         await sleeps.next()
         clock.advance(by: .seconds(2))
 
-        var batches = await exporter.batches.makeAsyncIterator()
+        var batches = exporter.batches.makeAsyncIterator()
         let batch = await batches.next()
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["1", "2", "3"])
     }
@@ -79,7 +79,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         await sleeps.next()
         clock.advance(by: .seconds(2))
 
-        var batches = await exporter.batches.makeAsyncIterator()
+        var batches = exporter.batches.makeAsyncIterator()
         let batch = await batches.next()
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["1"])
     }
@@ -115,7 +115,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         // add final span to reach maximum queue size
         await processor.onEnd(span3)
 
-        var batches = await exporter.batches.makeAsyncIterator()
+        var batches = exporter.batches.makeAsyncIterator()
         let batch = await batches.next()
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["1", "2", "3"])
     }
@@ -151,7 +151,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         // await sleep for export timeout
         await sleeps.next()
 
-        var batches = await exporter.batches.makeAsyncIterator()
+        var batches = exporter.batches.makeAsyncIterator()
         let failedBatch = await batches.next()
         XCTAssertEqual(try XCTUnwrap(failedBatch).map { $0.map(\.operationName) }, ["1"])
 

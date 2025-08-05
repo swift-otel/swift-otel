@@ -41,7 +41,7 @@ jobs:
         run: swift package resolve
 
       - name: Run Unit Tests
-        run: swift test --enable-code-coverage
+        run: swift test -Xswiftc -warnings-as-errors --enable-code-coverage
 
       - name: Merge code coverage
         if: matrix.swift == 'latest'
