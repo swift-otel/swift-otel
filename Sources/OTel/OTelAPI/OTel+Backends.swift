@@ -228,7 +228,17 @@ extension OTel {
 
         let reader = OTelPeriodicExportingMetricsReader(resource: resource, producer: registry, exporter: metricsExporter, configuration: readerConfig, logger: logger)
 
-        return (OTLPMetricsFactory(registry: registry), reader)
+        // Return a nested service group, which will handle the ordered shutdown.
+        var serviceConfigs: [ServiceGroupConfiguration.ServiceConfiguration] = []
+        for service in [metricsExporter, reader] as [Service] {
+            serviceConfigs.append(.init(
+                service: service,
+                successTerminationBehavior: .gracefullyShutdownGroup,
+                failureTerminationBehavior: .gracefullyShutdownGroup
+            ))
+        }
+        let serviceGroup = ServiceGroup(configuration: .init(services: serviceConfigs, logger: logger))
+        return (OTLPMetricsFactory(registry: registry), serviceGroup)
     }
 
     /// Create a tracing backend with an OTLP exporter.
