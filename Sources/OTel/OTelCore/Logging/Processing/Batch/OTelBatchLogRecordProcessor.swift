@@ -91,52 +91,44 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     }
 
     func forceFlush() async throws {
-        let chunkSize = Int(configuration.maximumExportBatchSize)
-        let batches = stride(from: 0, to: buffer.count, by: chunkSize).map {
-            buffer[$0 ..< min($0 + Int(configuration.maximumExportBatchSize), buffer.count)]
+        guard !buffer.isEmpty else {
+            logger.debug("Skipping force flush: buffer is empty")
+            return
         }
-
-        if !buffer.isEmpty {
-            buffer.removeAll()
-
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                for batch in batches {
-                    group.addTask { await self.export(batch) }
+        try await withTimeout(configuration.exportTimeout, clock: clock) {
+            await withTaskGroup { group in
+                var buffer = self.buffer
+                while !buffer.isEmpty {
+                    let batch = buffer.prefix(Int(self.configuration.maximumExportBatchSize))
+                    group.addTask {
+                        do {
+                            try await self.exporter.export(batch)
+                        } catch {
+                            self.logger.error("Exporting batch failed", metadata: ["error": "\(error)"])
+                        }
+                    }
+                    buffer.removeFirst(batch.count)
                 }
-
-                group.addTask {
-                    try await Task.sleep(for: self.configuration.exportTimeout, clock: self.clock)
-                    throw CancellationError()
+                await group.waitForAll()
+                do {
+                    try await self.exporter.forceFlush()
+                } catch {
+                    self.logger.error("Force flush failed", metadata: ["error": "\(error)"])
                 }
-
-                defer { group.cancelAll() }
-                // Don't cancel unless it's an error
-                // A single export shouldn't cancel the other exports
-                try await group.next()
             }
         }
-
-        try await exporter.forceFlush()
     }
 
     private func tick() async {
         let batch = buffer.prefix(Int(configuration.maximumExportBatchSize))
         buffer.removeFirst(batch.count)
-
-        await withThrowingTaskGroup(of: Void.self) { group in
-            group.addTask { await self.export(batch) }
-            group.addTask {
-                try await Task.sleep(for: self.configuration.exportTimeout, clock: self.clock)
-                throw CancellationError()
+        do {
+            try await withTimeout(configuration.exportTimeout, clock: clock) {
+                try await self.exporter.export(batch)
             }
-
-            try? await group.next()
-            group.cancelAll()
+        } catch {
+            logger.warning("Export failed", metadata: ["error": "\(error)"])
         }
-    }
-
-    private func export(_ batch: some Collection<OTelLogRecord> & Sendable) async {
-        try? await exporter.export(batch)
     }
 }
 
