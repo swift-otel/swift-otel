@@ -17,8 +17,8 @@ jobs:
           scripts/soundness.sh
           exit $(git status --porcelain | wc -l)
 
-  unit-test:
-    name: Unit Test
+  unit-test-ubuntu:
+    name: Unit Test (Ubuntu)
     runs-on: ubuntu-24.04
 
     strategy:
@@ -60,7 +60,47 @@ jobs:
         with:
           files: ./info.lcov
           fail_ci_if_error: true
-          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  unit-test-macos:
+    name: Unit Test (macOS)
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        xcode: ["latest-stable", "latest"]
+    steps:
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1.6.0
+        with:
+          xcode-version: ${{ matrix.xcode }}
+
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Resolve Swift dependencies
+        run: swift package resolve
+
+      - name: Run Unit Tests
+        run: swift test -Xswiftc -warnings-as-errors --enable-code-coverage
+
+      - name: Merge code coverage
+        if: matrix.xcode == 'latest-stable'
+        run: |
+          xcrun llvm-cov export -format "lcov" \
+            .build/debug/swift-otelPackageTests.xctest/Contents/MacOS/swift-otelPackageTests \
+            -ignore-filename-regex="\/Tests\/" \
+            -ignore-filename-regex="\/Generated\/" \
+            -ignore-filename-regex="\/.build\/" \
+            -instr-profile=./.build/debug/codecov/default.profdata \
+          > info.lcov
+
+      - name: Upload code coverage report to Codecov
+        if: matrix.xcode == 'latest-stable'
+        uses: codecov/codecov-action@v5.4.3
+        with:
+          files: ./info.lcov
+          fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
   check-docs:
