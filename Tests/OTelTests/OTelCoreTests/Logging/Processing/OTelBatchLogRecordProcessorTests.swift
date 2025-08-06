@@ -42,8 +42,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 processor.onEmit(&record)
             }
 
-            // Wait for the processor task to drain them from the stream, and into the buffer.
-            while await processor.buffer.count != 3 { await Task.yield() }
+            while await processor.buffer.count != messages.count { await Task.yield() }
 
             // await first sleep for "tick"
             var sleeps = clock.sleepCalls.makeAsyncIterator()
@@ -78,6 +77,8 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             var record2 = OTelLogRecord.stub(body: "2")
             processor.onEmit(&record2)
 
+            while await processor.buffer.count != 2 { await Task.yield() }
+
             var batches = exporter.batches.makeAsyncIterator()
             let batch = await batches.next()
             XCTAssertEqual(try XCTUnwrap(batch).map(\.body), ["1", "2"])
@@ -109,6 +110,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             await exporter.setErrorDuringNextExport(TestError())
             var record1 = OTelLogRecord.stub(body: "1")
             processor.onEmit(&record1)
+            while await processor.buffer.count != 1 { await Task.yield() }
 
             // await sleep for first "tick"
             await sleeps.next()
@@ -157,6 +159,8 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             var record = OTelLogRecord.stub()
             processor.onEmit(&record)
 
+            while await processor.buffer.count != 1 { await Task.yield() }
+
             var sleeps = clock.sleepCalls.makeAsyncIterator()
 
             // advance past first "tick"
@@ -188,17 +192,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             clock: clock
         )
 
-        let shutdownTrigger = ShutdownTrigger()
-        let serviceGroup = ServiceGroup(
-            configuration: .init(
-                services: [
-                    .init(service: shutdownTrigger, successTerminationBehavior: .gracefullyShutdownGroup),
-                    .init(service: processor),
-                ],
-                logger: Logger(label: #function)
-            )
-        )
-
+        let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
         let messages = Set(["1", "2", "3"])
 
         try await withThrowingTaskGroup(of: Void.self) { group in
@@ -209,11 +203,13 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 processor.onEmit(&record)
             }
 
+            while await processor.buffer.count != messages.count { await Task.yield() }
+
             var sleeps = clock.sleepCalls.makeAsyncIterator()
             // await sleep for first "tick"
             await sleeps.next()
 
-            shutdownTrigger.triggerGracefulShutdown()
+            await serviceGroup.triggerGracefulShutdown()
 
             var batches = exporter.batches.makeAsyncIterator()
             /*
@@ -249,17 +245,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             clock: clock
         )
 
-        let shutdownTrigger = ShutdownTrigger()
-        let serviceGroup = ServiceGroup(
-            configuration: .init(
-                services: [
-                    .init(service: shutdownTrigger, successTerminationBehavior: .gracefullyShutdownGroup),
-                    .init(service: processor),
-                ],
-                logger: Logger(label: #function)
-            )
-        )
-
+        let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
         let messages = Set(["1", "2", "3"])
 
         await withThrowingTaskGroup(of: Void.self) { group in
@@ -270,11 +256,13 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
                 processor.onEmit(&record)
             }
 
+            while await processor.buffer.count != messages.count { await Task.yield() }
+
             var sleeps = clock.sleepCalls.makeAsyncIterator()
             // await sleep for first "tick"
             await sleeps.next()
 
-            shutdownTrigger.triggerGracefulShutdown()
+            await serviceGroup.triggerGracefulShutdown()
 
             // advance past export timeout
             await sleeps.next()
@@ -367,24 +355,6 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             }
             try await group.waitForAll()
         }
-    }
-}
-
-private struct ShutdownTrigger: Service {
-    private let stream: AsyncStream<Void>
-    private let continuation: AsyncStream<Void>.Continuation
-
-    init() {
-        (stream, continuation) = AsyncStream.makeStream()
-    }
-
-    func triggerGracefulShutdown() {
-        continuation.yield(())
-    }
-
-    func run() async throws {
-        var iterator = stream.makeAsyncIterator()
-        await iterator.next()
     }
 }
 
