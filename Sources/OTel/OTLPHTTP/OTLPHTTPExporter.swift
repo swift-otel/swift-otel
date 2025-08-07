@@ -56,6 +56,9 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         // https://opentelemetry.io/docs/specs/otlp/#otlphttp-request
         var request = HTTPClientRequest(url: self.configuration.endpoint)
         request.method = .POST
+        for (name, value) in configuration.headers {
+            request.headers.add(name: name, value: value)
+        }
         switch self.configuration.protocol.backing {
         case .httpProtobuf:
             // https://opentelemetry.io/docs/specs/otlp/#binary-protobuf-encoding
