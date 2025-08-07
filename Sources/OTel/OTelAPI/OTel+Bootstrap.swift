@@ -150,13 +150,19 @@ extension OTel {
 
     internal static func bootstrapLogs(configuration: OTel.Configuration, logger: Logger) throws -> some Service {
         let backend = try makeLoggingBackend(configuration: configuration)
+        let exporterName = switch (configuration.logs.exporter.backing, configuration.logs.otlpExporter.protocol.backing) {
+        case (.console, _): "console"
+        case (.none, _): "none"
+        case (.otlp, .httpProtobuf): "OTLP/HTTP+Protobuf"
+        case (.otlp, .httpJSON): "OTLP/HTTP+json"
+        case (.otlp, .grpc): "OTLP/gRPC"
+        }
         if configuration.logs.exporter.backing != .console {
             logger.info(
                 """
-
-                Bootstapping logging system
+                Bootstrapping logging system with \(exporterName) exporter.
                 ---
-                Only diagnostic logging will use the console logger.
+                Only Swift OTel diagnostic logging will use the console logger.
 
                 If you require console logging for local development, use the
                 console logs exporter, which can be enabled using the
@@ -170,7 +176,8 @@ extension OTel {
 
                 If you require logs to go to both the console and another
                 exporter, manually bootstrap the logging subsystem with a
-                multiplex log hander and the result of `makeLoggingBackend`.
+                multiplex log handler. See the documentation of
+                `makeLoggingBackend` for details.
                 ---
                 """
             )

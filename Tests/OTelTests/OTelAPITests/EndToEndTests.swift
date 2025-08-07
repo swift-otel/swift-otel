@@ -665,10 +665,10 @@ import Tracing
             _ = try OTel.bootstrap(configuration: config)
             Logger(label: "test").info("after bootstrap")
         }
-        let lines = try #require(String(bytes: result.standardErrorContent, encoding: .utf8)).split(separator: "\n")
+        let lines = try #require(String(bytes: result.standardErrorContent, encoding: .utf8)).split(separator: "\n", omittingEmptySubsequences: false)
         print(lines.joined(separator: "\n"))
         #expect(lines.contains { $0.contains("before bootstrap") })
-        #expect(lines.contains { $0.contains("Only diagnostic logging will use the console") })
+        #expect(lines.contains { $0.contains("Only Swift OTel diagnostic logging will use the console") })
         #expect(!lines.contains { $0.contains("after bootstrap") })
     }
 
