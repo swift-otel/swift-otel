@@ -40,6 +40,7 @@ import Tracing
                     config.metrics.enabled = false
                     config.traces.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.traces.otlpExporter.protocol = .httpProtobuf
+                    config.traces.otlpExporter.headers = [("morale", "acceptable")]
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
@@ -69,6 +70,7 @@ import Tracing
                     #expect(head.method == .POST)
                     #expect(head.uri == "/some/path")
                     #expect(head.headers["Content-Type"] == ["application/x-protobuf"])
+                    #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
                     let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(serializedBytes: Data(buffer: body))
@@ -107,6 +109,7 @@ import Tracing
                     config.metrics.enabled = false
                     config.traces.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.traces.otlpExporter.protocol = .httpJSON
+                    config.traces.otlpExporter.headers = [("morale", "acceptable")]
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     config.diagnosticLogLevel = .debug
@@ -137,6 +140,7 @@ import Tracing
                     #expect(head.method == .POST)
                     #expect(head.uri == "/some/path")
                     #expect(head.headers["Content-Type"] == ["application/json"])
+                    #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
                     let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(jsonUTF8Bytes: Data(buffer: body))
@@ -172,6 +176,7 @@ import Tracing
                     config.metrics.enabled = false
                     config.traces.otlpExporter.endpoint = endpoint
                     config.traces.otlpExporter.protocol = .grpc
+                    config.traces.otlpExporter.headers = [("morale", "acceptable")]
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     config.diagnosticLogLevel = .debug
@@ -195,6 +200,8 @@ import Tracing
                     try await group.waitForAll()
                 }
                 #expect(collector.recordingTraceService.recordingService.requests.count == 1)
+                let metadata = try #require(collector.recordingTraceService.recordingService.requests.first?.metadata)
+                #expect(metadata["morale"].map { $0.encoded() } == ["acceptable"])
                 let message = try #require(collector.recordingTraceService.recordingService.requests.first?.message)
                 #expect(message.resourceSpans.count == 1)
                 #expect(message.resourceSpans.first?.scopeSpans.count == 1)
@@ -220,6 +227,7 @@ import Tracing
                     config.traces.enabled = false
                     config.metrics.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.metrics.otlpExporter.protocol = .httpProtobuf
+                    config.metrics.otlpExporter.headers = [("morale", "acceptable")]
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
@@ -245,6 +253,7 @@ import Tracing
                     #expect(head.method == .POST)
                     #expect(head.uri == "/some/path")
                     #expect(head.headers["Content-Type"] == ["application/x-protobuf"])
+                    #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
                     let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(serializedBytes: Data(buffer: body))
@@ -283,6 +292,7 @@ import Tracing
                     config.traces.enabled = false
                     config.metrics.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.metrics.otlpExporter.protocol = .httpJSON
+                    config.metrics.otlpExporter.headers = [("morale", "acceptable")]
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
@@ -308,6 +318,7 @@ import Tracing
                     #expect(head.method == .POST)
                     #expect(head.uri == "/some/path")
                     #expect(head.headers["Content-Type"] == ["application/json"])
+                    #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
                     let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(jsonUTF8Data: Data(buffer: body))
@@ -343,6 +354,7 @@ import Tracing
                     config.traces.enabled = false
                     config.metrics.otlpExporter.endpoint = endpoint
                     config.metrics.otlpExporter.protocol = .grpc
+                    config.metrics.otlpExporter.headers = [("morale", "acceptable")]
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
@@ -361,6 +373,8 @@ import Tracing
                     try await group.waitForAll()
                 }
                 #expect(collector.recordingMetricsService.recordingService.requests.count == 1)
+                let metadata = try #require(collector.recordingMetricsService.recordingService.requests.first?.metadata)
+                #expect(metadata["morale"].map { $0.encoded() } == ["acceptable"])
                 let message = try #require(collector.recordingMetricsService.recordingService.requests.first?.message)
                 #expect(message.resourceMetrics.count == 1)
                 #expect(message.resourceMetrics.first?.scopeMetrics.count == 1)
@@ -387,6 +401,7 @@ import Tracing
                     config.logs.level = .debug
                     config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.logs.otlpExporter.protocol = .httpProtobuf
+                    config.logs.otlpExporter.headers = [("morale", "acceptable")]
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
@@ -415,6 +430,7 @@ import Tracing
                     #expect(head.method == .POST)
                     #expect(head.uri == "/some/path")
                     #expect(head.headers["Content-Type"] == ["application/x-protobuf"])
+                    #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
                     let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(serializedBytes: Data(buffer: body))
@@ -456,6 +472,7 @@ import Tracing
                     config.logs.level = .debug
                     config.logs.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.logs.otlpExporter.protocol = .httpJSON
+                    config.logs.otlpExporter.headers = [("morale", "acceptable")]
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
@@ -484,6 +501,7 @@ import Tracing
                     #expect(head.method == .POST)
                     #expect(head.uri == "/some/path")
                     #expect(head.headers["Content-Type"] == ["application/json"])
+                    #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
                     let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(jsonUTF8Data: Data(buffer: body))
@@ -522,6 +540,7 @@ import Tracing
                     config.logs.level = .debug
                     config.logs.otlpExporter.endpoint = endpoint
                     config.logs.otlpExporter.protocol = .grpc
+                    config.logs.otlpExporter.headers = [("morale", "acceptable")]
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     config.diagnosticLogLevel = .debug
@@ -544,6 +563,8 @@ import Tracing
                     try await group.waitForAll()
                 }
                 #expect(collector.recordingLogsService.recordingService.requests.count == 1)
+                let metadata = try #require(collector.recordingLogsService.recordingService.requests.first?.metadata)
+                #expect(metadata["morale"].map { $0.encoded() } == ["acceptable"])
                 let message = try #require(collector.recordingLogsService.recordingService.requests.first?.message)
                 #expect(message.resourceLogs.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.count == 1)
