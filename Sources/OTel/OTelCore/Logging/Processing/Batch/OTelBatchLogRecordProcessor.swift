@@ -68,12 +68,12 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
         await withTaskGroup { taskGroup in
             await withGracefulShutdownHandler {
                 taskGroup.addTask {
+                    self.logger.debug("Consuming from log stream.")
                     for await log in self.logStream {
-                        self.logger.debug("Consuming log from stream")
                         await self._onLog(log)
-                        self.logger.debug("Consumed log from stream")
+                        self.logger.trace("Consumed log from stream.")
                     }
-                    self.logger.debug("Log stream finished")
+                    self.logger.debug("Log stream finished.")
                 }
                 for await _ in mergedSequence where !(self.buffer.isEmpty) {
                     await self.tick()

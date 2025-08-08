@@ -31,7 +31,7 @@ struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTelLogRec
         await withGracefulShutdownHandler {
             for await record in stream {
                 do {
-                    logger.debug("Exporting log record.")
+                    logger.trace("Exporting log record.")
                     try await exporter.export([record])
                 } catch {
                     // simple log processor does not attempt retries
