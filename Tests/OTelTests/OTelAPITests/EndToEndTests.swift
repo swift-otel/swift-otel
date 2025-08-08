@@ -726,6 +726,20 @@ import Tracing
         }
     }
 
+    @Test func testTaskLocalServiceContextExposesCurrentTraceID() async {
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            var bootstrapConfig = OTel.Configuration.default
+            bootstrapConfig.traces.exporter = .none
+            bootstrapConfig.diagnosticLogLevel = .trace
+            try InstrumentationSystem.bootstrap(OTel.makeTracingBackend(configuration: bootstrapConfig).factory)
+            #expect(ServiceContext.current?.otelTraceID == nil)
+            withSpan("span") { span in
+                #expect(ServiceContext.current?.otelTraceID != nil)
+                #expect(ServiceContext.current?.otelTraceID == span.context.otelTraceID)
+            }
+        }
+    }
+
     @Test func testMakeBackendThrowsWhenSignalIsDisabled() throws {
         do {
             let error = try #require(throws: (any Error).self) {
