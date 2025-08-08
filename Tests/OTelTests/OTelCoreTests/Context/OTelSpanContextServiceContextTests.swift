@@ -13,19 +13,21 @@
 
 @testable import OTel
 import ServiceContextModule
-import XCTest
+import Testing
 
-final class OTelSpanContextServiceContextTests: XCTestCase {
-    func test_spanContext_storedInsideServiceContext() {
+@Suite
+struct OTelSpanContextServiceContextTests {
+    @Test
+    func spanContext_storedInsideServiceContext() {
         let spanContext = OTelSpanContext.localStub()
 
         var serviceContext = ServiceContext.topLevel
-        XCTAssertTrue(serviceContext.isEmpty)
-        XCTAssertNil(serviceContext.spanContext)
+        #expect(serviceContext.isEmpty)
+        #expect(serviceContext.spanContext == nil)
 
         serviceContext.spanContext = spanContext
-        XCTAssertEqual(serviceContext.count, 1)
+        #expect(serviceContext.count == 1)
 
-        XCTAssertEqual(serviceContext.spanContext, spanContext)
+        #expect(serviceContext.spanContext == spanContext)
     }
 }

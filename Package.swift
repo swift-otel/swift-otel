@@ -31,14 +31,17 @@ let package = Package(
         .package(url: "https://github.com/swift-otel/swift-w3c-trace-context.git", exact: "1.0.0-beta.3"),
 
         // MARK: - OTLPCore
+
         .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.30.0"),
 
         // MARK: - OTLPGRPC
+
         .package(url: "https://github.com/grpc/grpc-swift-2.git", from: "2.0.0"),
         .package(url: "https://github.com/grpc/grpc-swift-nio-transport.git", from: "2.0.0"),
         .package(url: "https://github.com/grpc/grpc-swift-protobuf.git", from: "2.0.0"),
 
         // MARK: - OTLPHTTP
+
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.25.0"),
 
         // MARK: - Plugins
