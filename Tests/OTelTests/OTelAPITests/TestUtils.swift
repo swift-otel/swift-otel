@@ -24,6 +24,7 @@ import Musl
 #endif
 
 import struct Foundation.URL
+import ServiceLifecycle
 
 extension Testing.Test {
     /// Update the `LLVM_PROFILE_PATH` with per-process pattern.
@@ -56,5 +57,17 @@ extension Testing.Test {
         let newValue = newPath.path(percentEncoded: false)
         print("Replacing \(key)=\(previousValue) with \(key)=\(newValue)")
         setenv(key, newValue, 1)
+    }
+}
+
+/// Wraps a service to provide a signal when its run method has been called.
+struct ServiceWrapper: Service {
+    var service: any Service
+    private var _runCalled = AsyncStream.makeStream(of: Void.self)
+    var runCalled: Void { get async { await _runCalled.stream.first { true } } }
+    init(service: any Service) { self.service = service }
+    func run() async throws {
+        _runCalled.continuation.yield()
+        try await service.run()
     }
 }

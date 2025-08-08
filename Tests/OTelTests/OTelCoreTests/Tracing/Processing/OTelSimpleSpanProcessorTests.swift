@@ -65,11 +65,12 @@ final class OTelSimpleSpanProcessorTests: XCTestCase {
     func test_shutdown_shutsDownExporter() async throws {
         let exporter = OTelInMemorySpanExporter()
         let processor = OTelSimpleSpanProcessor(exporter: exporter)
+        let wrapper = ServiceWrapper(service: processor)
 
         try await withThrowingTaskGroup { group in
-            let serviceGroup = ServiceGroup(services: [processor], logger: ._otelDebug)
+            let serviceGroup = ServiceGroup(services: [wrapper], logger: ._otelDebug)
             group.addTask { try await serviceGroup.run() }
-            try await Task.sleep(for: .seconds(0.1))
+            await wrapper.runCalled
             await serviceGroup.triggerGracefulShutdown()
             try await group.waitForAll()
         }
