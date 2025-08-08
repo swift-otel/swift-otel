@@ -37,6 +37,7 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     private let logContinuation: AsyncStream<OTelLogRecord>.Continuation
     private let explicitTickStream: AsyncStream<Void>
     private let explicitTick: AsyncStream<Void>.Continuation
+    private var batchID: UInt = 0
 
     init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, logger: Logger, clock: Clock) {
         self.logger = logger.withMetadata(component: "OTelBatchLogRecordProcessor")
@@ -95,19 +96,14 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
             logger.debug("Skipping force flush: buffer is empty")
             return
         }
+        logger.info("Force flushing.", metadata: ["buffer_size": "\(buffer.count)"])
         try await withTimeout(configuration.exportTimeout, clock: clock) {
             await withTaskGroup { group in
                 var buffer = self.buffer
                 while !buffer.isEmpty {
                     let batch = buffer.prefix(Int(self.configuration.maximumExportBatchSize))
-                    group.addTask {
-                        do {
-                            try await self.exporter.export(batch)
-                        } catch {
-                            self.logger.error("Exporting batch failed", metadata: ["error": "\(error)"])
-                        }
-                    }
                     buffer.removeFirst(batch.count)
+                    group.addTask { await self.export(batch) }
                 }
                 await group.waitForAll()
                 do {
@@ -122,12 +118,28 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     private func tick() async {
         let batch = buffer.prefix(Int(configuration.maximumExportBatchSize))
         buffer.removeFirst(batch.count)
+        await export(batch)
+    }
+
+    private func export(_ batch: some Collection<OTelLogRecord> & Sendable) async {
+        let batchID = batchID
+        self.batchID += 1
+
+        var logger = logger
+        logger[metadataKey: "batch_id"] = "\(batchID)"
+        logger[metadataKey: "batch_size"] = "\(batch.count)"
+        logger.trace("Export batch.", metadata: ["batch_size": "\(batch.count)"])
+
         do {
             try await withTimeout(configuration.exportTimeout, clock: clock) {
                 try await self.exporter.export(batch)
+                logger.trace("Exported batch.")
             }
         } catch {
-            logger.warning("Export failed", metadata: ["error": "\(error)"])
+            logger.warning("Failed to export batch.", metadata: [
+                "error": "\(String(describing: type(of: error)))",
+                "error_description": "\(error)",
+            ])
         }
     }
 }
