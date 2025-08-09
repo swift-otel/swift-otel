@@ -26,7 +26,7 @@ final class OTLPHTTPLogRecordExporter: OTelLogRecordExporter {
         self.logger = logger.withMetadata(component: "OTLPHTTPLogRecordExporter")
         var configuration = configuration
         configuration.endpoint = configuration.logsHTTPEndpoint
-        exporter = try OTLPHTTPExporter(configuration: configuration)
+        exporter = try OTLPHTTPExporter(configuration: configuration, logger: logger)
     }
 
     func run() async throws {

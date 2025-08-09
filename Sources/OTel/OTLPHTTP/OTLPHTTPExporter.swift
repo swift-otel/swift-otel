@@ -24,13 +24,17 @@ import SwiftProtobuf
 
 import struct Foundation.Data
 import class Foundation.FileManager
+import func Foundation.pow
 import struct Foundation.URL
+import struct NIOCore.TimeAmount
 
 final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
+    private let logger: Logger
     let configuration: OTel.Configuration.OTLPExporterConfiguration
     let httpClient: HTTPClient
 
-    init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
+    init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
+        self.logger = logger
         self.configuration = configuration
         self.httpClient = try HTTPClient(configuration: configuration)
     }
@@ -83,16 +87,14 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         request.headers.replaceOrAdd(name: "Connection", value: "keep-alive")
 
         // https://opentelemetry.io/docs/specs/otlp/#otlphttp-response
-        let response = try await self.httpClient.execute(request, timeout: .init(self.configuration.timeout))
-        switch response.status {
-        case .ok:
-            break
-        case .tooManyRequests, .badGateway, .serviceUnavailable, .gatewayTimeout:
-            // https://opentelemetry.io/docs/specs/otlp/#retryable-response-codes
-            // https://opentelemetry.io/docs/specs/otlp/#otlphttp-throttling
-            // TODO: Retry logic
-            throw OTLPHTTPExporterError.requestFailedWithRetryableError
-        default:
+        let response = try await self.httpClient.execute(
+            request,
+            timeout: .init(self.configuration.timeout),
+            logger: self.logger,
+            retryPolicy: .otel
+        )
+
+        guard response.status == .ok else {
             // https://opentelemetry.io/docs/specs/otlp/#failures
             // TODO: Apparently failures include Protobuf-encoded GRPC Status -- we could try and include it here.
             throw OTLPHTTPExporterError.requestFailed(response.status)
@@ -182,6 +184,110 @@ extension HTTPClient.Configuration {
                 self.tlsConfiguration?.certificateChain = clientCerts
                 self.tlsConfiguration?.privateKey = try .privateKey(.init(file: clientKeyPath, format: .pem))
             }
+        }
+    }
+}
+
+extension HTTPClient {
+    struct RetryPolicy: Sendable {
+        private(set) var attempts: Int
+        private(set) var maxAttempts: Int
+        private let baseDelay: Duration
+        private let maxDelay: Duration
+        private let jitter: Double
+        private(set) var policy: @Sendable (HTTPClientResponse) -> PolicyDecision
+
+        init(
+            maxAttempts: Int = 10,
+            baseDelay: Duration = .seconds(1),
+            maxDelay: Duration = .seconds(60),
+            jitter: Double = 0.1,
+            policy: @escaping @Sendable (HTTPClientResponse) -> PolicyDecision
+        ) {
+            self.attempts = 0
+            self.maxAttempts = maxAttempts
+            self.baseDelay = baseDelay
+            self.maxDelay = maxDelay
+            self.jitter = jitter
+            self.policy = policy
+        }
+
+        enum PolicyDecision {
+            case doNotRetry
+            case retryWithBackoff
+            case retryWithSpecificBackoff(Duration)
+        }
+
+        enum RetryDecision: Equatable {
+            case doNotRetry
+            case retryAfter(Duration)
+        }
+
+        mutating func shouldRetry(response: HTTPClientResponse) -> RetryDecision {
+            attempts += 1
+            if attempts >= maxAttempts { return .doNotRetry }
+            switch policy(response) {
+            case .doNotRetry: return .doNotRetry
+            case .retryWithBackoff:
+                let exponentialDelay = baseDelay * pow(2.0, Double(attempts - 1))
+                let cappedDelay = min(exponentialDelay, maxDelay)
+                let jitterAmount = cappedDelay * jitter * Double.random(in: -1 ... 1)
+                let delay = max(.zero, cappedDelay + jitterAmount)
+                return .retryAfter(delay)
+            case .retryWithSpecificBackoff(let delay):
+                return .retryAfter(delay)
+            }
+        }
+    }
+}
+
+extension HTTPClient.RetryPolicy {
+    /// A policy for use with the OTLP/HTTP exporter, following guidance from the spec.
+    ///
+    /// - See: [](https://opentelemetry.io/docs/specs/otlp/#retryable-response-codes)
+    /// - See: [](https://opentelemetry.io/docs/specs/otlp/#otlphttp-throttling)
+    static let otel = Self { response in
+        switch response.status {
+        case .tooManyRequests, .badGateway, .serviceUnavailable, .gatewayTimeout:
+            if let specificBackoff = response.headers["Retry-After"].last.flatMap(Int.init) {
+                .retryWithSpecificBackoff(.seconds(specificBackoff))
+            } else {
+                .retryWithBackoff
+            }
+        default: .doNotRetry
+        }
+    }
+}
+
+extension HTTPClient {
+    func execute<Clock: _Concurrency.Clock>(
+        _ request: HTTPClientRequest,
+        timeout: TimeAmount,
+        logger: Logger? = nil,
+        clock: Clock = .continuous,
+        retryPolicy: RetryPolicy
+    ) async throws -> HTTPClientResponse where Clock.Duration == Duration {
+        if var logger {
+            logger[metadataKey: "attempts"] = "\(retryPolicy.attempts)"
+            logger[metadataKey: "max_attempts"] = "\(retryPolicy.maxAttempts)"
+        }
+        logger?.debug("Making request.")
+        var retryPolicy = retryPolicy
+        let response = try await self.execute(request, timeout: timeout, logger: logger)
+        switch retryPolicy.shouldRetry(response: response) {
+        case .doNotRetry:
+            logger?.debug("Returning response.", metadata: ["status_code": "\(response.status.code)"])
+            return response
+        case .retryAfter(let delay):
+            logger?.debug("Retrying request.", metadata: ["status_code": "\(response.status.code)"])
+            try await _Concurrency.Task.sleep(for: delay, clock: clock)
+            return try await self.execute(
+                request,
+                timeout: timeout,
+                logger: logger,
+                clock: clock,
+                retryPolicy: retryPolicy
+            )
         }
     }
 }

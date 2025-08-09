@@ -11,8 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+import AsyncHTTPClient
 import struct Foundation.Data
 import Metrics
+import NIOConcurrencyHelpers
+import NIOHTTP1
 import NIOTestUtils
 @testable import OTel
 import ServiceLifecycle
@@ -250,6 +253,344 @@ import Tracing
 
             try await group.waitForAll()
         }
+    }
+
+    @Test func testRetryPolicyBackoff() async throws {
+        var retryPolicy = HTTPClient.RetryPolicy(
+            maxAttempts: 7,
+            baseDelay: .seconds(1),
+            maxDelay: .seconds(10),
+            jitter: 0.0
+        ) { _ in .retryWithBackoff }
+        // Starts with initial delay...
+        #expect(retryPolicy.shouldRetry(response: .init()) == .retryAfter(.seconds(1)))
+        // ...then delay doubles each time...
+        #expect(retryPolicy.shouldRetry(response: .init()) == .retryAfter(.seconds(2)))
+        #expect(retryPolicy.shouldRetry(response: .init()) == .retryAfter(.seconds(4)))
+        #expect(retryPolicy.shouldRetry(response: .init()) == .retryAfter(.seconds(8)))
+        // ...but is clamped to max delay...
+        #expect(retryPolicy.shouldRetry(response: .init()) == .retryAfter(.seconds(10)))
+        // ...and remains at max delay...
+        #expect(retryPolicy.shouldRetry(response: .init()) == .retryAfter(.seconds(10)))
+        // ...until max attempts, when retry is denied...
+        #expect(retryPolicy.shouldRetry(response: .init()) == .doNotRetry)
+        // ...on an ongoing basis.
+        #expect(retryPolicy.shouldRetry(response: .init()) == .doNotRetry)
+    }
+
+    @Test func testRetryPolicyBackoffWithJitter() async throws {
+        var retryPolicy = HTTPClient.RetryPolicy(
+            maxAttempts: 7,
+            baseDelay: .seconds(1),
+            maxDelay: .seconds(10),
+            jitter: 0.1
+        ) { _ in .retryWithBackoff }
+        do {
+            let delay = try #require(retryPolicy.shouldRetry(response: .init()).retryDelay)
+            #expect(delay != .seconds(1))
+            #expect(delay >= .seconds(1) * 0.9)
+            #expect(delay <= .seconds(1) * 1.1)
+        }
+        do {
+            let delay = try #require(retryPolicy.shouldRetry(response: .init()).retryDelay)
+            #expect(delay != .seconds(2))
+            #expect(delay >= .seconds(2) * 0.9)
+            #expect(delay <= .seconds(2) * 1.1)
+        }
+        do {
+            let delay = try #require(retryPolicy.shouldRetry(response: .init()).retryDelay)
+            #expect(delay != .seconds(4))
+            #expect(delay >= .seconds(4) * 0.9)
+            #expect(delay <= .seconds(4) * 1.1)
+        }
+        do {
+            let delay = try #require(retryPolicy.shouldRetry(response: .init()).retryDelay)
+            #expect(delay != .seconds(8))
+            #expect(delay >= .seconds(8) * 0.9)
+            #expect(delay <= .seconds(8) * 1.1)
+        }
+        do {
+            let delay = try #require(retryPolicy.shouldRetry(response: .init()).retryDelay)
+            #expect(delay != .seconds(10))
+            #expect(delay >= .seconds(10) * 0.9)
+            #expect(delay <= .seconds(10) * 1.1)
+        }
+        do {
+            let delay = try #require(retryPolicy.shouldRetry(response: .init()).retryDelay)
+            #expect(delay != .seconds(10))
+            #expect(delay >= .seconds(10) * 0.9)
+            #expect(delay <= .seconds(10) * 1.1)
+        }
+        #expect(retryPolicy.shouldRetry(response: .init()) == .doNotRetry)
+        #expect(retryPolicy.shouldRetry(response: .init()) == .doNotRetry)
+    }
+
+    @Test func testRetryPolicyPolicyDeclinesRetry() async throws {
+        var retryPolicy = HTTPClient.RetryPolicy(
+            maxAttempts: 7,
+            baseDelay: .seconds(1),
+            maxDelay: .seconds(10),
+            jitter: 0.0
+        ) { _ in .doNotRetry }
+        #expect(retryPolicy.shouldRetry(response: .init()) == .doNotRetry)
+        #expect(retryPolicy.shouldRetry(response: .init()) == .doNotRetry)
+    }
+
+    @Test func testRetryPolicyPolicySpecifiesDelay() async throws {
+        var retryPolicy = HTTPClient.RetryPolicy(
+            maxAttempts: 3,
+            baseDelay: .seconds(1),
+            maxDelay: .seconds(10),
+            jitter: 0.0
+        ) { _ in .retryWithSpecificBackoff(.seconds(42)) }
+        #expect(retryPolicy.shouldRetry(response: .init()) == .retryAfter(.seconds(42)))
+        #expect(retryPolicy.shouldRetry(response: .init()) == .retryAfter(.seconds(42)))
+        #expect(retryPolicy.shouldRetry(response: .init()) == .doNotRetry)
+        #expect(retryPolicy.shouldRetry(response: .init()) == .doNotRetry)
+    }
+
+    @Test func testRetryCustomPolicyStillBacksOffBasedOnAttempts() async throws {
+        // TODO: use an extension on tooManyRequests response
+        var retryPolicy = HTTPClient.RetryPolicy(
+            maxAttempts: 8,
+            baseDelay: .seconds(1),
+            maxDelay: .seconds(10),
+            jitter: 0.0
+        ) { response in
+            switch response.status {
+            case .tooManyRequests: .retryWithBackoff
+            case .imATeapot: .retryWithSpecificBackoff(.seconds(42))
+            default: .doNotRetry
+            }
+        }
+        // Starts with initial delay...
+        #expect(retryPolicy.shouldRetry(response: .init(status: .tooManyRequests)) == .retryAfter(.seconds(1)))
+        // ...then delay doubles each time...
+        #expect(retryPolicy.shouldRetry(response: .init(status: .tooManyRequests)) == .retryAfter(.seconds(2)))
+        // ...unless specified backoff...
+        #expect(retryPolicy.shouldRetry(response: .init(status: .imATeapot)) == .retryAfter(.seconds(42)))
+        // ...but considers the above part of the exponential sequence...
+        #expect(retryPolicy.shouldRetry(response: .init(status: .tooManyRequests)) == .retryAfter(.seconds(8)))
+        // ...but is clamped to max delay...
+        #expect(retryPolicy.shouldRetry(response: .init(status: .tooManyRequests)) == .retryAfter(.seconds(10)))
+        // ...but still respects specified backoff...
+        #expect(retryPolicy.shouldRetry(response: .init(status: .imATeapot)) == .retryAfter(.seconds(42)))
+        // ...and goes back to clamped if not specified...
+        #expect(retryPolicy.shouldRetry(response: .init(status: .tooManyRequests)) == .retryAfter(.seconds(10)))
+        // ...until max attempts, when retry is denied...
+        #expect(retryPolicy.shouldRetry(response: .init(status: .tooManyRequests)) == .doNotRetry)
+        // ...on an ongoing basis, even if specified backoff.
+        #expect(retryPolicy.shouldRetry(response: .init(status: .imATeapot)) == .doNotRetry)
+    }
+
+    @Test func testHTTPClientWithRetryPolicyMaxAttempts() async throws {
+        let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
+        defer { #expect(throws: Never.self) { try testServer.stop() } }
+
+        let clock = TestClock()
+        let numRequestsReceivedByServer = NIOLockedValueBox(0)
+
+        try await withThrowingTaskGroup { group in
+            group.addTask { // client
+                try await HTTPClient.withHTTPClient { client in
+                    var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
+                    request.method = .POST
+                    request.body = .init(.bytes(.init(string: "hello")))
+                    let retryPolicy = HTTPClient.RetryPolicy(
+                        maxAttempts: 3,
+                        baseDelay: .seconds(1),
+                        maxDelay: .seconds(10),
+                        jitter: 0.0
+                    ) { response in
+                        switch response.status {
+                        case .tooManyRequests:
+                            if let retryAfter = response.headers["Retry-After"].last.flatMap(Int.init) {
+                                .retryWithSpecificBackoff(.seconds(retryAfter))
+                            } else {
+                                .retryWithBackoff
+                            }
+                        default: .doNotRetry
+                        }
+                    }
+                    let response = try await client.execute(
+                        request,
+                        timeout: .seconds(60),
+                        logger: ._otelDebug,
+                        clock: clock,
+                        retryPolicy: retryPolicy
+                    )
+                    #expect(response.status == .tooManyRequests)
+                    #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 3)
+                }
+            }
+            group.addTask { // server
+                var sleepCalls = clock.sleepCalls.makeAsyncIterator()
+                // For the max attempts, return too many requests.
+                for _ in 1 ... 3 {
+                    _ = try testServer.receiveHead()
+                    _ = try testServer.receiveBody()
+                    _ = try testServer.receiveEnd()
+                    numRequestsReceivedByServer.withLockedValue { $0 += 1 }
+                    try testServer.writeOutbound(.head(.init(version: .http1_1, status: .tooManyRequests, headers: ["Retry-After": "42"])))
+                    try testServer.writeOutbound(.body(.byteBuffer(.init())))
+                    try testServer.writeOutbound(.end(nil))
+                    await sleepCalls.next()
+                    clock.advance(by: .seconds(42))
+                }
+                while !Task.isCancelled { await Task.yield() }
+            }
+            try await group.next()
+            group.cancelAll()
+            try await group.waitForAll()
+        }
+    }
+
+    @Test func testHTTPClientWithRetryPolicyFirstRequestSucceeds() async throws {
+        let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
+        defer { #expect(throws: Never.self) { try testServer.stop() } }
+
+        let clock = TestClock()
+        let numRequestsReceivedByServer = NIOLockedValueBox(0)
+
+        try await withThrowingTaskGroup { group in
+            group.addTask { // client
+                try await HTTPClient.withHTTPClient { client in
+                    var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
+                    request.method = .POST
+                    request.body = .init(.bytes(.init(string: "hello")))
+                    let retryPolicy = HTTPClient.RetryPolicy(
+                        maxAttempts: 3,
+                        baseDelay: .seconds(1),
+                        maxDelay: .seconds(10),
+                        jitter: 0.0
+                    ) { response in
+                        switch response.status {
+                        case .tooManyRequests:
+                            if let retryAfter = response.headers["Retry-After"].last.flatMap(Int.init) {
+                                .retryWithSpecificBackoff(.seconds(retryAfter))
+                            } else {
+                                .retryWithBackoff
+                            }
+                        default: .doNotRetry
+                        }
+                    }
+                    let response = try await client.execute(request, timeout: .seconds(60), clock: clock, retryPolicy: retryPolicy)
+                    #expect(response.status == .ok)
+                    #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 1)
+                }
+            }
+            group.addTask { // server
+                // Return OK.
+                _ = try testServer.receiveHead()
+                _ = try testServer.receiveBody()
+                _ = try testServer.receiveEnd()
+                numRequestsReceivedByServer.withLockedValue { $0 += 1 }
+                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok)))
+                try testServer.writeOutbound(.body(.byteBuffer(.init())))
+                try testServer.writeOutbound(.end(nil))
+                while !Task.isCancelled { await Task.yield() }
+            }
+            try await group.next()
+            group.cancelAll()
+            try await group.waitForAll()
+        }
+    }
+
+    @Test func testHTTPClientWithRetryPolicyRetrySucceeds() async throws {
+        let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
+        defer { #expect(throws: Never.self) { try testServer.stop() } }
+
+        let clock = TestClock()
+        let numRequestsReceivedByServer = NIOLockedValueBox(0)
+
+        try await withThrowingTaskGroup { group in
+            group.addTask { // client
+                try await HTTPClient.withHTTPClient { client in
+                    var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
+                    request.method = .POST
+                    request.body = .init(.bytes(.init(string: "hello")))
+                    let retryPolicy = HTTPClient.RetryPolicy(
+                        maxAttempts: 3,
+                        baseDelay: .seconds(1),
+                        maxDelay: .seconds(10),
+                        jitter: 0.0
+                    ) { response in
+                        switch response.status {
+                        case .tooManyRequests:
+                            if let retryAfter = response.headers["Retry-After"].last.flatMap(Int.init) {
+                                .retryWithSpecificBackoff(.seconds(retryAfter))
+                            } else {
+                                .retryWithBackoff
+                            }
+                        default: .doNotRetry
+                        }
+                    }
+                    let response = try await client.execute(request, timeout: .seconds(60), clock: clock, retryPolicy: retryPolicy)
+                    #expect(response.status == .ok)
+                    #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 2)
+                }
+            }
+            group.addTask { // server
+                var sleepCalls = clock.sleepCalls.makeAsyncIterator()
+                // For one request, return too many requests.
+                _ = try testServer.receiveHead()
+                _ = try testServer.receiveBody()
+                _ = try testServer.receiveEnd()
+                numRequestsReceivedByServer.withLockedValue { $0 += 1 }
+                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .tooManyRequests, headers: ["Retry-After": "1"])))
+                try testServer.writeOutbound(.body(.byteBuffer(.init())))
+                try testServer.writeOutbound(.end(nil))
+                // Wait for backoff to sleep, then advance clock by retry delay.
+                await sleepCalls.next()
+                clock.advance(by: .seconds(1))
+                // Then return OK.
+                _ = try testServer.receiveHead()
+                _ = try testServer.receiveBody()
+                _ = try testServer.receiveEnd()
+                numRequestsReceivedByServer.withLockedValue { $0 += 1 }
+                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok)))
+                try testServer.writeOutbound(.body(.byteBuffer(.init())))
+                try testServer.writeOutbound(.end(nil))
+            }
+            try await group.next()
+            group.cancelAll()
+            try await group.waitForAll()
+        }
+    }
+
+    @Test func testOTelSpecRetryPolicy() {
+        /// The requests that receive a response status code listed in following table SHOULD be retried. All other 4xx or 5xx response status codes MUST NOT be retried.
+        /// — source: https://opentelemetry.io/docs/specs/otlp/#retryable-response-codes
+        for code in 100 ... 599 {
+            let responseWithoutHeader = HTTPClientResponse(status: .init(statusCode: code))
+            let responseWithHeader = HTTPClientResponse(status: .init(statusCode: code), headers: ["Retry-After": "42"])
+            var policy = HTTPClient.RetryPolicy.otel
+            switch code {
+            case 429, 502, 503, 504:
+                guard case .retryAfter(let delay) = policy.shouldRetry(response: responseWithoutHeader) else {
+                    Issue.record("OTel HTTP retry policy should retry for status code: \(code).")
+                    continue
+                }
+                #expect(delay != .seconds(1))
+                #expect(delay >= .seconds(0.9))
+                #expect(delay <= .seconds(1.1))
+                guard case .retryAfter(let delay) = policy.shouldRetry(response: responseWithHeader) else {
+                    Issue.record("OTel HTTP retry policy should retry for status code: \(code).")
+                    continue
+                }
+                #expect(delay == .seconds(42))
+            default:
+                #expect(policy.shouldRetry(response: responseWithoutHeader) == .doNotRetry)
+                #expect(policy.shouldRetry(response: responseWithHeader) == .doNotRetry)
+            }
+        }
+    }
+}
+
+extension HTTPClient.RetryPolicy.RetryDecision {
+    var retryDelay: Duration? {
+        guard case .retryAfter(let delay) = self else { return nil }
+        return delay
     }
 }
 

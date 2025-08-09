@@ -26,7 +26,7 @@ final class OTLPHTTPSpanExporter: OTelSpanExporter {
         self.logger = logger.withMetadata(component: "OTLPHTTPSpanExporter")
         var configuration = configuration
         configuration.endpoint = configuration.tracesHTTPEndpoint
-        exporter = try OTLPHTTPExporter(configuration: configuration)
+        exporter = try OTLPHTTPExporter(configuration: configuration, logger: logger)
     }
 
     func run() async throws {
