@@ -94,15 +94,18 @@ $(OTLP_GRPC_SWIFTS): $(OTLP_GRPC_PROTOS) $(PROTOC_GEN_GRPC_SWIFT)
 		--grpc-swift-2_opt=UseAccessLevelOnImports=true \
 		--grpc-swift-2_out=Client=true,Server=true:$(OTLP_GRPC_SWIFT_ROOT)
 
-.PHONY: add-trait-guards
-add-trait-guards: $(OTLP_CORE_SWIFTS) $(OTLP_GRPC_SWIFTS)
+.PHONY: patch-generated-code
+patch-generated-code: $(OTLP_CORE_SWIFTS) $(OTLP_GRPC_SWIFTS)
 	@for file in $(OTLP_CORE_SWIFTS); do \
 		mv "$$file" "$$file.orig"; \
 		echo "Adding trait guard to: $$file"; \
 		echo "#if !(OTLPHTTP || OTLPGRPC)" >> "$$file"; \
 		echo "// Empty when above trait(s) are disabled." >> "$$file"; \
 		echo "#else" >> "$$file"; \
-		cat "$$file.orig" >> "$$file"; \
+		echo "Patching Foundation import to use FoundationEssentials in file: $$file"; \
+		cat "$$file.orig" \
+		| sed 's/\(.*\)import Foundation/#if canImport(FoundationEssentials)\n\1import FoundationEssentials\n#else\n\1import Foundation\n#endif/' \
+		>> "$$file"; \
 		echo "#endif" >> "$$file"; \
 		rm "$$file.orig"; \
 	done
@@ -112,13 +115,15 @@ add-trait-guards: $(OTLP_CORE_SWIFTS) $(OTLP_GRPC_SWIFTS)
 		echo "#if !OTLPGRPC" >> "$$file"; \
 		echo "// Empty when above trait(s) are disabled." >> "$$file"; \
 		echo "#else" >> "$$file"; \
-		cat "$$file.orig" >> "$$file"; \
+		cat "$$file.orig" \
+		| sed 's/\(.*\)import Foundation/#if canImport(FoundationEssentials)\n\1import FoundationEssentials\n#else\n\1import Foundation\n#endif/' \
+		>> "$$file"; \
 		echo "#endif" >> "$$file"; \
 		rm "$$file.orig"; \
 	done
 
 .PHONY: generate
-generate: $(OTLP_CORE_SWIFTS) $(OTLP_GRPC_SWIFTS) add-trait-guards  # Generate Swift files from Protobuf.
+generate: $(OTLP_CORE_SWIFTS) $(OTLP_GRPC_SWIFTS) patch-generated-code  # Generate Swift files from Protobuf.
 
 .PHONY: delete-generated-code
 delete-generated-code:  # Delete all pb.swift and .grpc.swift files.
