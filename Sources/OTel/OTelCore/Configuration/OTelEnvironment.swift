@@ -19,7 +19,11 @@ import Musl
 import Darwin.C
 #endif
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A wrapper for reading environment values.
 struct OTelEnvironment: Sendable {
