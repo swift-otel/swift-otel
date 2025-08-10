@@ -160,3 +160,17 @@ jobs:
             exit 1
           fi
           echo "All example matrix jobs succeeded."
+
+  api-breakage:
+    name: API breakage check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Mark the workspace as safe
+      run: git config --global --add safe.directory ${GITHUB_WORKSPACE}
+    - name: API breaking changes
+      run: |
+        swift package diagnose-api-breaking-changes origin/${GITHUB_BASE_REF}
