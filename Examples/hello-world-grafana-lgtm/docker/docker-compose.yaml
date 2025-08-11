@@ -1,0 +1,16 @@
+version: "3.5"
+services:
+  grafana:
+    image: docker-upstream.apple.com/grafana/otel-lgtm:latest
+    environment:
+      - GF_PATHS_DATA=/data/grafana
+    volumes:
+      - ./container/grafana:/data/grafana
+      - ./container/prometheus:/data/prometheus
+      - ./container/loki:/data/loki
+    ports:
+      - "3000:3000"
+      - "4317:4317"
+      - "4318:4318"
+
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
