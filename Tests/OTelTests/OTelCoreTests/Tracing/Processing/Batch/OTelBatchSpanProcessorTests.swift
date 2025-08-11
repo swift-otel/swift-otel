@@ -120,6 +120,67 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["1", "2", "3"])
     }
 
+    func test_onEnd_whenBufferIsFull_nextTickEmitsDiagnostic() async throws {
+        let recordingLogHander = RecordingLogHandler()
+        let logger = Logger(label: "test") { _ in recordingLogHander }
+        let processorClock = TestClock()
+        let exporterClock = TestClock()
+        var processorSleeps = processorClock.sleepCalls.makeAsyncIterator()
+        var exporterSleeps = exporterClock.sleepCalls.makeAsyncIterator()
+        let scheduleDelay = Duration.seconds(1)
+        let exportDelay = Duration.seconds(1)
+        let exportTimeout = Duration.seconds(0.5)
+        let exporter = SlowMockExporter(clock: exporterClock, delay: exportDelay)
+        let processor = OTelBatchSpanProcessor(
+            exporter: exporter,
+            configuration: .init(environment: [:], maximumQueueSize: 2, scheduleDelay: scheduleDelay, exportTimeout: exportTimeout),
+            logger: logger,
+            clock: processorClock
+        )
+        let serviceGroup = ServiceGroup(services: [exporter, processor], logger: logger)
+
+        let span1 = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "1")
+        let span2 = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "2")
+        let span3 = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "3")
+
+        try await withThrowingTaskGroup { group in
+            group.addTask { try await serviceGroup.run() }
+
+            // Wait for tick.
+            await processorSleeps.next()
+
+            // Fill the buffer (for the BSP, this triggers an explicit tick).
+            processor.onEnd(span1)
+            processor.onEnd(span2)
+
+            // Wait for the exporter timeout to start.
+            await processorSleeps.next()
+            // Wait for the exporter to be kicked.
+            await exporterSleeps.next()
+
+            // While the export is ongoing, overfill the buffer.
+            processor.onEnd(span1)
+            processor.onEnd(span2)
+            processor.onEnd(span3)
+
+            // Unblock the exporter.
+            exporterClock.advance(by: exportDelay)
+
+            // Await next processor tick and advance.
+            await processorSleeps.next()
+            processorClock.advance(by: scheduleDelay)
+
+            // Check for logs.
+            let _log = await recordingLogHander.recordedLogMessageStream.first { $0.level == .warning }
+            let log = try XCTUnwrap(_log)
+            XCTAssert(log.message.description.contains("Spans were dropped"))
+            XCTAssertEqual(log.metadata?["dropped_count"], "\(1)")
+
+            await serviceGroup.triggerGracefulShutdown()
+            try await group.waitForAll()
+        }
+    }
+
     func test_onEnd_whenExportFails_keepsExportingFutureSpans() async throws {
         LoggingSystem.bootstrapInternal(logLevel: .trace)
 
@@ -349,4 +410,19 @@ extension OTelBatchSpanProcessor {
     init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, clock: Clock) {
         self.init(exporter: exporter, configuration: configuration, logger: ._otelDisabled, clock: clock)
     }
+}
+
+struct SlowMockExporter<Clock: _Concurrency.Clock>: OTelSpanExporter where Clock.Duration == Duration {
+    var clock: Clock
+    var delay: Duration
+
+    func run() async throws { try await gracefulShutdown() }
+
+    func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws {
+        try await Task.sleep(for: delay, clock: clock)
+    }
+
+    func forceFlush() async throws {}
+
+    func shutdown() async {}
 }

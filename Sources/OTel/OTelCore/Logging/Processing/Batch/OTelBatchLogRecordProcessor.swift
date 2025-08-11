@@ -28,6 +28,7 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     nonisolated let description = "OTelBatchLogRecordProcessor"
 
     internal /* for testing */ private(set) var buffer: Deque<OTelLogRecord>
+    internal /* for testing */ private(set) var droppedCount = 0
 
     private let exporter: Exporter
     private let configuration: OTelBatchLogRecordProcessorConfiguration
@@ -55,6 +56,13 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     }
 
     private func _onLog(_ log: OTelLogRecord) {
+        /// > - maxQueueSize - the maximum queue size. After the size is reached spans are dropped.
+        ///
+        /// — source: https://opentelemetry.io/docs/specs/otel/logs/sdk/#batching-processor
+        guard buffer.count < configuration.maximumQueueSize else {
+            droppedCount += 1
+            return
+        }
         buffer.append(log)
         // NOTE: Unlike the BatchSpanProcessor, the spec does _not_ say the BatchLogRecordProcessor should trigger an
         // export when the queue size is reached.
@@ -114,6 +122,13 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     }
 
     private func tick() async {
+        if droppedCount > 0 {
+            logger.warning("Log records were dropped this iteration because queue was full", metadata: [
+                "queue_size": "\(configuration.maximumQueueSize)",
+                "dropped_count": "\(droppedCount)",
+            ])
+            droppedCount = 0
+        }
         let batch = buffer.prefix(Int(configuration.maximumExportBatchSize))
         buffer.removeFirst(batch.count)
         await export(batch)
@@ -126,12 +141,11 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
         var logger = logger
         logger[metadataKey: "batch_id"] = "\(batchID)"
         logger[metadataKey: "batch_size"] = "\(batch.count)"
-        logger.trace("Export batch.", metadata: ["batch_size": "\(batch.count)"])
 
         do {
             try await withTimeout(configuration.exportTimeout, clock: clock) {
                 try await self.exporter.export(batch)
-                logger.trace("Exported batch.")
+                logger.debug("Exported batch.")
             }
         } catch {
             logger.warning("Failed to export batch.", metadata: [

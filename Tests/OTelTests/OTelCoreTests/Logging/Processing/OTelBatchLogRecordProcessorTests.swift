@@ -58,6 +58,47 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         }
     }
 
+    func test_onEmit_whenBufferIsFull_nextTickEmitsDiagnostic() async throws {
+        let recordingLogHander = RecordingLogHandler()
+        let logger = Logger(label: "test") { _ in recordingLogHander }
+        let clock = TestClock()
+        var sleeps = clock.sleepCalls.makeAsyncIterator()
+        let scheduleDelay = Duration.seconds(1)
+        let exporter = OTelStreamingLogRecordExporter()
+        let processor = OTelBatchLogRecordProcessor(
+            exporter: exporter,
+            configuration: .init(environment: [:], maximumQueueSize: 2, scheduleDelay: scheduleDelay),
+            logger: logger,
+            clock: clock
+        )
+        let serviceGroup = ServiceGroup(services: [exporter, processor], logger: logger)
+
+        var record1 = OTelLogRecord.stub(body: "1")
+        var record2 = OTelLogRecord.stub(body: "2")
+        var record3 = OTelLogRecord.stub(body: "3")
+
+        try await withThrowingTaskGroup { group in
+            group.addTask { try await serviceGroup.run() }
+
+            await sleeps.next()
+
+            processor.onEmit(&record1)
+            processor.onEmit(&record2)
+            processor.onEmit(&record3)
+            while await (processor.buffer.count, processor.droppedCount) != (2, 1) { await Task.yield() }
+
+            clock.advance(by: scheduleDelay)
+
+            let _log = await recordingLogHander.recordedLogMessageStream.first { $0.level == .warning }
+            let log = try XCTUnwrap(_log)
+            XCTAssert(log.message.description.contains("Log records were dropped"))
+            XCTAssertEqual(log.metadata?["dropped_count"], "\(1)")
+
+            await serviceGroup.triggerGracefulShutdown()
+            try await group.waitForAll()
+        }
+    }
+
     func test_onEmit_whenExportFails_keepsExportingFutureLogRecords() async throws {
         LoggingSystem.bootstrapInternal(logLevel: .trace)
 
