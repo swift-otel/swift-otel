@@ -31,7 +31,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4.3.0
 
       - name: Start OTel Collector
         working-directory: ./IntegrationTests
