@@ -31,20 +31,14 @@ final class OTelInMemorySpanProcessor: OTelSpanProcessor {
     var numberOfForceFlushes: Int { _numberOfForceFlushes.withLockedValue { $0 } }
     private let _numberOfForceFlushes = NIOLockedValueBox<Int>(0)
 
-    private let stream: AsyncStream<Void>
-    private let continuation: AsyncStream<Void>.Continuation
-
-    init() {
-        (stream, continuation) = AsyncStream.makeStream()
-    }
+    init() {}
 
     func run() async throws {
-        await withGracefulShutdownHandler {
-            for await _ in stream.cancelOnGracefulShutdown() {}
+        try await withGracefulShutdownHandler {
+            try await gracefulShutdown()
         } onGracefulShutdown: {
-            self.continuation.finish()
+            self._numberOfShutdowns.withLockedValue { $0 += 1 }
         }
-        _numberOfShutdowns.withLockedValue { $0 += 1 }
     }
 
     nonisolated func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
