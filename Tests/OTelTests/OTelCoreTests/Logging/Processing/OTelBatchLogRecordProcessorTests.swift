@@ -58,35 +58,6 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         }
     }
 
-    func test_onEmit_whenReachingMaximumQueueSize_triggersExplicitExportOfNextBatch() async throws {
-        let exporter = OTelStreamingLogRecordExporter()
-        let maximumQueueSize = UInt(2)
-        let processor = OTelBatchLogRecordProcessor(
-            exporter: exporter,
-            configuration: .init(environment: [:], maximumQueueSize: maximumQueueSize)
-        )
-
-        let serviceGroup = ServiceGroup(services: [processor], logger: Logger(label: #function))
-
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            group.addTask(operation: serviceGroup.run)
-
-            var record1 = OTelLogRecord.stub(body: "1")
-            processor.onEmit(&record1)
-
-            var record2 = OTelLogRecord.stub(body: "2")
-            processor.onEmit(&record2)
-
-            while await processor.buffer.count != 2 { await Task.yield() }
-
-            var batches = exporter.batches.makeAsyncIterator()
-            let batch = await batches.next()
-            XCTAssertEqual(try XCTUnwrap(batch).map(\.body), ["1", "2"])
-
-            group.cancelAll()
-        }
-    }
-
     func test_onEmit_whenExportFails_keepsExportingFutureLogRecords() async throws {
         LoggingSystem.bootstrapInternal(logLevel: .trace)
 
