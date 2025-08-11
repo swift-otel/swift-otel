@@ -385,7 +385,7 @@ import Tracing
 
     @Test func testHTTPClientWithRetryPolicyMaxAttempts() async throws {
         let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
-        defer { #expect(throws: Never.self) { try? testServer.stop() } }
+        defer { try? testServer.stop() }
 
         let clock = TestClock()
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
@@ -447,7 +447,7 @@ import Tracing
 
     @Test func testHTTPClientWithRetryPolicyFirstRequestSucceeds() async throws {
         let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
-        defer { #expect(throws: Never.self) { try? testServer.stop() } }
+        defer { try? testServer.stop() }
 
         let clock = TestClock()
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
@@ -498,7 +498,7 @@ import Tracing
 
     @Test func testHTTPClientWithRetryPolicyRetrySucceeds() async throws {
         let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
-        defer { #expect(throws: Never.self) { try? testServer.stop() } }
+        defer { try? testServer.stop() }
 
         let clock = TestClock()
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
