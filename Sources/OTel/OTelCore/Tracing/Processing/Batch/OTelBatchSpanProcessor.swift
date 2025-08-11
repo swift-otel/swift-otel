@@ -33,6 +33,8 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
     private let exporter: Exporter
     private let configuration: OTelBatchSpanProcessorConfiguration
     private let clock: Clock
+    private let spanStream: AsyncStream<OTelFinishedSpan>
+    private let spanContinuation: AsyncStream<OTelFinishedSpan>.Continuation
     private let explicitTickStream: AsyncStream<Void>
     private let explicitTick: AsyncStream<Void>.Continuation
     private var batchID: UInt = 0
@@ -45,9 +47,14 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
 
         buffer = Deque(minimumCapacity: Int(configuration.maximumQueueSize))
         (explicitTickStream, explicitTick) = AsyncStream.makeStream()
+        (spanStream, spanContinuation) = AsyncStream.makeStream()
     }
 
-    func onEnd(_ span: OTelFinishedSpan) {
+    nonisolated func onEnd(_ span: OTelFinishedSpan) {
+        spanContinuation.yield(span)
+    }
+
+    func _onSpan(_ span: OTelFinishedSpan) {
         guard span.spanContext.traceFlags.contains(.sampled) else { return }
         buffer.append(span)
 
@@ -59,13 +66,30 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
     func run() async throws {
         let timerSequence = AsyncTimerSequence(interval: configuration.scheduleDelay, clock: clock).map { _ in }
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
-        for await _ in mergedSequence where !buffer.isEmpty {
-            await self.tick()
+
+        await withTaskGroup { taskGroup in
+            await withGracefulShutdownHandler {
+                taskGroup.addTask {
+                    self.logger.debug("Consuming from span stream.")
+                    for await log in self.spanStream {
+                        await self._onSpan(log)
+                        self.logger.trace("Consumed span from stream.")
+                    }
+                    self.logger.debug("Span stream finished.")
+                }
+                for await _ in mergedSequence where !(self.buffer.isEmpty) {
+                    await self.tick()
+                }
+                await taskGroup.waitForAll()
+            } onGracefulShutdown: {
+                self.logger.debug("Shutting down.")
+                self.spanContinuation.finish()
+                self.explicitTick.finish()
+            }
+            try? await self.forceFlush()
+            await self.exporter.shutdown()
+            self.logger.debug("Shut down.")
         }
-        logger.debug("Shutting down.")
-        try? await forceFlush()
-        await exporter.shutdown()
-        logger.debug("Shut down.")
     }
 
     func forceFlush() async throws {

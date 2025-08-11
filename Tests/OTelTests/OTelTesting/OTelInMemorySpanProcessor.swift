@@ -11,17 +11,25 @@
 //
 //===----------------------------------------------------------------------===//
 
+import NIOConcurrencyHelpers
 @testable import OTel
 import ServiceContextModule
 import ServiceLifecycle
 
 /// An in-memory span processor, collecting started spans into ``OTelInMemorySpanProcessor/startedSpans``
 /// and finished spans into ``OTelInMemorySpanProcessor/finishedSpans``.
-final actor OTelInMemorySpanProcessor: OTelSpanProcessor {
-    private(set) var startedSpans = [(span: OTelSpan, parentContext: ServiceContext)]()
-    private(set) var finishedSpans = [OTelFinishedSpan]()
-    private(set) var numberOfForceFlushes = 0
-    private(set) var numberOfShutdowns = 0
+final class OTelInMemorySpanProcessor: OTelSpanProcessor {
+    var startedSpans: [(span: OTelSpan, parentContext: ServiceContext)] { _startedSpans.withLockedValue { $0 } }
+    private let _startedSpans = NIOLockedValueBox<[(span: OTelSpan, parentContext: ServiceContext)]>([])
+
+    var finishedSpans: [OTelFinishedSpan] { _finishedSpans.withLockedValue { $0 } }
+    private let _finishedSpans = NIOLockedValueBox<[OTelFinishedSpan]>([])
+
+    var numberOfShutdowns: Int { _numberOfShutdowns.withLockedValue { $0 } }
+    private let _numberOfShutdowns = NIOLockedValueBox<Int>(0)
+
+    var numberOfForceFlushes: Int { _numberOfForceFlushes.withLockedValue { $0 } }
+    private let _numberOfForceFlushes = NIOLockedValueBox<Int>(0)
 
     private let stream: AsyncStream<Void>
     private let continuation: AsyncStream<Void>.Continuation
@@ -36,18 +44,18 @@ final actor OTelInMemorySpanProcessor: OTelSpanProcessor {
         } onGracefulShutdown: {
             self.continuation.finish()
         }
-        numberOfShutdowns += 1
+        _numberOfShutdowns.withLockedValue { $0 += 1 }
     }
 
-    func onStart(_ span: OTelSpan, parentContext: ServiceContext) async {
-        startedSpans.append((span, parentContext))
+    nonisolated func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
+        _startedSpans.withLockedValue { $0.append((span, parentContext)) }
     }
 
-    func onEnd(_ span: OTelFinishedSpan) async {
-        finishedSpans.append(span)
+    nonisolated func onEnd(_ span: OTelFinishedSpan) {
+        _finishedSpans.withLockedValue { $0.append(span) }
     }
 
     func forceFlush() async throws {
-        numberOfForceFlushes += 1
+        _numberOfForceFlushes.withLockedValue { $0 += 1 }
     }
 }
