@@ -29,6 +29,7 @@ enum HelloWorldVaporServer {
         // Create an HTTP server with instrumentation middlewares added.
         let app = try await Vapor.Application.make()
         app.middleware.use(TracingMiddleware())
+        app.traceAutoPropagation = true
         app.middleware.use(RouteLoggingMiddleware(logLevel: .info))
         app.get("hello") { _ in "hello" }
 
