@@ -30,12 +30,8 @@ logs, metrics, and traces to file, Prometheus, and Jaeger, respectively, via an 
 - [hello-world-hummingbird-server-only-traces](./hello-world-hummingbird-server-only-traces) - HTTP server
   with instrumentation middleware, with metrics and logging backends disabled.
 
-## Pruning dependencies with traits
-
-- TODO: example building without the OTLPGRPC trait
-- TODO: example building without the OTLPHTTP trait
-
 ## Integrations
 
-- TODO: Vapor example
+- [hello-world-vapor-server-otlp-http-protobuf](./hello-world-vapor-server-otlp-http-protobuf) - HTTP server
+  with instrumentation middleware, exporting telemetry over OTLP/HTTP+Protobuf.
 - TODO: Grafana example
