@@ -31,40 +31,6 @@ extension OTelResource {
     }
 }
 
-extension OTelBatchLogRecordProcessorConfiguration {
-    init(configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration) {
-        self.init(
-            environment: [:],
-            maximumQueueSize: UInt(configuration.maxQueueSize),
-            scheduleDelay: configuration.scheduleDelay,
-            maximumExportBatchSize: UInt(configuration.maxExportBatchSize),
-            exportTimeout: configuration.exportTimeout
-        )
-    }
-}
-
-extension OTelPeriodicExportingMetricsReaderConfiguration {
-    init(configuration: OTel.Configuration.MetricsConfiguration) {
-        self.init(
-            environment: [:],
-            exportInterval: configuration.exportInterval,
-            exportTimeout: configuration.exportTimeout
-        )
-    }
-}
-
-extension OTelBatchSpanProcessorConfiguration {
-    init(configuration: OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration) {
-        self.init(
-            environment: [:],
-            maximumQueueSize: UInt(configuration.maxQueueSize),
-            scheduleDelay: configuration.scheduleDelay,
-            maximumExportBatchSize: UInt(configuration.maxExportBatchSize),
-            exportTimeout: configuration.exportTimeout
-        )
-    }
-}
-
 extension Logging.Logger.Level {
     init(_ level: OTel.Configuration.LogLevel) {
         switch level.backing {

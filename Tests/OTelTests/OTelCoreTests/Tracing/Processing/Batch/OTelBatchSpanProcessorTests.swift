@@ -25,7 +25,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         var sleeps = clock.sleepCalls.makeAsyncIterator()
         let processor = OTelBatchSpanProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], scheduleDelay: .seconds(2)),
+            configuration: .defaultWith(scheduleDelay: .seconds(2)),
             clock: clock
         )
 
@@ -59,7 +59,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         var sleeps = clock.sleepCalls.makeAsyncIterator()
         let processor = OTelBatchSpanProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], scheduleDelay: .seconds(2)),
+            configuration: .defaultWith(scheduleDelay: .seconds(2)),
             clock: clock
         )
 
@@ -92,7 +92,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         var sleeps = clock.sleepCalls.makeAsyncIterator()
         let processor = OTelBatchSpanProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], maximumQueueSize: 3, scheduleDelay: .seconds(2)),
+            configuration: .defaultWith(scheduleDelay: .seconds(2), maxQueueSize: 3),
             clock: clock
         )
 
@@ -133,7 +133,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         let exporter = SlowMockExporter(clock: exporterClock, delay: exportDelay)
         let processor = OTelBatchSpanProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], maximumQueueSize: 2, scheduleDelay: scheduleDelay, exportTimeout: exportTimeout),
+            configuration: .defaultWith(scheduleDelay: scheduleDelay, exportTimeout: exportTimeout, maxQueueSize: 2),
             logger: logger,
             clock: processorClock
         )
@@ -191,7 +191,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         var sleeps = clock.sleepCalls.makeAsyncIterator()
         let processor = OTelBatchSpanProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], scheduleDelay: .seconds(2)),
+            configuration: .defaultWith(scheduleDelay: .seconds(2)),
             clock: clock
         )
 
@@ -236,7 +236,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         var sleeps = clock.sleepCalls.makeAsyncIterator()
         let processor = OTelBatchSpanProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], maximumExportBatchSize: 2),
+            configuration: .defaultWith(maxExportBatchSize: 2),
             clock: clock
         )
 
@@ -279,7 +279,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         var sleeps = clock.sleepCalls.makeAsyncIterator()
         let processor = OTelBatchSpanProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], exportTimeout: .seconds(1)),
+            configuration: .defaultWith(exportTimeout: .seconds(1)),
             clock: clock
         )
 
@@ -336,7 +336,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         let processorClock = TestClock()
         let processor = OTelBatchSpanProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], scheduleDelay: .seconds(1), exportTimeout: .seconds(1)),
+            configuration: .defaultWith(scheduleDelay: .seconds(1), exportTimeout: .seconds(1)),
             clock: processorClock
         )
 
@@ -379,7 +379,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         let processorClock = TestClock()
         let processor = OTelBatchSpanProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], scheduleDelay: .seconds(1), exportTimeout: .seconds(1)),
+            configuration: .defaultWith(scheduleDelay: .seconds(1), exportTimeout: .seconds(1)),
             clock: processorClock
         )
 
@@ -407,8 +407,20 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
 
 extension OTelBatchSpanProcessor {
     // Overload with logging disabled.
-    init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, clock: Clock) {
+    init(exporter: Exporter, configuration: OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration, clock: Clock) {
         self.init(exporter: exporter, configuration: configuration, logger: ._otelDisabled, clock: clock)
+    }
+}
+
+extension OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration {
+    // Overload with defaults.
+    static func defaultWith(
+        scheduleDelay: Duration = Self.default.scheduleDelay,
+        exportTimeout: Duration = Self.default.exportTimeout,
+        maxQueueSize: Int = Self.default.maxQueueSize,
+        maxExportBatchSize: Int = Self.default.maxExportBatchSize
+    ) -> Self {
+        Self(scheduleDelay: scheduleDelay, exportTimeout: exportTimeout, maxQueueSize: maxQueueSize, maxExportBatchSize: maxExportBatchSize)
     }
 }
 

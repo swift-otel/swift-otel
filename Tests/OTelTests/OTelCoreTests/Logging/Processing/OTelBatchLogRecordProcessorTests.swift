@@ -27,7 +27,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         let scheduleDelay = Duration.seconds(1)
         let processor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], scheduleDelay: scheduleDelay),
+            configuration: .defaultWith(scheduleDelay: scheduleDelay),
             clock: clock
         )
 
@@ -67,7 +67,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         let exporter = OTelStreamingLogRecordExporter()
         let processor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], maximumQueueSize: 2, scheduleDelay: scheduleDelay),
+            configuration: .defaultWith(maxQueueSize: 2),
             logger: logger,
             clock: clock
         )
@@ -109,7 +109,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         let scheduleDelay = Duration.seconds(1)
         let processor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], scheduleDelay: scheduleDelay),
+            configuration: .defaultWith(scheduleDelay: scheduleDelay),
             clock: clock
         )
 
@@ -159,7 +159,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         let scheduleDelay = Duration.seconds(3)
         let processor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], scheduleDelay: scheduleDelay, exportTimeout: exportTimeout),
+            configuration: .defaultWith(scheduleDelay: scheduleDelay, exportTimeout: exportTimeout),
             clock: clock
         )
 
@@ -200,7 +200,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         let clock = TestClock()
         let processor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], maximumExportBatchSize: 1),
+            configuration: .defaultWith(maxExportBatchSize: 1),
             clock: clock
         )
 
@@ -253,7 +253,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         let scheduleDelay = Duration.seconds(3)
         let processor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], scheduleDelay: scheduleDelay, exportTimeout: exportTimeout),
+            configuration: .defaultWith(scheduleDelay: scheduleDelay, exportTimeout: exportTimeout),
             clock: clock
         )
 
@@ -301,7 +301,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         let processorClock = TestClock()
         let processor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], scheduleDelay: .seconds(1), exportTimeout: .seconds(1)),
+            configuration: .defaultWith(scheduleDelay: .seconds(1), exportTimeout: .seconds(1)),
             clock: processorClock
         )
 
@@ -344,7 +344,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         let processorClock = TestClock()
         let processor = OTelBatchLogRecordProcessor(
             exporter: exporter,
-            configuration: .init(environment: [:], scheduleDelay: .seconds(1), exportTimeout: .seconds(1)),
+            configuration: .defaultWith(scheduleDelay: .seconds(1), exportTimeout: .seconds(1)),
             clock: processorClock
         )
 
@@ -372,7 +372,19 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
 
 extension OTelBatchLogRecordProcessor {
     // Overload with logging disabled.
-    init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, clock: Clock = .continuous) {
+    init(exporter: Exporter, configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration, clock: Clock = .continuous) {
         self.init(exporter: exporter, configuration: configuration, logger: ._otelDisabled, clock: clock)
+    }
+}
+
+extension OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration {
+    // Overload with defaults.
+    static func defaultWith(
+        scheduleDelay: Duration = Self.default.scheduleDelay,
+        exportTimeout: Duration = Self.default.exportTimeout,
+        maxQueueSize: Int = Self.default.maxQueueSize,
+        maxExportBatchSize: Int = Self.default.maxExportBatchSize
+    ) -> Self {
+        Self(scheduleDelay: scheduleDelay, exportTimeout: exportTimeout, maxQueueSize: maxQueueSize, maxExportBatchSize: maxExportBatchSize)
     }
 }

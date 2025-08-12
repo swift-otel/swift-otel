@@ -254,7 +254,7 @@ final class OTelTracerTests: XCTestCase {
         let propagator = OTelW3CPropagator()
         let exporter = OTelStreamingSpanExporter()
         let clock = TestClock()
-        let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(environment: [:]), clock: clock)
+        let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .default, clock: clock)
 
         let tracer = OTelTracer(
             idGenerator: idGenerator,
@@ -405,7 +405,7 @@ final class OTelTracerTests: XCTestCase {
         let idGenerator = OTelRandomIDGenerator()
         let exporter = OTelStreamingSpanExporter()
         let clock = TestClock()
-        let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(environment: [:]), clock: clock)
+        let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .default, clock: clock)
         let propagator = OTelInMemoryPropagator(extractionResult: .failure(TestError()))
         let tracer = OTelTracer(
             idGenerator: idGenerator,

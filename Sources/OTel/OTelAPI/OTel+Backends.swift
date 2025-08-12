@@ -224,7 +224,7 @@ extension OTel {
         let resource = OTelResource(configuration: configuration)
         let registry = OTelMetricRegistry(logger: logger)
         let metricsExporter = try WrappedMetricExporter(configuration: configuration, logger: logger)
-        let readerConfig = OTelPeriodicExportingMetricsReaderConfiguration(configuration: configuration.metrics)
+        let readerConfig = configuration.metrics
 
         let reader = OTelPeriodicExportingMetricsReader(resource: resource, producer: registry, exporter: metricsExporter, configuration: readerConfig, logger: logger)
 
@@ -335,7 +335,7 @@ extension OTel {
         let sampler = WrappedSampler(configuration: configuration)
         let propagator = OTelMultiplexPropagator(configuration: configuration)
         let exporter = try WrappedSpanExporter(configuration: configuration, logger: logger)
-        let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: .init(configuration: configuration.traces.batchSpanProcessor), logger: logger)
+        let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: configuration.traces.batchSpanProcessor, logger: logger)
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
             sampler: sampler,

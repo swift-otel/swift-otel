@@ -32,7 +32,7 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
 
     private let logger: Logger
     private let exporter: Exporter
-    private let configuration: OTelBatchSpanProcessorConfiguration
+    private let configuration: OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration
     private let clock: Clock
     private let spanStream: AsyncStream<OTelFinishedSpan>
     private let spanContinuation: AsyncStream<OTelFinishedSpan>.Continuation
@@ -40,13 +40,13 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
     private let explicitTick: AsyncStream<Void>.Continuation
     private var batchID: UInt = 0
 
-    init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, logger: Logger, clock: Clock) {
+    init(exporter: Exporter, configuration: OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration, logger: Logger, clock: Clock) {
         self.logger = logger.withMetadata(component: "OTelBatchSpanProcessor")
         self.exporter = exporter
         self.configuration = configuration
         self.clock = clock
 
-        buffer = Deque(minimumCapacity: Int(configuration.maximumQueueSize))
+        buffer = Deque(minimumCapacity: configuration.maxQueueSize)
         (explicitTickStream, explicitTick) = AsyncStream.makeStream()
         (spanStream, spanContinuation) = AsyncStream.makeStream()
     }
@@ -60,13 +60,13 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
         /// > - maxQueueSize - the maximum queue size. After the size is reached spans are dropped.
         ///
         /// — source: https://opentelemetry.io/docs/specs/otel/logs/sdk/#batching-processor
-        guard buffer.count < configuration.maximumQueueSize else {
+        guard buffer.count < configuration.maxQueueSize else {
             droppedCount += 1
             return
         }
         buffer.append(span)
 
-        if buffer.count == configuration.maximumQueueSize {
+        if buffer.count == configuration.maxQueueSize {
             explicitTick.yield()
         }
     }
@@ -110,7 +110,7 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
             await withTaskGroup { group in
                 var buffer = self.buffer
                 while !buffer.isEmpty {
-                    let batch = buffer.prefix(Int(self.configuration.maximumExportBatchSize))
+                    let batch = buffer.prefix(self.configuration.maxExportBatchSize)
                     buffer.removeFirst(batch.count)
                     group.addTask { await self.export(batch) }
                 }
@@ -127,12 +127,12 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
     private func tick() async {
         if droppedCount > 0 {
             logger.warning("Spans were dropped this iteration because queue was full", metadata: [
-                "queue_size": "\(configuration.maximumQueueSize)",
+                "queue_size": "\(configuration.maxQueueSize)",
                 "dropped_count": "\(droppedCount)",
             ])
             droppedCount = 0
         }
-        let batch = buffer.prefix(Int(configuration.maximumExportBatchSize))
+        let batch = buffer.prefix(configuration.maxExportBatchSize)
         buffer.removeFirst(batch.count)
         await export(batch)
     }
@@ -165,7 +165,7 @@ extension OTelBatchSpanProcessor where Clock == ContinuousClock {
     /// - Parameters:
     ///   - exporter: The span exporter to receive batched spans to export.
     ///   - configuration: Further configuration parameters to tweak the batching behavior.
-    init(exporter: Exporter, configuration: OTelBatchSpanProcessorConfiguration, logger: Logger) {
+    init(exporter: Exporter, configuration: OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration, logger: Logger) {
         self.init(exporter: exporter, configuration: configuration, logger: logger, clock: .continuous)
     }
 }

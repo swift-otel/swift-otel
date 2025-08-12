@@ -400,7 +400,7 @@ internal enum WrappedLogRecordProcessor: OTelLogRecordProcessor {
         case .grpc:
             self = .batch(OTelBatchLogRecordProcessor(
                 exporter: exporter,
-                configuration: .init(configuration: configuration.logs.batchLogRecordProcessor),
+                configuration: configuration.logs.batchLogRecordProcessor,
                 logger: logger
             ))
         #endif
@@ -408,7 +408,7 @@ internal enum WrappedLogRecordProcessor: OTelLogRecordProcessor {
         case .http:
             self = .batch(OTelBatchLogRecordProcessor(
                 exporter: exporter,
-                configuration: .init(configuration: configuration.logs.batchLogRecordProcessor),
+                configuration: configuration.logs.batchLogRecordProcessor,
                 logger: logger
             ))
         #endif

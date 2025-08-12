@@ -21,14 +21,14 @@ struct OTelPeriodicExportingMetricsReader<Clock: _Concurrency.Clock> where Clock
     var resource: OTelResource
     var producer: OTelMetricProducer
     var exporter: OTelMetricExporter
-    var configuration: OTelPeriodicExportingMetricsReaderConfiguration
+    var configuration: OTel.Configuration.MetricsConfiguration
     var clock: Clock
 
     init(
         resource: OTelResource,
         producer: OTelMetricProducer,
         exporter: OTelMetricExporter,
-        configuration: OTelPeriodicExportingMetricsReaderConfiguration,
+        configuration: OTel.Configuration.MetricsConfiguration,
         logger: Logger,
         clock: Clock
     ) {
@@ -96,7 +96,7 @@ extension OTelPeriodicExportingMetricsReader where Clock == ContinuousClock {
         resource: OTelResource,
         producer: OTelMetricProducer,
         exporter: OTelMetricExporter,
-        configuration: OTelPeriodicExportingMetricsReaderConfiguration,
+        configuration: OTel.Configuration.MetricsConfiguration,
         logger: Logger
     ) {
         self.init(

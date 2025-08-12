@@ -31,7 +31,7 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     internal /* for testing */ private(set) var droppedCount = 0
 
     private let exporter: Exporter
-    private let configuration: OTelBatchLogRecordProcessorConfiguration
+    private let configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration
     private let clock: Clock
     private let logger: Logger
     private let logStream: AsyncStream<OTelLogRecord>
@@ -40,13 +40,13 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     private let explicitTick: AsyncStream<Void>.Continuation
     private var batchID: UInt = 0
 
-    init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, logger: Logger, clock: Clock) {
+    init(exporter: Exporter, configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration, logger: Logger, clock: Clock) {
         self.logger = logger.withMetadata(component: "OTelBatchLogRecordProcessor")
         self.exporter = exporter
         self.configuration = configuration
         self.clock = clock
 
-        buffer = Deque(minimumCapacity: Int(configuration.maximumQueueSize))
+        buffer = Deque(minimumCapacity: configuration.maxQueueSize)
         (explicitTickStream, explicitTick) = AsyncStream.makeStream()
         (logStream, logContinuation) = AsyncStream.makeStream()
     }
@@ -59,7 +59,7 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
         /// > - maxQueueSize - the maximum queue size. After the size is reached spans are dropped.
         ///
         /// — source: https://opentelemetry.io/docs/specs/otel/logs/sdk/#batching-processor
-        guard buffer.count < configuration.maximumQueueSize else {
+        guard buffer.count < configuration.maxQueueSize else {
             droppedCount += 1
             return
         }
@@ -107,7 +107,7 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
             await withTaskGroup { group in
                 var buffer = self.buffer
                 while !buffer.isEmpty {
-                    let batch = buffer.prefix(Int(self.configuration.maximumExportBatchSize))
+                    let batch = buffer.prefix(self.configuration.maxExportBatchSize)
                     buffer.removeFirst(batch.count)
                     group.addTask { await self.export(batch) }
                 }
@@ -124,12 +124,12 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     private func tick() async {
         if droppedCount > 0 {
             logger.warning("Log records were dropped this iteration because queue was full", metadata: [
-                "queue_size": "\(configuration.maximumQueueSize)",
+                "queue_size": "\(configuration.maxQueueSize)",
                 "dropped_count": "\(droppedCount)",
             ])
             droppedCount = 0
         }
-        let batch = buffer.prefix(Int(configuration.maximumExportBatchSize))
+        let batch = buffer.prefix(configuration.maxExportBatchSize)
         buffer.removeFirst(batch.count)
         await export(batch)
     }
@@ -162,7 +162,7 @@ extension OTelBatchLogRecordProcessor where Clock == ContinuousClock {
     /// - Parameters:
     ///   - exporter: The log exporter to receive batched logs to export.
     ///   - configuration: Further configuration parameters to tweak the batching behavior.
-    init(exporter: Exporter, configuration: OTelBatchLogRecordProcessorConfiguration, logger: Logger) {
+    init(exporter: Exporter, configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration, logger: Logger) {
         self.init(exporter: exporter, configuration: configuration, logger: logger, clock: .continuous)
     }
 }

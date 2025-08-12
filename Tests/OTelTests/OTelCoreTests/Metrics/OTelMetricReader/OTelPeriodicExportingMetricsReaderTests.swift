@@ -26,11 +26,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             resource: .init(),
             producer: producer,
             exporter: exporter,
-            configuration: .init(
-                environment: .detected(),
-                exportInterval: .seconds(1),
-                exportTimeout: .milliseconds(100)
-            ),
+            configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
             clock: clock
         )
         _ = reader.description
@@ -87,11 +83,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             resource: .init(),
             producer: producer,
             exporter: exporter,
-            configuration: .init(
-                environment: .detected(),
-                exportInterval: .seconds(1),
-                exportTimeout: .milliseconds(100)
-            ),
+            configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
             clock: clock
         )
         let serviceGroup = ServiceGroup(services: [reader], logger: Logger(label: #function))
@@ -138,11 +130,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             resource: .init(),
             producer: producer,
             exporter: exporter,
-            configuration: .init(
-                environment: .detected(),
-                exportInterval: .seconds(1),
-                exportTimeout: .milliseconds(100)
-            ),
+            configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
             logger: recordingLogger,
             clock: clock
         )
@@ -204,11 +192,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             resource: .init(),
             producer: producer,
             exporter: exporter,
-            configuration: .init(
-                environment: .detected(),
-                exportInterval: .seconds(1),
-                exportTimeout: .milliseconds(100)
-            ),
+            configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
             logger: recordingLogger,
             clock: clock
         )
@@ -263,7 +247,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             resource: .init(),
             producer: MockMetricProducer(),
             exporter: RecordingMetricExporter(),
-            configuration: .init(environment: .detected())
+            configuration: .default
         )
         XCTAssert(type(of: reader.clock) == ContinuousClock.self)
     }
@@ -287,11 +271,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             resource: .init(),
             producer: producer,
             exporter: exporter,
-            configuration: .init(
-                environment: .detected(),
-                exportInterval: .seconds(1),
-                exportTimeout: .milliseconds(100)
-            ),
+            configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
             logger: ._otelDebug,
             clock: readerClock
         )
@@ -338,11 +318,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             resource: .init(),
             producer: producer,
             exporter: exporter,
-            configuration: .init(
-                environment: .detected(),
-                exportInterval: .seconds(1),
-                exportTimeout: .milliseconds(100)
-            ),
+            configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
             logger: ._otelDebug,
             clock: readerClock
         )
@@ -439,7 +415,7 @@ extension OTelPeriodicExportingMetricsReader {
         resource: OTelResource,
         producer: OTelMetricProducer,
         exporter: OTelMetricExporter,
-        configuration: OTelPeriodicExportingMetricsReaderConfiguration,
+        configuration: OTel.Configuration.MetricsConfiguration,
         clock: Clock = .continuous
     ) {
         self.init(
@@ -450,5 +426,18 @@ extension OTelPeriodicExportingMetricsReader {
             logger: ._otelDisabled,
             clock: clock
         )
+    }
+}
+
+extension OTel.Configuration.MetricsConfiguration {
+    // Overload with defaults.
+    static func defaultWith(
+        enabled: Bool = Self.default.enabled,
+        exportInterval: Duration = Self.default.exportInterval,
+        exportTimeout: Duration = Self.default.exportTimeout,
+        exporter: ExporterSelection = Self.default.exporter,
+        otlpExporter: OTel.Configuration.OTLPExporterConfiguration = Self.default.otlpExporter
+    ) -> Self {
+        self.init(enabled: enabled, exportInterval: exportInterval, exportTimeout: exportTimeout, exporter: exporter, otlpExporter: otlpExporter)
     }
 }
