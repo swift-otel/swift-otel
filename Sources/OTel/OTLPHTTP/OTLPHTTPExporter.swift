@@ -70,7 +70,6 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
             request.headers.replaceOrAdd(name: "Content-Type", value: "application/x-protobuf")
         case .httpJSON:
             // https://opentelemetry.io/docs/specs/otlp/#json-protobuf-encoding
-            // TODO: Double check the spec for any missing JSON transformation and whether Swift Protobuf supports them.
             var encodingOptions = JSONEncodingOptions()
             encodingOptions.alwaysPrintInt64sAsNumbers = false
             encodingOptions.alwaysPrintEnumsAsInts = true

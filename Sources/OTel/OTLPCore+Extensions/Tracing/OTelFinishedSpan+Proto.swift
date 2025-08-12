@@ -48,6 +48,9 @@ extension Opentelemetry_Proto_Trace_V1_Span {
         attributes = .init(finishedSpan.attributes)
         events = finishedSpan.events.map(Opentelemetry_Proto_Trace_V1_Span.Event.init)
         links = finishedSpan.links.compactMap(Opentelemetry_Proto_Trace_V1_Span.Link.init)
+
+        // TODO: We should be setting dropped counts here.
+        //       see: https://opentelemetry.io/docs/specs/otel/trace/sdk/#span-limits
     }
 }
 

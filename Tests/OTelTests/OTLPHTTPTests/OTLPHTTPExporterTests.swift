@@ -350,7 +350,6 @@ import Tracing
     }
 
     @Test func testRetryCustomPolicyStillBacksOffBasedOnAttempts() async throws {
-        // TODO: use an extension on tooManyRequests response
         var retryPolicy = HTTPClient.RetryPolicy(
             maxAttempts: 8,
             baseDelay: .seconds(1),

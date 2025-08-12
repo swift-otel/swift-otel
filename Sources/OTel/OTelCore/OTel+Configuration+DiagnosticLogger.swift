@@ -20,7 +20,6 @@ extension OTel.Configuration {
         case .console:
             Logger(label: "swift-otel", factory: { label in StreamLogHandler.standardError(label: label) })
         case .custom(let logger):
-            // TODO: would a better configuration API accept a custom factory, which would allow per-logger labels?
             logger
         }
         // Environment variable overrides may not have been applied, so we explicitly check here.
