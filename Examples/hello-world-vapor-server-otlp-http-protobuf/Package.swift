@@ -8,7 +8,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.115.0"),
         // TODO: update this to `from: 1.0.0` when we release 1.0.
-        .package(url: "https://github.com/swift-otel/swift-otel.git", exact: "1.0.0-alpha.1", traits: ["OTLPHTTP"]),
+        .package(url: "https://github.com/swift-otel/swift-otel.git", exact: "1.0.0-alpha.2", traits: ["OTLPHTTP"]),
     ],
     targets: [
         .executableTarget(
