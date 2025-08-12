@@ -15,8 +15,6 @@ public import CoreMetrics
 public import Logging
 public import ServiceLifecycle
 public import Tracing
-#if OTLPGRPC
-#endif
 
 extension OTel {
     /// Create a logging backend with an OTLP exporter.

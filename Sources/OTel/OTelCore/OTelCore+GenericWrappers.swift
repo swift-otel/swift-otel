@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if OTLPGRPC
-#endif
 import Logging
 import Tracing
 import W3CTraceContext
