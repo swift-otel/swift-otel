@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import class Foundation.ProcessInfo
 public import CoreMetrics
 public import Logging
 public import ServiceLifecycle
@@ -103,10 +104,16 @@ extension OTel {
     ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
     ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeLoggingBackend(configuration: OTel.Configuration = .default) throws -> (factory: @Sendable (String) -> any LogHandler, service: some Service) {
+        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeLoggingBackend")
+        var configuration = configuration
+        configuration.applyEnvironmentOverrides(environment: ProcessInfo.processInfo.environment, logger: logger)
+        return try makeLoggingBackend(configuration: configuration, logger: logger)
+    }
+
+    internal static func makeLoggingBackend(configuration: OTel.Configuration, logger: Logger) throws -> (factory: @Sendable (String) -> any LogHandler, service: some Service) {
         guard configuration.logs.enabled else {
             throw OTel.Configuration.Error.invalidConfiguration("makeLoggingBackend called but config has logs disabled")
         }
-        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeLoggingBackend")
         let resource = OTelResource(configuration: configuration)
         let exporter = try WrappedLogRecordExporter(configuration: configuration, logger: logger)
         let processor = try WrappedLogRecordProcessor(configuration: configuration, exporter: exporter, logger: logger)
@@ -215,6 +222,13 @@ extension OTel {
     ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
     ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeMetricsBackend(configuration: OTel.Configuration = .default) throws -> (factory: some MetricsFactory, service: some Service) {
+        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeMetricsBackend")
+        var configuration = configuration
+        configuration.applyEnvironmentOverrides(environment: ProcessInfo.processInfo.environment, logger: logger)
+        return try makeMetricsBackend(configuration: configuration, logger: logger)
+    }
+
+    internal static func makeMetricsBackend(configuration: OTel.Configuration, logger: Logger) throws -> (factory: some MetricsFactory, service: some Service) {
         guard configuration.metrics.enabled else {
             throw OTel.Configuration.Error.invalidConfiguration("makeMetricsBackend called but config has metrics disabled")
         }
@@ -325,10 +339,16 @@ extension OTel {
     ///   - `OTel.makeMetricsBackend(configuration:)` for metrics backend creation
     ///   - `OTel.Configuration` for configuration options and environment variables
     public static func makeTracingBackend(configuration: OTel.Configuration = .default) throws -> (factory: some Tracer, service: some Service) {
+        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeTracingBackend")
+        var configuration = configuration
+        configuration.applyEnvironmentOverrides(environment: ProcessInfo.processInfo.environment, logger: logger)
+        return try makeTracingBackend(configuration: configuration, logger: logger)
+    }
+
+    internal static func makeTracingBackend(configuration: OTel.Configuration, logger: Logger) throws -> (factory: some Tracer, service: some Service) {
         guard configuration.traces.enabled else {
             throw OTel.Configuration.Error.invalidConfiguration("makeTracingBackend called but config has traces disabled")
         }
-        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeTracingBackend")
         let resource = OTelResource(configuration: configuration)
         let sampler = WrappedSampler(configuration: configuration)
         let propagator = OTelMultiplexPropagator(configuration: configuration)
