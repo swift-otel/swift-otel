@@ -385,7 +385,7 @@ import Tracing
 
     @Test func testHTTPClientWithRetryPolicyMaxAttempts() async throws {
         let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
-        defer { #expect(throws: Never.self) { try testServer.stop() } }
+        defer { #expect(throws: Never.self, "Error shutting down HTTP server") { try testServer.stop() } }
 
         let clock = TestClock()
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
@@ -393,7 +393,7 @@ import Tracing
         try await withThrowingTaskGroup { group in
             group.addTask { // client
                 let client = HTTPClient(eventLoopGroup: .singletonMultiThreadedEventLoopGroup)
-                defer { #expect(throws: Never.self) { try client.syncShutdown() }}
+                defer { #expect(throws: Never.self, "Error shutting down HTTP client") { try client.syncShutdown() } }
                 var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
                 request.method = .POST
                 request.body = .init(.bytes(.init(string: "hello")))
@@ -422,6 +422,7 @@ import Tracing
                 )
                 #expect(response.status == .tooManyRequests)
                 #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 3)
+                _ = try await response.body.collect(upTo: .max)
             }
             group.addTask { // server
                 var sleepCalls = clock.sleepCalls.makeAsyncIterator()
@@ -446,7 +447,7 @@ import Tracing
 
     @Test func testHTTPClientWithRetryPolicyFirstRequestSucceeds() async throws {
         let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
-        defer { #expect(throws: Never.self) { try testServer.stop() } }
+        defer { #expect(throws: Never.self, "Error shutting down HTTP server") { try testServer.stop() } }
 
         let clock = TestClock()
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
@@ -454,7 +455,7 @@ import Tracing
         try await withThrowingTaskGroup { group in
             group.addTask { // client
                 let client = HTTPClient(eventLoopGroup: .singletonMultiThreadedEventLoopGroup)
-                defer { #expect(throws: Never.self) { try client.syncShutdown() }}
+                defer { #expect(throws: Never.self, "Error shutting down HTTP client") { try client.syncShutdown() } }
                 var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
                 request.method = .POST
                 request.body = .init(.bytes(.init(string: "hello")))
@@ -475,6 +476,7 @@ import Tracing
                     }
                 }
                 let response = try await client.execute(request, timeout: .seconds(60), clock: clock, retryPolicy: retryPolicy)
+                _ = try await response.body.collect(upTo: .max)
                 #expect(response.status == .ok)
                 #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 1)
             }
@@ -494,7 +496,7 @@ import Tracing
 
     @Test func testHTTPClientWithRetryPolicyRetrySucceeds() async throws {
         let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
-        defer { #expect(throws: Never.self) { try testServer.stop() } }
+        defer { #expect(throws: Never.self, "Error shutting down HTTP server") { try testServer.stop() } }
 
         let clock = TestClock()
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
@@ -502,7 +504,7 @@ import Tracing
         try await withThrowingTaskGroup { group in
             group.addTask { // client
                 let client = HTTPClient(eventLoopGroup: .singletonMultiThreadedEventLoopGroup)
-                defer { #expect(throws: Never.self) { try client.syncShutdown() }}
+                defer { #expect(throws: Never.self, "Error shutting down HTTP client") { try client.syncShutdown() } }
                 var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
                 request.method = .POST
                 request.body = .init(.bytes(.init(string: "hello")))
@@ -525,6 +527,7 @@ import Tracing
                 let response = try await client.execute(request, timeout: .seconds(60), clock: clock, retryPolicy: retryPolicy)
                 #expect(response.status == .ok)
                 #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 2)
+                _ = try await response.body.collect(upTo: .max)
             }
             group.addTask { // server
                 var sleepCalls = clock.sleepCalls.makeAsyncIterator()
