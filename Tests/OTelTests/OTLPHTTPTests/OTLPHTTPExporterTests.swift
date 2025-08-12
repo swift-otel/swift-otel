@@ -385,7 +385,7 @@ import Tracing
 
     @Test func testHTTPClientWithRetryPolicyMaxAttempts() async throws {
         let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
-        defer { try? testServer.stop() }
+        defer { #expect(throws: Never.self) { try testServer.stop() } }
 
         let clock = TestClock()
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
@@ -422,11 +422,16 @@ import Tracing
                     #expect(response.status == .tooManyRequests)
                     #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 3)
                 }
+                print("client task done")
             }
             group.addTask { // server
                 var sleepCalls = clock.sleepCalls.makeAsyncIterator()
                 // For the max attempts, return too many requests.
-                for _ in 1 ... 3 {
+                for attempt in 1 ... 3 {
+                    if attempt > 1 {
+                        await sleepCalls.next()
+                        clock.advance(by: .seconds(42))
+                    }
                     _ = try testServer.receiveHead()
                     _ = try testServer.receiveBody()
                     _ = try testServer.receiveEnd()
@@ -434,20 +439,15 @@ import Tracing
                     try testServer.writeOutbound(.head(.init(version: .http1_1, status: .tooManyRequests, headers: ["Retry-After": "42"])))
                     try testServer.writeOutbound(.body(.byteBuffer(.init())))
                     try testServer.writeOutbound(.end(nil))
-                    await sleepCalls.next()
-                    clock.advance(by: .seconds(42))
                 }
-                while !Task.isCancelled { await Task.yield() }
             }
-            try await group.next()
-            group.cancelAll()
             try await group.waitForAll()
         }
     }
 
     @Test func testHTTPClientWithRetryPolicyFirstRequestSucceeds() async throws {
         let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
-        defer { try? testServer.stop() }
+        defer { #expect(throws: Never.self) { try testServer.stop() } }
 
         let clock = TestClock()
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
@@ -488,17 +488,14 @@ import Tracing
                 try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok)))
                 try testServer.writeOutbound(.body(.byteBuffer(.init())))
                 try testServer.writeOutbound(.end(nil))
-                while !Task.isCancelled { await Task.yield() }
             }
-            try await group.next()
-            group.cancelAll()
             try await group.waitForAll()
         }
     }
 
     @Test func testHTTPClientWithRetryPolicyRetrySucceeds() async throws {
         let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
-        defer { try? testServer.stop() }
+        defer { #expect(throws: Never.self) { try testServer.stop() } }
 
         let clock = TestClock()
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
@@ -552,8 +549,6 @@ import Tracing
                 try testServer.writeOutbound(.body(.byteBuffer(.init())))
                 try testServer.writeOutbound(.end(nil))
             }
-            try await group.next()
-            group.cancelAll()
             try await group.waitForAll()
         }
     }
