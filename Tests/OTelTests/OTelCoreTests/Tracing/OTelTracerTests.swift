@@ -274,6 +274,7 @@ final class OTelTracerTests: XCTestCase {
 
         let span = tracer.startSpan("test")
         span.end()
+        while await processor.buffer.count < 1 { await Task.yield() }
 
         tracer.forceFlush()
 
@@ -426,6 +427,7 @@ final class OTelTracerTests: XCTestCase {
 
         let span = tracer.startSpan("test")
         span.end()
+        while await processor.buffer.count < 1 { await Task.yield() }
 
         await serviceGroup.triggerGracefulShutdown()
 

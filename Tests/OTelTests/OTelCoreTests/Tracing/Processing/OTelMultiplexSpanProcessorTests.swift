@@ -24,12 +24,12 @@ final class OTelMultiplexSpanProcessorTests: XCTestCase {
 
         let span = OTelSpan.recordingStub(operationName: "test")
 
-        await processor.onStart(span, parentContext: .topLevel)
+        processor.onStart(span, parentContext: .topLevel)
 
-        let processor1StartedSpans = await processor1.startedSpans
+        let processor1StartedSpans = processor1.startedSpans
         XCTAssertEqual(processor1StartedSpans.map(\.0.operationName), ["test"])
 
-        let processor2StartedSpans = await processor2.startedSpans
+        let processor2StartedSpans = processor2.startedSpans
         XCTAssertEqual(processor2StartedSpans.map(\.0.operationName), ["test"])
     }
 
@@ -40,12 +40,12 @@ final class OTelMultiplexSpanProcessorTests: XCTestCase {
 
         let span = OTelFinishedSpan.stub(operationName: "test")
 
-        await processor.onEnd(span)
+        processor.onEnd(span)
 
-        let processor1FinishedSpans = await processor1.finishedSpans
+        let processor1FinishedSpans = processor1.finishedSpans
         XCTAssertEqual(processor1FinishedSpans.map(\.operationName), ["test"])
 
-        let processor2FinishedSpans = await processor2.finishedSpans
+        let processor2FinishedSpans = processor2.finishedSpans
         XCTAssertEqual(processor2FinishedSpans.map(\.operationName), ["test"])
     }
 
@@ -56,10 +56,10 @@ final class OTelMultiplexSpanProcessorTests: XCTestCase {
 
         try await processor.forceFlush()
 
-        let processor1ForceFlushCount = await processor1.numberOfForceFlushes
+        let processor1ForceFlushCount = processor1.numberOfForceFlushes
         XCTAssertEqual(processor1ForceFlushCount, 1)
 
-        let processor2ForceFlushCount = await processor2.numberOfForceFlushes
+        let processor2ForceFlushCount = processor2.numberOfForceFlushes
         XCTAssertEqual(processor2ForceFlushCount, 1)
     }
 
@@ -83,10 +83,10 @@ final class OTelMultiplexSpanProcessorTests: XCTestCase {
         await serviceGroup.triggerGracefulShutdown()
         await fulfillment(of: [finishExpectation], timeout: 0.1)
 
-        let processor1ShutdownCount = await processor1.numberOfShutdowns
+        let processor1ShutdownCount = processor1.numberOfShutdowns
         XCTAssertEqual(processor1ShutdownCount, 1)
 
-        let processor2ShutdownCount = await processor2.numberOfShutdowns
+        let processor2ShutdownCount = processor2.numberOfShutdowns
         XCTAssertEqual(processor2ShutdownCount, 1)
     }
 }

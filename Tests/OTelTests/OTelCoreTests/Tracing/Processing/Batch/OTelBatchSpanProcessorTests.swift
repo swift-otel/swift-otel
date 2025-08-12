@@ -38,9 +38,9 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
             try await serviceGroup.run()
         }
 
-        await processor.onEnd(span1)
-        await processor.onEnd(span2)
-        await processor.onEnd(span3)
+        processor.onEnd(span1)
+        processor.onEnd(span2)
+        processor.onEnd(span3)
 
         // await first sleep for "tick"
         await sleeps.next()
@@ -72,8 +72,8 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         }
 
         // add less than maximum queue size
-        await processor.onEnd(span1)
-        await processor.onEnd(span2)
+        processor.onEnd(span1)
+        processor.onEnd(span2)
 
         // await first sleep for "tick"
         await sleeps.next()
@@ -106,14 +106,14 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         }
 
         // add less than maximum queue size
-        await processor.onEnd(span1)
-        await processor.onEnd(span2)
+        processor.onEnd(span1)
+        processor.onEnd(span2)
 
         // await first sleep for "tick" but don't advance clock
         await sleeps.next()
 
         // add final span to reach maximum queue size
-        await processor.onEnd(span3)
+        processor.onEnd(span3)
 
         var batches = exporter.batches.makeAsyncIterator()
         let batch = await batches.next()
@@ -143,7 +143,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         }
 
         await exporter.setErrorDuringNextExport(TestError())
-        await processor.onEnd(span1)
+        processor.onEnd(span1)
 
         // await sleep for first "tick"
         await sleeps.next()
@@ -155,7 +155,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
         let failedBatch = await batches.next()
         XCTAssertEqual(try XCTUnwrap(failedBatch).map { $0.map(\.operationName) }, ["1"])
 
-        await processor.onEnd(span2)
+        processor.onEnd(span2)
 
         // await sleep for second "tick"
         await sleeps.next()
@@ -181,7 +181,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
 
         for i in 1 ... 3 {
             let span = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "\(i)")
-            await processor.onEnd(span)
+            processor.onEnd(span)
         }
 
         let finishExpectation = expectation(description: "Expected processor to finish shutting down.")
@@ -224,7 +224,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
 
         for _ in 1 ... 100 {
             let span = OTelFinishedSpan.stub(traceFlags: .sampled)
-            await processor.onEnd(span)
+            processor.onEnd(span)
         }
 
         let finishExpectation = expectation(description: "Expected processor to finish shutting down.")

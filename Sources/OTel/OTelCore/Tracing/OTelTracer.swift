@@ -105,9 +105,9 @@ extension OTelTracer: Service {
                 await ServiceContext.$current.withValue(nil) {
                     switch event {
                     case .spanStarted(let span, let parentContext):
-                        await self.processor.onStart(span, parentContext: parentContext)
+                        self.processor.onStart(span, parentContext: parentContext)
                     case .spanEnded(let span):
-                        await self.processor.onEnd(span)
+                        self.processor.onEnd(span)
                     case .forceFlushed:
                         try? await self.processor.forceFlush()
                     }

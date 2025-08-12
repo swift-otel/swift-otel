@@ -50,15 +50,15 @@ actor OTelMultiplexSpanProcessor: OTelSpanProcessor {
         }
     }
 
-    func onStart(_ span: OTelSpan, parentContext: ServiceContext) async {
+    nonisolated func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
         for processor in processors {
-            await processor.onStart(span, parentContext: parentContext)
+            processor.onStart(span, parentContext: parentContext)
         }
     }
 
-    func onEnd(_ span: OTelFinishedSpan) async {
+    nonisolated func onEnd(_ span: OTelFinishedSpan) {
         for processor in processors {
-            await processor.onEnd(span)
+            processor.onEnd(span)
         }
     }
 

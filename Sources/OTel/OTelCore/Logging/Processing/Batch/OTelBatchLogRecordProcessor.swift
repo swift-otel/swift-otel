@@ -56,10 +56,8 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
 
     private func _onLog(_ log: OTelLogRecord) {
         buffer.append(log)
-
-        if buffer.count == configuration.maximumQueueSize {
-            explicitTick.yield()
-        }
+        // NOTE: Unlike the BatchSpanProcessor, the spec does _not_ say the BatchLogRecordProcessor should trigger an
+        // export when the queue size is reached.
     }
 
     func run() async throws {
