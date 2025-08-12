@@ -11,7 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import class FoundationEssentials.ProcessInfo
+#else
 import class Foundation.ProcessInfo
+#endif
 public import CoreMetrics
 public import Logging
 public import ServiceLifecycle

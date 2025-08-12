@@ -14,7 +14,11 @@
 #if !OTLPGRPC
 // Empty when above trait(s) are disabled.
 #else
+#if canImport(FoundationEssentials)
+import struct FoundationEssentials.URLComponents
+#else
 import struct Foundation.URLComponents
+#endif
 import GRPCCore
 import GRPCNIOTransportHTTP2
 import Logging

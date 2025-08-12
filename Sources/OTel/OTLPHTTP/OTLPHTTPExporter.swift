@@ -22,9 +22,15 @@ import NIOSSL
 import ServiceLifecycle
 import SwiftProtobuf
 
+#if canImport(FoundationEssentials)
+import class FoundationEssentials.FileManager
+import func FoundationEssentials.pow
+import struct FoundationEssentials.URL
+#else
 import class Foundation.FileManager
 import func Foundation.pow
 import struct Foundation.URL
+#endif
 import struct NIOCore.ByteBuffer
 import struct NIOCore.TimeAmount
 

@@ -12,7 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 import AsyncHTTPClient
+#if canImport(FoundationEssentials)
+import struct FoundationEssentials.Data
+#else
 import struct Foundation.Data
+#endif
 import Metrics
 import NIOConcurrencyHelpers
 import NIOHTTP1
