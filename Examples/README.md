@@ -37,5 +37,8 @@ logs, metrics, and traces to file, Prometheus, and Jaeger, respectively, via an 
 
 ## Integrations
 
+- [hello-world-grafana-lgtm](./hello-world-grafana-lgtm) - HTTP server with instrumentation middleware,
+  exporting telemetry over OTLP/gRPC, sending all three signals to a local deployment of Grafana LGTM.
+
 - TODO: Vapor example
 - TODO: Grafana example

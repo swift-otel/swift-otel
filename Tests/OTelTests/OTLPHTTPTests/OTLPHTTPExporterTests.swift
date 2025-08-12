@@ -392,41 +392,45 @@ import Tracing
 
         try await withThrowingTaskGroup { group in
             group.addTask { // client
-                try await HTTPClient.withHTTPClient { client in
-                    var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
-                    request.method = .POST
-                    request.body = .init(.bytes(.init(string: "hello")))
-                    let retryPolicy = HTTPClient.RetryPolicy(
-                        maxAttempts: 3,
-                        baseDelay: .seconds(1),
-                        maxDelay: .seconds(10),
-                        jitter: 0.0
-                    ) { response in
-                        switch response.status {
-                        case .tooManyRequests:
-                            if let retryAfter = response.headers["Retry-After"].last.flatMap(Int.init) {
-                                .retryWithSpecificBackoff(.seconds(retryAfter))
-                            } else {
-                                .retryWithBackoff
-                            }
-                        default: .doNotRetry
+                let client = HTTPClient(eventLoopGroup: .singletonMultiThreadedEventLoopGroup)
+                defer { #expect(throws: Never.self) { try client.syncShutdown() }}
+                var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
+                request.method = .POST
+                request.body = .init(.bytes(.init(string: "hello")))
+                let retryPolicy = HTTPClient.RetryPolicy(
+                    maxAttempts: 3,
+                    baseDelay: .seconds(1),
+                    maxDelay: .seconds(10),
+                    jitter: 0.0
+                ) { response in
+                    switch response.status {
+                    case .tooManyRequests:
+                        if let retryAfter = response.headers["Retry-After"].last.flatMap(Int.init) {
+                            .retryWithSpecificBackoff(.seconds(retryAfter))
+                        } else {
+                            .retryWithBackoff
                         }
+                    default: .doNotRetry
                     }
-                    let response = try await client.execute(
-                        request,
-                        timeout: .seconds(60),
-                        logger: ._otelDebug,
-                        clock: clock,
-                        retryPolicy: retryPolicy
-                    )
-                    #expect(response.status == .tooManyRequests)
-                    #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 3)
                 }
+                let response = try await client.execute(
+                    request,
+                    timeout: .seconds(60),
+                    logger: ._otelDebug,
+                    clock: clock,
+                    retryPolicy: retryPolicy
+                )
+                #expect(response.status == .tooManyRequests)
+                #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 3)
             }
             group.addTask { // server
                 var sleepCalls = clock.sleepCalls.makeAsyncIterator()
                 // For the max attempts, return too many requests.
-                for _ in 1 ... 3 {
+                for attempt in 1 ... 3 {
+                    if attempt > 1 {
+                        await sleepCalls.next()
+                        clock.advance(by: .seconds(42))
+                    }
                     _ = try testServer.receiveHead()
                     _ = try testServer.receiveBody()
                     _ = try testServer.receiveEnd()
@@ -434,13 +438,8 @@ import Tracing
                     try testServer.writeOutbound(.head(.init(version: .http1_1, status: .tooManyRequests, headers: ["Retry-After": "42"])))
                     try testServer.writeOutbound(.body(.byteBuffer(.init())))
                     try testServer.writeOutbound(.end(nil))
-                    await sleepCalls.next()
-                    clock.advance(by: .seconds(42))
                 }
-                while !Task.isCancelled { await Task.yield() }
             }
-            try await group.next()
-            group.cancelAll()
             try await group.waitForAll()
         }
     }
@@ -454,30 +453,30 @@ import Tracing
 
         try await withThrowingTaskGroup { group in
             group.addTask { // client
-                try await HTTPClient.withHTTPClient { client in
-                    var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
-                    request.method = .POST
-                    request.body = .init(.bytes(.init(string: "hello")))
-                    let retryPolicy = HTTPClient.RetryPolicy(
-                        maxAttempts: 3,
-                        baseDelay: .seconds(1),
-                        maxDelay: .seconds(10),
-                        jitter: 0.0
-                    ) { response in
-                        switch response.status {
-                        case .tooManyRequests:
-                            if let retryAfter = response.headers["Retry-After"].last.flatMap(Int.init) {
-                                .retryWithSpecificBackoff(.seconds(retryAfter))
-                            } else {
-                                .retryWithBackoff
-                            }
-                        default: .doNotRetry
+                let client = HTTPClient(eventLoopGroup: .singletonMultiThreadedEventLoopGroup)
+                defer { #expect(throws: Never.self) { try client.syncShutdown() }}
+                var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
+                request.method = .POST
+                request.body = .init(.bytes(.init(string: "hello")))
+                let retryPolicy = HTTPClient.RetryPolicy(
+                    maxAttempts: 3,
+                    baseDelay: .seconds(1),
+                    maxDelay: .seconds(10),
+                    jitter: 0.0
+                ) { response in
+                    switch response.status {
+                    case .tooManyRequests:
+                        if let retryAfter = response.headers["Retry-After"].last.flatMap(Int.init) {
+                            .retryWithSpecificBackoff(.seconds(retryAfter))
+                        } else {
+                            .retryWithBackoff
                         }
+                    default: .doNotRetry
                     }
-                    let response = try await client.execute(request, timeout: .seconds(60), clock: clock, retryPolicy: retryPolicy)
-                    #expect(response.status == .ok)
-                    #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 1)
                 }
+                let response = try await client.execute(request, timeout: .seconds(60), clock: clock, retryPolicy: retryPolicy)
+                #expect(response.status == .ok)
+                #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 1)
             }
             group.addTask { // server
                 // Return OK.
@@ -488,10 +487,7 @@ import Tracing
                 try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok)))
                 try testServer.writeOutbound(.body(.byteBuffer(.init())))
                 try testServer.writeOutbound(.end(nil))
-                while !Task.isCancelled { await Task.yield() }
             }
-            try await group.next()
-            group.cancelAll()
             try await group.waitForAll()
         }
     }
@@ -505,30 +501,30 @@ import Tracing
 
         try await withThrowingTaskGroup { group in
             group.addTask { // client
-                try await HTTPClient.withHTTPClient { client in
-                    var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
-                    request.method = .POST
-                    request.body = .init(.bytes(.init(string: "hello")))
-                    let retryPolicy = HTTPClient.RetryPolicy(
-                        maxAttempts: 3,
-                        baseDelay: .seconds(1),
-                        maxDelay: .seconds(10),
-                        jitter: 0.0
-                    ) { response in
-                        switch response.status {
-                        case .tooManyRequests:
-                            if let retryAfter = response.headers["Retry-After"].last.flatMap(Int.init) {
-                                .retryWithSpecificBackoff(.seconds(retryAfter))
-                            } else {
-                                .retryWithBackoff
-                            }
-                        default: .doNotRetry
+                let client = HTTPClient(eventLoopGroup: .singletonMultiThreadedEventLoopGroup)
+                defer { #expect(throws: Never.self) { try client.syncShutdown() }}
+                var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
+                request.method = .POST
+                request.body = .init(.bytes(.init(string: "hello")))
+                let retryPolicy = HTTPClient.RetryPolicy(
+                    maxAttempts: 3,
+                    baseDelay: .seconds(1),
+                    maxDelay: .seconds(10),
+                    jitter: 0.0
+                ) { response in
+                    switch response.status {
+                    case .tooManyRequests:
+                        if let retryAfter = response.headers["Retry-After"].last.flatMap(Int.init) {
+                            .retryWithSpecificBackoff(.seconds(retryAfter))
+                        } else {
+                            .retryWithBackoff
                         }
+                    default: .doNotRetry
                     }
-                    let response = try await client.execute(request, timeout: .seconds(60), clock: clock, retryPolicy: retryPolicy)
-                    #expect(response.status == .ok)
-                    #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 2)
                 }
+                let response = try await client.execute(request, timeout: .seconds(60), clock: clock, retryPolicy: retryPolicy)
+                #expect(response.status == .ok)
+                #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 2)
             }
             group.addTask { // server
                 var sleepCalls = clock.sleepCalls.makeAsyncIterator()
@@ -552,8 +548,6 @@ import Tracing
                 try testServer.writeOutbound(.body(.byteBuffer(.init())))
                 try testServer.writeOutbound(.end(nil))
             }
-            try await group.next()
-            group.cancelAll()
             try await group.waitForAll()
         }
     }
