@@ -22,10 +22,10 @@ import NIOSSL
 import ServiceLifecycle
 import SwiftProtobuf
 
-import struct Foundation.Data
 import class Foundation.FileManager
 import func Foundation.pow
 import struct Foundation.URL
+import struct NIOCore.ByteBuffer
 import struct NIOCore.TimeAmount
 
 final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
@@ -104,11 +104,9 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         let body = try await response.body.collect(upTo: 2 * 1024 * 1024)
         let responseMessage = switch response.headers.first(name: "Content-Type") {
         case "application/x-protobuf":
-            // TODO: can we avoid the Data here?
-            try Response(serializedBytes: Data(buffer: body))
+            try Response(serializedBytes: ByteBufferWrapper(backing: body))
         case "application/json":
-            // TODO: can we avoid the Data here?
-            try Response(jsonUTF8Data: Data(buffer: body))
+            try Response(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
         case .some(let content):
             throw OTLPHTTPExporterError.responseHasUnsupportedContentType(content)
         case .none:
@@ -289,6 +287,33 @@ extension HTTPClient {
                 retryPolicy: retryPolicy
             )
         }
+    }
+}
+
+/// This internal type allows us to conform to `SwiftProtobufContiguousBytes` and avoid a copy on the response.
+fileprivate struct ByteBufferWrapper: SwiftProtobufContiguousBytes {
+    var backing: ByteBuffer
+
+    init(backing: ByteBuffer) {
+        self.backing = backing
+    }
+
+    init(_ sequence: some Sequence<UInt8>) {
+        self.backing = ByteBuffer(bytes: sequence)
+    }
+
+    init(repeating: UInt8, count: Int) {
+        self.backing = ByteBuffer(repeating: repeating, count: count)
+    }
+
+    var count: Int { self.backing.readableBytes }
+
+    func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+        try self.backing.withUnsafeReadableBytes { try body($0) }
+    }
+
+    mutating func withUnsafeMutableBytes<R>(_ body: (UnsafeMutableRawBufferPointer) throws -> R) rethrows -> R {
+        try self.backing.withUnsafeMutableReadableBytes { try body($0) }
     }
 }
 #endif
