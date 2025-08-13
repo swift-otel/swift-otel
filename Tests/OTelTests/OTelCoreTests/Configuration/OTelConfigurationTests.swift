@@ -792,7 +792,6 @@ import Testing
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#boolean
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
     @Test func testOTLPExporterInsecure() {
-        // TODO: this should be the default check for each of the tests
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.insecure == false)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
