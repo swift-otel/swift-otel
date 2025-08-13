@@ -109,55 +109,51 @@ extension OTel {
     /// try await serviceGroup.run()
     /// ```
     public static func bootstrap(configuration: Configuration = .default) throws -> some Service {
-        try Self.bootstrap(configuration: configuration, environment: ProcessInfo.processInfo.environment)
+        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "bootstrap")
+        var configuration = configuration
+        configuration.applyEnvironmentOverrides(environment: ProcessInfo.processInfo.environment, logger: logger)
+
+        var services: [Service] = []
+
+        if configuration.logs.enabled {
+            try services.append(bootstrapLogs(resolvedConfiguration: configuration, logger: logger))
+        }
+        if configuration.metrics.enabled {
+            try services.append(bootstrapMetrics(resolvedConfiguration: configuration, logger: logger))
+        }
+        if configuration.traces.enabled {
+            try services.append(bootstrapTraces(resolvedConfiguration: configuration, logger: logger))
+        }
+
+        return ServiceGroup(services: services, logger: logger)
     }
 }
 
 // MARK: - Internal
 
 extension OTel {
-    internal static func bootstrap(configuration: Configuration = .default, environment: [String: String]) throws -> some Service {
-        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "bootstrap")
-        var configuration = configuration
-        configuration.applyEnvironmentOverrides(environment: environment, logger: logger)
-
-        var services: [Service] = []
-
-        if configuration.logs.enabled {
-            try services.append(bootstrapLogs(configuration: configuration, logger: logger))
-        }
-        if configuration.metrics.enabled {
-            try services.append(bootstrapMetrics(configuration: configuration, logger: logger))
-        }
-        if configuration.traces.enabled {
-            try services.append(bootstrapTraces(configuration: configuration, logger: logger))
-        }
-
-        return ServiceGroup(services: services, logger: logger)
-    }
-
-    internal static func bootstrapTraces(configuration: OTel.Configuration, logger: Logger) throws -> some Service {
-        let backend = try makeTracingBackend(configuration: configuration)
+    internal static func bootstrapTraces(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
+        let backend = try makeTracingBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
         InstrumentationSystem.bootstrap(backend.factory)
         return backend.service
     }
 
-    internal static func bootstrapMetrics(configuration: OTel.Configuration, logger: Logger) throws -> some Service {
-        let backend = try makeMetricsBackend(configuration: configuration)
+    internal static func bootstrapMetrics(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
+        let backend = try makeMetricsBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
         MetricsSystem.bootstrap(backend.factory)
         return backend.service
     }
 
-    internal static func bootstrapLogs(configuration: OTel.Configuration, logger: Logger) throws -> some Service {
-        let backend = try makeLoggingBackend(configuration: configuration)
-        let exporterName = switch (configuration.logs.exporter.backing, configuration.logs.otlpExporter.protocol.backing) {
+    internal static func bootstrapLogs(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
+        let backend = try makeLoggingBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
+        let exporterName = switch (resolvedConfiguration.logs.exporter.backing, resolvedConfiguration.logs.otlpExporter.protocol.backing) {
         case (.console, _): "console"
         case (.none, _): "none"
         case (.otlp, .httpProtobuf): "OTLP/HTTP+Protobuf"
         case (.otlp, .httpJSON): "OTLP/HTTP+json"
         case (.otlp, .grpc): "OTLP/gRPC"
         }
-        if configuration.logs.exporter.backing != .console {
+        if resolvedConfiguration.logs.exporter.backing != .console {
             logger.info(
                 """
                 Bootstrapping logging system with \(exporterName) exporter.

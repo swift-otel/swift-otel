@@ -107,19 +107,19 @@ extension OTel {
         let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeLoggingBackend")
         var configuration = configuration
         configuration.applyEnvironmentOverrides(environment: ProcessInfo.processInfo.environment, logger: logger)
-        return try makeLoggingBackend(configuration: configuration, logger: logger)
+        return try makeLoggingBackend(resolvedConfiguration: configuration, logger: logger)
     }
 
-    internal static func makeLoggingBackend(configuration: OTel.Configuration, logger: Logger) throws -> (factory: @Sendable (String) -> any LogHandler, service: some Service) {
-        guard configuration.logs.enabled else {
+    internal static func makeLoggingBackend(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> (factory: @Sendable (String) -> any LogHandler, service: some Service) {
+        guard resolvedConfiguration.logs.enabled else {
             throw OTel.Configuration.Error.invalidConfiguration("makeLoggingBackend called but config has logs disabled")
         }
-        let resource = OTelResource(configuration: configuration)
-        let exporter = try WrappedLogRecordExporter(configuration: configuration, logger: logger)
-        let processor = try WrappedLogRecordProcessor(configuration: configuration, exporter: exporter, logger: logger)
+        let resource = OTelResource(configuration: resolvedConfiguration)
+        let exporter = try WrappedLogRecordExporter(configuration: resolvedConfiguration, logger: logger)
+        let processor = try WrappedLogRecordProcessor(configuration: resolvedConfiguration, exporter: exporter, logger: logger)
         let handler = OTelLogHandler(
             processor: processor,
-            logLevel: Logger.Level(configuration.logs.level),
+            logLevel: Logger.Level(resolvedConfiguration.logs.level),
             resource: resource
         )
 
@@ -225,18 +225,17 @@ extension OTel {
         let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeMetricsBackend")
         var configuration = configuration
         configuration.applyEnvironmentOverrides(environment: ProcessInfo.processInfo.environment, logger: logger)
-        return try makeMetricsBackend(configuration: configuration, logger: logger)
+        return try makeMetricsBackend(resolvedConfiguration: configuration, logger: logger)
     }
 
-    internal static func makeMetricsBackend(configuration: OTel.Configuration, logger: Logger) throws -> (factory: some MetricsFactory, service: some Service) {
-        guard configuration.metrics.enabled else {
+    internal static func makeMetricsBackend(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> (factory: some MetricsFactory, service: some Service) {
+        guard resolvedConfiguration.metrics.enabled else {
             throw OTel.Configuration.Error.invalidConfiguration("makeMetricsBackend called but config has metrics disabled")
         }
-        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeMetricsBackend")
-        let resource = OTelResource(configuration: configuration)
+        let resource = OTelResource(configuration: resolvedConfiguration)
         let registry = OTelMetricRegistry(logger: logger)
-        let metricsExporter = try WrappedMetricExporter(configuration: configuration, logger: logger)
-        let readerConfig = configuration.metrics
+        let metricsExporter = try WrappedMetricExporter(configuration: resolvedConfiguration, logger: logger)
+        let readerConfig = resolvedConfiguration.metrics
 
         let reader = OTelPeriodicExportingMetricsReader(resource: resource, producer: registry, exporter: metricsExporter, configuration: readerConfig, logger: logger)
 
@@ -342,18 +341,18 @@ extension OTel {
         let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeTracingBackend")
         var configuration = configuration
         configuration.applyEnvironmentOverrides(environment: ProcessInfo.processInfo.environment, logger: logger)
-        return try makeTracingBackend(configuration: configuration, logger: logger)
+        return try makeTracingBackend(resolvedConfiguration: configuration, logger: logger)
     }
 
-    internal static func makeTracingBackend(configuration: OTel.Configuration, logger: Logger) throws -> (factory: some Tracer, service: some Service) {
-        guard configuration.traces.enabled else {
+    internal static func makeTracingBackend(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> (factory: some Tracer, service: some Service) {
+        guard resolvedConfiguration.traces.enabled else {
             throw OTel.Configuration.Error.invalidConfiguration("makeTracingBackend called but config has traces disabled")
         }
-        let resource = OTelResource(configuration: configuration)
-        let sampler = WrappedSampler(configuration: configuration)
-        let propagator = OTelMultiplexPropagator(configuration: configuration)
-        let exporter = try WrappedSpanExporter(configuration: configuration, logger: logger)
-        let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: configuration.traces.batchSpanProcessor, logger: logger)
+        let resource = OTelResource(configuration: resolvedConfiguration)
+        let sampler = WrappedSampler(configuration: resolvedConfiguration)
+        let propagator = OTelMultiplexPropagator(configuration: resolvedConfiguration)
+        let exporter = try WrappedSpanExporter(configuration: resolvedConfiguration, logger: logger)
+        let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: resolvedConfiguration.traces.batchSpanProcessor, logger: logger)
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
             sampler: sampler,
