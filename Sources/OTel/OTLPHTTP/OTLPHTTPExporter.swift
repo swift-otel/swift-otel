@@ -290,7 +290,7 @@ extension HTTPClient {
 }
 
 /// This internal type allows us to conform to `SwiftProtobufContiguousBytes` and avoid a copy on the response.
-fileprivate struct ByteBufferWrapper: SwiftProtobufContiguousBytes {
+internal struct ByteBufferWrapper: SwiftProtobufContiguousBytes {
     var backing: ByteBuffer
 
     init(backing: ByteBuffer) {

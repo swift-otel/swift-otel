@@ -44,7 +44,7 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/x-protobuf"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(serializedBytes: Data(buffer: body))
+                let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(serializedBytes: ByteBufferWrapper(backing: body))
                 #expect(message.resourceSpans.count == 1)
             }
             try testServer.receiveEndAndVerify { trailers in
@@ -53,7 +53,8 @@ import Tracing
 
             try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
             let response = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse()
-            try testServer.writeOutbound(.body(.byteBuffer(.init(data: response.serializedBytes()))))
+            let body: ByteBufferWrapper = try response.serializedBytes()
+            try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
             try testServer.writeOutbound(.end(nil))
 
             try await group.waitForAll()
@@ -81,7 +82,7 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/json"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(jsonUTF8Bytes: Data(buffer: body))
+                let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
                 #expect(message.resourceSpans.count == 1)
             }
             try testServer.receiveEndAndVerify { trailers in
@@ -90,7 +91,8 @@ import Tracing
 
             try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
             let response = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse()
-            try testServer.writeOutbound(.body(.byteBuffer(.init(data: response.jsonUTF8Bytes()))))
+            let body: ByteBufferWrapper = try response.jsonUTF8Bytes()
+            try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
             try testServer.writeOutbound(.end(nil))
 
             try await group.waitForAll()
@@ -118,7 +120,7 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/x-protobuf"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(serializedBytes: Data(buffer: body))
+                let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(serializedBytes: ByteBufferWrapper(backing: body))
                 #expect(message.resourceMetrics.count == 1)
             }
             try testServer.receiveEndAndVerify { trailers in
@@ -127,7 +129,8 @@ import Tracing
 
             try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
             let response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse()
-            try testServer.writeOutbound(.body(.byteBuffer(.init(data: response.serializedBytes()))))
+            let body: ByteBufferWrapper = try response.serializedBytes()
+            try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
             try testServer.writeOutbound(.end(nil))
 
             try await group.waitForAll()
@@ -155,7 +158,7 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/json"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(jsonUTF8Bytes: Data(buffer: body))
+                let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
                 #expect(message.resourceMetrics.count == 1)
             }
             try testServer.receiveEndAndVerify { trailers in
@@ -164,7 +167,8 @@ import Tracing
 
             try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
             let response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse()
-            try testServer.writeOutbound(.body(.byteBuffer(.init(data: response.jsonUTF8Bytes()))))
+            let body: ByteBufferWrapper = try response.jsonUTF8Bytes()
+            try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
             try testServer.writeOutbound(.end(nil))
 
             try await group.waitForAll()
@@ -192,7 +196,7 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/x-protobuf"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(serializedBytes: Data(buffer: body))
+                let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(serializedBytes: ByteBufferWrapper(backing: body))
                 #expect(message.resourceLogs.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
@@ -206,7 +210,8 @@ import Tracing
 
             try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
             let response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse()
-            try testServer.writeOutbound(.body(.byteBuffer(.init(data: response.serializedBytes()))))
+            let body: ByteBufferWrapper = try response.serializedBytes()
+            try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
             try testServer.writeOutbound(.end(nil))
 
             try await group.waitForAll()
@@ -234,7 +239,7 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/json"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(jsonUTF8Bytes: Data(buffer: body))
+                let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
                 #expect(message.resourceLogs.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
@@ -248,6 +253,8 @@ import Tracing
 
             try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
             let response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse()
+            let body: ByteBufferWrapper = try response.jsonUTF8Bytes()
+            try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
             try testServer.writeOutbound(.body(.byteBuffer(.init(data: response.jsonUTF8Bytes()))))
             try testServer.writeOutbound(.end(nil))
 
