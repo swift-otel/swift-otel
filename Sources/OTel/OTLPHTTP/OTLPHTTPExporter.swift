@@ -16,7 +16,6 @@
 #else
 import AsyncHTTPClient
 import Logging
-import NIOFoundationCompat
 import NIOHTTP1
 import NIOSSL
 import ServiceLifecycle
