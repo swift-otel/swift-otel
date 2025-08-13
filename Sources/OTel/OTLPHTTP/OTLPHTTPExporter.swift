@@ -24,8 +24,8 @@ import SwiftProtobuf
 import class Foundation.FileManager
 import func Foundation.pow
 import struct Foundation.URL
-import struct NIOCore.ByteBuffer
-import struct NIOCore.TimeAmount
+package import struct NIOCore.ByteBuffer
+package import struct NIOCore.TimeAmount
 
 final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
     private let logger: Logger
@@ -65,7 +65,8 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         switch self.configuration.protocol.backing {
         case .httpProtobuf:
             // https://opentelemetry.io/docs/specs/otlp/#binary-protobuf-encoding
-            request.body = try .bytes(proto.serializedData())
+            let body: ByteBufferWrapper = try proto.serializedBytes()
+            request.body = .bytes(body.backing)
             request.headers.replaceOrAdd(name: "Content-Type", value: "application/x-protobuf")
         case .httpJSON:
             // https://opentelemetry.io/docs/specs/otlp/#json-protobuf-encoding
@@ -74,7 +75,8 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
             encodingOptions.alwaysPrintInt64sAsNumbers = false
             encodingOptions.alwaysPrintEnumsAsInts = true
             encodingOptions.preserveProtoFieldNames = false
-            request.body = try .bytes(proto.jsonUTF8Data(options: encodingOptions))
+            let body: ByteBufferWrapper = try proto.jsonUTF8Bytes(options: encodingOptions)
+            request.body = .bytes(body.backing)
             request.headers.replaceOrAdd(name: "Content-Type", value: "application/json")
         case .grpc:
             preconditionFailure("unreachable")
@@ -290,10 +292,10 @@ extension HTTPClient {
 }
 
 /// This internal type allows us to conform to `SwiftProtobufContiguousBytes` and avoid a copy on the response.
-internal struct ByteBufferWrapper: SwiftProtobufContiguousBytes {
-    var backing: ByteBuffer
+package struct ByteBufferWrapper: SwiftProtobufContiguousBytes {
+    package var backing: ByteBuffer
 
-    init(backing: ByteBuffer) {
+    package init(backing: ByteBuffer) {
         self.backing = backing
     }
 
