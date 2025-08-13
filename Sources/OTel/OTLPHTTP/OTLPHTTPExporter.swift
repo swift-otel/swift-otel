@@ -31,7 +31,6 @@ import struct Foundation.URL
 package import struct NIOCore.ByteBuffer
 package import struct NIOCore.TimeAmount
 
-
 final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
     private let logger: Logger
     let configuration: OTel.Configuration.OTLPExporterConfiguration
