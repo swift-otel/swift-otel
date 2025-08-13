@@ -24,11 +24,9 @@ import SwiftProtobuf
 
 #if canImport(FoundationEssentials)
 import class FoundationEssentials.FileManager
-import func FoundationEssentials.pow
 import struct FoundationEssentials.URL
 #else
 import class Foundation.FileManager
-import func Foundation.pow
 import struct Foundation.URL
 #endif
 import struct NIOCore.ByteBuffer
@@ -233,10 +231,10 @@ extension HTTPClient {
             switch policy(response) {
             case .doNotRetry: return .doNotRetry
             case .retryWithBackoff:
-                let exponentialDelay = baseDelay * pow(2.0, Double(attempts - 1))
+                let exponentialDelay = baseDelay * (2 << (attempts - 2))
                 let cappedDelay = min(exponentialDelay, maxDelay)
                 let jitterAmount = cappedDelay * jitter * Double.random(in: -1 ... 1)
-                let delay = max(.zero, cappedDelay + jitterAmount)
+                let delay = max(Duration.zero, cappedDelay + jitterAmount)
                 return .retryAfter(delay)
             case .retryWithSpecificBackoff(let delay):
                 return .retryAfter(delay)
