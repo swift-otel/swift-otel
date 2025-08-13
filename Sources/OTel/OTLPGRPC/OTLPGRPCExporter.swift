@@ -101,22 +101,10 @@ enum OTLPGRPCExporterError: Swift.Error {
 }
 
 @available(gRPCSwift, *)
-extension HTTP2ClientTransport.Posix.Config {
-    init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) {
-        self = .defaults
-        switch configuration.compression.backing {
-        case .gzip: self.compression = .init(algorithm: .gzip, enabledAlgorithms: [.gzip])
-        case .none: self.compression = .init(algorithm: .none, enabledAlgorithms: [.none])
-        }
-    }
-}
-
-@available(gRPCSwift, *)
 extension CallOptions {
     init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) {
         self = .defaults
         self.timeout = configuration.timeout
-        // TODO: we're setting compression here and in the transport config; do we need both?
         self.compression = switch configuration.compression.backing {
         case .gzip: .gzip
         case .none: CompressionAlgorithm.none
@@ -193,7 +181,7 @@ extension HTTP2ClientTransport.Posix {
         try self.init(
             target: .dns(host: host, port: port),
             transportSecurity: security,
-            config: Config(configuration)
+            config: .defaults
         )
     }
 }
