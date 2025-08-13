@@ -157,3 +157,10 @@ if ["true", "y", "yes", "on", "1"].contains(Context.environment["OTEL_ENABLE_BEN
         )
     )
 }
+
+if true || ["true", "y", "yes", "on", "1"].contains(Context.environment["BUILD_FOUNDATION_ESSENTIALS_CANARY"]?.lowercased()) {
+    package.products += [
+        // This builds a dynamic library, that we can inspect using `ldd` on Linux in CI.
+        .library(name: "_OTelFoundationEssentialsCanary", type: .dynamic, targets: ["OTel"]),
+    ]
+}
