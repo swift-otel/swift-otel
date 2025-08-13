@@ -28,9 +28,13 @@ extension Opentelemetry_Proto_Logs_V1_LogRecord {
         body = .init(logRecord.body.description)
 
         attributes = .init(logRecord.metadata)
-        droppedAttributesCount = 0 // TODO: do we need this?
+        // TODO: We should be setting dropped counts here.
+        //       see: https://opentelemetry.io/docs/specs/otel/logs/sdk/#logrecord-limits
+        droppedAttributesCount = 0
 
-        flags = 0 // TODO: do we need this?
+        // TODO: This should be set to the trace flag in the W3C trace context.
+        //       see: https://opentelemetry.io/docs/specs/otel/logs/data-model/#field-traceflags
+        flags = 0
 
         if let spanContext = logRecord.spanContext {
             traceID = spanContext.traceID.data

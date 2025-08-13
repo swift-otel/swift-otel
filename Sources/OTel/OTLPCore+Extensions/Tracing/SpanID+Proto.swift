@@ -14,7 +14,11 @@
 #if !(OTLPHTTP || OTLPGRPC)
 // Empty when above trait(s) are disabled.
 #else
+#if canImport(FoundationEssentials)
+import struct FoundationEssentials.Data
+#else
 import struct Foundation.Data
+#endif
 import W3CTraceContext
 
 extension SpanID {

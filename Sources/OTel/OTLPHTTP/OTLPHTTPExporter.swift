@@ -21,11 +21,16 @@ import NIOSSL
 import ServiceLifecycle
 import SwiftProtobuf
 
+#if canImport(FoundationEssentials)
+import class FoundationEssentials.FileManager
+import struct FoundationEssentials.URL
+#else
 import class Foundation.FileManager
-import func Foundation.pow
 import struct Foundation.URL
+#endif
 package import struct NIOCore.ByteBuffer
 package import struct NIOCore.TimeAmount
+
 
 final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
     private let logger: Logger
@@ -70,7 +75,6 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
             request.headers.replaceOrAdd(name: "Content-Type", value: "application/x-protobuf")
         case .httpJSON:
             // https://opentelemetry.io/docs/specs/otlp/#json-protobuf-encoding
-            // TODO: Double check the spec for any missing JSON transformation and whether Swift Protobuf supports them.
             var encodingOptions = JSONEncodingOptions()
             encodingOptions.alwaysPrintInt64sAsNumbers = false
             encodingOptions.alwaysPrintEnumsAsInts = true
@@ -228,10 +232,10 @@ extension HTTPClient {
             switch policy(response) {
             case .doNotRetry: return .doNotRetry
             case .retryWithBackoff:
-                let exponentialDelay = baseDelay * pow(2.0, Double(attempts - 1))
+                let exponentialDelay = baseDelay * (2 << (attempts - 2))
                 let cappedDelay = min(exponentialDelay, maxDelay)
                 let jitterAmount = cappedDelay * jitter * Double.random(in: -1 ... 1)
-                let delay = max(.zero, cappedDelay + jitterAmount)
+                let delay = max(Duration.zero, cappedDelay + jitterAmount)
                 return .retryAfter(delay)
             case .retryWithSpecificBackoff(let delay):
                 return .retryAfter(delay)

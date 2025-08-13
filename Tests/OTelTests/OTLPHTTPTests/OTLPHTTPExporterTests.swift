@@ -12,7 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 import AsyncHTTPClient
+#if canImport(FoundationEssentials)
+import struct FoundationEssentials.Data
+#else
 import struct Foundation.Data
+#endif
 import Metrics
 import NIOConcurrencyHelpers
 import NIOHTTP1
@@ -356,7 +360,6 @@ import Tracing
     }
 
     @Test func testRetryCustomPolicyStillBacksOffBasedOnAttempts() async throws {
-        // TODO: use an extension on tooManyRequests response
         var retryPolicy = HTTPClient.RetryPolicy(
             maxAttempts: 8,
             baseDelay: .seconds(1),

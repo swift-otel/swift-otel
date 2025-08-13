@@ -23,7 +23,11 @@ import Musl
 #error("Unsupported runtime")
 #endif
 
+#if canImport(FoundationEssentials)
+import struct FoundationEssentials.URL
+#else
 import struct Foundation.URL
+#endif
 import ServiceLifecycle
 
 extension Testing.Test {
