@@ -255,7 +255,6 @@ import Tracing
             let response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse()
             let body: ByteBufferWrapper = try response.jsonUTF8Bytes()
             try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
-            try testServer.writeOutbound(.body(.byteBuffer(.init(data: response.jsonUTF8Bytes()))))
             try testServer.writeOutbound(.end(nil))
 
             try await group.waitForAll()
