@@ -90,13 +90,13 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
                 }
                 await taskGroup.waitForAll()
             } onGracefulShutdown: {
-                self.logger.debug("Shutting down.")
+                self.logger.info("Shutting down.")
                 self.spanContinuation.finish()
                 self.explicitTick.finish()
             }
             try? await self.forceFlush()
             await self.exporter.shutdown()
-            self.logger.debug("Shut down.")
+            self.logger.info("Shut down.")
         }
     }
 
@@ -118,7 +118,7 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
                 do {
                     try await self.exporter.forceFlush()
                 } catch {
-                    self.logger.error("Force flush failed", metadata: ["error": "\(error)"])
+                    self.logger.log(level: .warning, error: error, message: "Force flush failed.")
                 }
             }
         }
@@ -151,10 +151,7 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
                 logger.debug("Exported batch.")
             }
         } catch {
-            logger.warning("Failed to export batch.", metadata: [
-                "error": "\(String(describing: type(of: error)))",
-                "error_description": "\(error)",
-            ])
+            logger.log(level: .warning, error: error, message: "Failed to export batch.")
         }
     }
 }

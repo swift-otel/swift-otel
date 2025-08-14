@@ -98,6 +98,7 @@ extension OTelTracer where Clock == ContinuousClock {
 
 extension OTelTracer: Service {
     func run() async throws {
+        logger.info("Starting.")
         await withGracefulShutdownHandler {
             for await event in eventStream {
                 // We don't want to propagate the current span's service context into
@@ -114,10 +115,10 @@ extension OTelTracer: Service {
                 }
             }
         } onGracefulShutdown: {
-            self.logger.debug("Shutting down.")
+            self.logger.info("Shutting down.")
             self.eventStreamContinuation.finish()
         }
-        logger.debug("Shut down.")
+        logger.info("Shut down.")
     }
 }
 
@@ -236,11 +237,7 @@ extension OTelTracer: Instrument {
         do {
             context.spanContext = try propagator.extractSpanContext(from: carrier, using: extractor)
         } catch {
-            logger.debug("Failed to extract span context.", metadata: [
-                "carrier": "\(carrier)",
-                "error_type": "\(type(of: error))",
-                "error_description": "\(error)",
-            ])
+            logger.log(level: .warning, error: error, message: "Failed to extract span context.", metadata: ["carrier": "\(carrier)"])
         }
     }
 }
