@@ -69,6 +69,7 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     }
 
     func run() async throws {
+        logger.info("Starting.")
         let timerSequence = AsyncTimerSequence(interval: configuration.scheduleDelay, clock: clock).map { _ in }
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
 
@@ -87,13 +88,13 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
                 }
                 await taskGroup.waitForAll()
             } onGracefulShutdown: {
-                self.logger.debug("Shutting down.")
+                self.logger.info("Shutting down.")
                 self.logContinuation.finish()
                 self.explicitTick.finish()
             }
             try? await self.forceFlush()
             await self.exporter.shutdown()
-            self.logger.debug("Shut down.")
+            self.logger.info("Shut down.")
         }
     }
 
@@ -115,7 +116,7 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
                 do {
                     try await self.exporter.forceFlush()
                 } catch {
-                    self.logger.error("Force flush failed", metadata: ["error": "\(error)"])
+                    self.logger.log(level: .warning, error: error, message: "Force flush failed.")
                 }
             }
         }
@@ -148,10 +149,7 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
                 logger.debug("Exported batch.")
             }
         } catch {
-            logger.warning("Failed to export batch.", metadata: [
-                "error": "\(String(describing: type(of: error)))",
-                "error_description": "\(error)",
-            ])
+            logger.log(level: .warning, error: error, message: "Failed to export batch.")
         }
     }
 }
