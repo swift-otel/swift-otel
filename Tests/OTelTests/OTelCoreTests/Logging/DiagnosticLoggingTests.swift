@@ -24,10 +24,11 @@ import Testing
             var description: String { "custom description" }
         }
 
-        logger.log(level: level, error: TestError(), message: "Thing failed.")
+        logger.log(level: level, error: TestError(), message: "Thing failed.", metadata: ["foo": "bar"])
         let message = await logMessages.next()
         #expect(message?.level == level)
         #expect(message?.message == "Thing failed.")
+        #expect(message?.metadata?["foo"] == "bar")
         #expect(message?.metadata?["error"] == "custom description")
         #expect(message?.metadata?["error_type"] == "TestError")
     }
