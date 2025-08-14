@@ -66,7 +66,7 @@ extension Logger {
         self.log(
             level: level,
             message(),
-            metadata: metadata()?.merging(["error": "\(error)", "error_type": "\(type(of: error))"], uniquingKeysWith: { _, new in new }),
+            metadata: (metadata() ?? [:]).merging(["error": "\(error)", "error_type": "\(type(of: error))"]) { $1 },
             file: file,
             function: function,
             line: line

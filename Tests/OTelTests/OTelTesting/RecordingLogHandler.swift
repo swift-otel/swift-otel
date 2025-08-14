@@ -37,6 +37,7 @@ struct RecordingLogHandler: LogHandler {
         function: String,
         line: UInt
     ) {
+        let metadata = self.metadata.merging(metadata ?? [:], uniquingKeysWith: { _, new in new })
         recordedLogMessages.withLockedValue { $0.append((level, message, metadata)) }
         counts.withLockedValue { $0[level] = $0[level, default: 0] + 1 }
         recordedLogMessageContinuation.yield((level, message, metadata))
