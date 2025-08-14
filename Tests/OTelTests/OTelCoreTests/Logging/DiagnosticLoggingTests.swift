@@ -16,7 +16,7 @@ import Logging
 import Testing
 
 @Suite struct DiagnosticLoggingTests {
-    @Test func testLogErrorHelper() async throws {
+    @Test(arguments: Logger.Level.allCases) func testLogErrorHelper(level: Logger.Level) async throws {
         let recordingHandler = RecordingLogHandler()
         var logMessages = recordingHandler.recordedLogMessageStream.makeAsyncIterator()
         let logger = Logger(label: "test") { _ in recordingHandler }
@@ -24,13 +24,11 @@ import Testing
             var description: String { "custom description" }
         }
 
-        for level in [Logger.Level.trace, .trace, .info, .warning, .error] {
-            logger.log(level: level, error: TestError(), message: "Thing failed.")
-            let message = await logMessages.next()
-            #expect(message?.level == level)
-            #expect(message?.message == "Thing failed.")
-            #expect(message?.metadata?["error"] == "custom description")
-            #expect(message?.metadata?["error_type"] == "TestError")
-        }
+        logger.log(level: level, error: TestError(), message: "Thing failed.")
+        let message = await logMessages.next()
+        #expect(message?.level == level)
+        #expect(message?.message == "Thing failed.")
+        #expect(message?.metadata?["error"] == "custom description")
+        #expect(message?.metadata?["error_type"] == "TestError")
     }
 }
