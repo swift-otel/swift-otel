@@ -375,6 +375,7 @@ extension OTel.Configuration {
 
         /// Default log level for loggers returned by the logging backend factory.
         ///
+        /// - Environment variable(s): `OTEL_SWIFT_LOG_LEVEL` (SDK-specific)
         /// - Default value: `.info`
         public var level: LogLevel
 

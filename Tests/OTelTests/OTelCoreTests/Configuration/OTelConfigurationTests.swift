@@ -511,6 +511,32 @@ import Testing
         }
     }
 
+    // OTEL_SWIFT_LOG_LEVEL
+    // SDK-specific environment variable for configuring the default log level of the bootstrapped Swift Log backend.
+    @Test func testLogsLevel() {
+        #expect(OTel.Configuration.default.logs.level.backing == .info)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_SWIFT_LOG_LEVEL": "trace",
+        ]).logs.level.backing == .trace)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_SWIFT_LOG_LEVEL": "debug",
+        ]).logs.level.backing == .debug)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_SWIFT_LOG_LEVEL": "info",
+        ]).logs.level.backing == .info)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_SWIFT_LOG_LEVEL": "warning",
+        ]).logs.level.backing == .warning)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_SWIFT_LOG_LEVEL": "error",
+        ]).logs.level.backing == .error)
+    }
+
     // OTEL_EXPORTER_OTLP_ENDPOINT (OTLP/HTTP edition).
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options

@@ -58,6 +58,7 @@ extension OTel.Configuration.Key.GeneralKey {
     static let metricExportInterval = Self(key: "OTEL_METRIC_EXPORT_INTERVAL")
     static let metricExportTimeout = Self(key: "OTEL_METRIC_EXPORT_TIMEOUT")
     static let logsExporter = Self(key: "OTEL_LOGS_EXPORTER")
+    static let logsLevel = Self(key: "OTEL_SWIFT_LOG_LEVEL") // SDK-specific => different format.
     static let propagators = Self(key: "OTEL_PROPAGATORS")
     static let sampler = Self(key: "OTEL_TRACES_SAMPLER")
     static let samplerArgument = Self(key: "OTEL_TRACES_SAMPLER_ARG")

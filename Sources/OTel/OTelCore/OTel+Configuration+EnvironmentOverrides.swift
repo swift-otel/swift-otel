@@ -50,6 +50,7 @@ extension OTel.Configuration.LogsConfiguration {
         batchLogRecordProcessor.applyEnvironmentOverrides(environment: environment, logger: logger)
         exporter.override(using: .logsExporter, from: environment, logger: logger)
         otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .logs, logger: logger)
+        level.override(using: .logsLevel, from: environment, logger: logger)
     }
 }
 
