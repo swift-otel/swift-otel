@@ -63,10 +63,7 @@ fileprivate let _protobuf_package = "opentelemetry.proto.resource.v1"
 
 extension Opentelemetry_Proto_Resource_V1_Resource: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Resource"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "attributes"),
-    2: .standard(proto: "dropped_attributes_count"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}attributes\0\u{3}dropped_attributes_count\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {

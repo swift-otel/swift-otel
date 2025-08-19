@@ -121,9 +121,7 @@ fileprivate let _protobuf_package = "opentelemetry.proto.collector.metrics.v1"
 
 extension Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ExportMetricsServiceRequest"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "resource_metrics"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}resource_metrics\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -153,9 +151,7 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest: 
 
 extension Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ExportMetricsServiceResponse"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "partial_success"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}partial_success\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -189,10 +185,7 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse:
 
 extension Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsPartialSuccess: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ExportMetricsPartialSuccess"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "rejected_data_points"),
-    2: .standard(proto: "error_message"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}rejected_data_points\0\u{3}error_message\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {

@@ -306,7 +306,7 @@ package struct Opentelemetry_Proto_Logs_V1_ScopeLogs: Sendable {
 
 /// A log record according to OpenTelemetry Log Data Model:
 /// https://github.com/open-telemetry/oteps/blob/main/text/logs/0097-log-data-model.md
-package struct Opentelemetry_Proto_Logs_V1_LogRecord: @unchecked Sendable {
+package struct Opentelemetry_Proto_Logs_V1_LogRecord: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -406,47 +406,16 @@ package struct Opentelemetry_Proto_Logs_V1_LogRecord: @unchecked Sendable {
 fileprivate let _protobuf_package = "opentelemetry.proto.logs.v1"
 
 extension Opentelemetry_Proto_Logs_V1_SeverityNumber: SwiftProtobuf._ProtoNameProviding {
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "SEVERITY_NUMBER_UNSPECIFIED"),
-    1: .same(proto: "SEVERITY_NUMBER_TRACE"),
-    2: .same(proto: "SEVERITY_NUMBER_TRACE2"),
-    3: .same(proto: "SEVERITY_NUMBER_TRACE3"),
-    4: .same(proto: "SEVERITY_NUMBER_TRACE4"),
-    5: .same(proto: "SEVERITY_NUMBER_DEBUG"),
-    6: .same(proto: "SEVERITY_NUMBER_DEBUG2"),
-    7: .same(proto: "SEVERITY_NUMBER_DEBUG3"),
-    8: .same(proto: "SEVERITY_NUMBER_DEBUG4"),
-    9: .same(proto: "SEVERITY_NUMBER_INFO"),
-    10: .same(proto: "SEVERITY_NUMBER_INFO2"),
-    11: .same(proto: "SEVERITY_NUMBER_INFO3"),
-    12: .same(proto: "SEVERITY_NUMBER_INFO4"),
-    13: .same(proto: "SEVERITY_NUMBER_WARN"),
-    14: .same(proto: "SEVERITY_NUMBER_WARN2"),
-    15: .same(proto: "SEVERITY_NUMBER_WARN3"),
-    16: .same(proto: "SEVERITY_NUMBER_WARN4"),
-    17: .same(proto: "SEVERITY_NUMBER_ERROR"),
-    18: .same(proto: "SEVERITY_NUMBER_ERROR2"),
-    19: .same(proto: "SEVERITY_NUMBER_ERROR3"),
-    20: .same(proto: "SEVERITY_NUMBER_ERROR4"),
-    21: .same(proto: "SEVERITY_NUMBER_FATAL"),
-    22: .same(proto: "SEVERITY_NUMBER_FATAL2"),
-    23: .same(proto: "SEVERITY_NUMBER_FATAL3"),
-    24: .same(proto: "SEVERITY_NUMBER_FATAL4"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0SEVERITY_NUMBER_UNSPECIFIED\0\u{1}SEVERITY_NUMBER_TRACE\0\u{1}SEVERITY_NUMBER_TRACE2\0\u{1}SEVERITY_NUMBER_TRACE3\0\u{1}SEVERITY_NUMBER_TRACE4\0\u{1}SEVERITY_NUMBER_DEBUG\0\u{1}SEVERITY_NUMBER_DEBUG2\0\u{1}SEVERITY_NUMBER_DEBUG3\0\u{1}SEVERITY_NUMBER_DEBUG4\0\u{1}SEVERITY_NUMBER_INFO\0\u{1}SEVERITY_NUMBER_INFO2\0\u{1}SEVERITY_NUMBER_INFO3\0\u{1}SEVERITY_NUMBER_INFO4\0\u{1}SEVERITY_NUMBER_WARN\0\u{1}SEVERITY_NUMBER_WARN2\0\u{1}SEVERITY_NUMBER_WARN3\0\u{1}SEVERITY_NUMBER_WARN4\0\u{1}SEVERITY_NUMBER_ERROR\0\u{1}SEVERITY_NUMBER_ERROR2\0\u{1}SEVERITY_NUMBER_ERROR3\0\u{1}SEVERITY_NUMBER_ERROR4\0\u{1}SEVERITY_NUMBER_FATAL\0\u{1}SEVERITY_NUMBER_FATAL2\0\u{1}SEVERITY_NUMBER_FATAL3\0\u{1}SEVERITY_NUMBER_FATAL4\0")
 }
 
 extension Opentelemetry_Proto_Logs_V1_LogRecordFlags: SwiftProtobuf._ProtoNameProviding {
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "LOG_RECORD_FLAGS_DO_NOT_USE"),
-    255: .same(proto: "LOG_RECORD_FLAGS_TRACE_FLAGS_MASK"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0LOG_RECORD_FLAGS_DO_NOT_USE\0\u{2}\u{7f}\u{3}LOG_RECORD_FLAGS_TRACE_FLAGS_MASK\0")
 }
 
 extension Opentelemetry_Proto_Logs_V1_LogsData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".LogsData"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "resource_logs"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}resource_logs\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -476,14 +445,7 @@ extension Opentelemetry_Proto_Logs_V1_LogsData: SwiftProtobuf.Message, SwiftProt
 
 extension Opentelemetry_Proto_Logs_V1_ResourceLogs: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ResourceLogs"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(
-      reservedNames: [],
-      reservedRanges: [1000..<1001],
-      numberNameMappings: [
-        1: .same(proto: "resource"),
-        2: .standard(proto: "scope_logs"),
-        3: .standard(proto: "schema_url"),
-  ])
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}resource\0\u{3}scope_logs\0\u{3}schema_url\0\u{c}h\u{f}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -527,11 +489,7 @@ extension Opentelemetry_Proto_Logs_V1_ResourceLogs: SwiftProtobuf.Message, Swift
 
 extension Opentelemetry_Proto_Logs_V1_ScopeLogs: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ScopeLogs"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "scope"),
-    2: .standard(proto: "log_records"),
-    3: .standard(proto: "schema_url"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}scope\0\u{3}log_records\0\u{3}schema_url\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -575,21 +533,7 @@ extension Opentelemetry_Proto_Logs_V1_ScopeLogs: SwiftProtobuf.Message, SwiftPro
 
 extension Opentelemetry_Proto_Logs_V1_LogRecord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".LogRecord"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(
-      reservedNames: [],
-      reservedRanges: [4..<5],
-      numberNameMappings: [
-        1: .standard(proto: "time_unix_nano"),
-        11: .standard(proto: "observed_time_unix_nano"),
-        2: .standard(proto: "severity_number"),
-        3: .standard(proto: "severity_text"),
-        5: .same(proto: "body"),
-        6: .same(proto: "attributes"),
-        7: .standard(proto: "dropped_attributes_count"),
-        8: .same(proto: "flags"),
-        9: .standard(proto: "trace_id"),
-        10: .standard(proto: "span_id"),
-  ])
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}time_unix_nano\0\u{3}severity_number\0\u{3}severity_text\0\u{2}\u{2}body\0\u{1}attributes\0\u{3}dropped_attributes_count\0\u{1}flags\0\u{3}trace_id\0\u{3}span_id\0\u{3}observed_time_unix_nano\0\u{c}\u{4}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
