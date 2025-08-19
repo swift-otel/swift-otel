@@ -979,7 +979,7 @@ package struct Opentelemetry_Proto_Metrics_V1_SummaryDataPoint: Sendable {
 /// Exemplars also hold information about the environment when the measurement
 /// was recorded, for example the span and trace ID of the active span when the
 /// exemplar was recorded.
-package struct Opentelemetry_Proto_Metrics_V1_Exemplar: @unchecked Sendable {
+package struct Opentelemetry_Proto_Metrics_V1_Exemplar: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -1045,25 +1045,16 @@ package struct Opentelemetry_Proto_Metrics_V1_Exemplar: @unchecked Sendable {
 fileprivate let _protobuf_package = "opentelemetry.proto.metrics.v1"
 
 extension Opentelemetry_Proto_Metrics_V1_AggregationTemporality: SwiftProtobuf._ProtoNameProviding {
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "AGGREGATION_TEMPORALITY_UNSPECIFIED"),
-    1: .same(proto: "AGGREGATION_TEMPORALITY_DELTA"),
-    2: .same(proto: "AGGREGATION_TEMPORALITY_CUMULATIVE"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0AGGREGATION_TEMPORALITY_UNSPECIFIED\0\u{1}AGGREGATION_TEMPORALITY_DELTA\0\u{1}AGGREGATION_TEMPORALITY_CUMULATIVE\0")
 }
 
 extension Opentelemetry_Proto_Metrics_V1_DataPointFlags: SwiftProtobuf._ProtoNameProviding {
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "DATA_POINT_FLAGS_DO_NOT_USE"),
-    1: .same(proto: "DATA_POINT_FLAGS_NO_RECORDED_VALUE_MASK"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0DATA_POINT_FLAGS_DO_NOT_USE\0\u{1}DATA_POINT_FLAGS_NO_RECORDED_VALUE_MASK\0")
 }
 
 extension Opentelemetry_Proto_Metrics_V1_MetricsData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".MetricsData"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "resource_metrics"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}resource_metrics\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1093,14 +1084,7 @@ extension Opentelemetry_Proto_Metrics_V1_MetricsData: SwiftProtobuf.Message, Swi
 
 extension Opentelemetry_Proto_Metrics_V1_ResourceMetrics: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ResourceMetrics"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(
-      reservedNames: [],
-      reservedRanges: [1000..<1001],
-      numberNameMappings: [
-        1: .same(proto: "resource"),
-        2: .standard(proto: "scope_metrics"),
-        3: .standard(proto: "schema_url"),
-  ])
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}resource\0\u{3}scope_metrics\0\u{3}schema_url\0\u{c}h\u{f}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1144,11 +1128,7 @@ extension Opentelemetry_Proto_Metrics_V1_ResourceMetrics: SwiftProtobuf.Message,
 
 extension Opentelemetry_Proto_Metrics_V1_ScopeMetrics: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ScopeMetrics"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "scope"),
-    2: .same(proto: "metrics"),
-    3: .standard(proto: "schema_url"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}scope\0\u{1}metrics\0\u{3}schema_url\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1192,19 +1172,7 @@ extension Opentelemetry_Proto_Metrics_V1_ScopeMetrics: SwiftProtobuf.Message, Sw
 
 extension Opentelemetry_Proto_Metrics_V1_Metric: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Metric"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(
-      reservedNames: [],
-      reservedRanges: [4..<5, 6..<7, 8..<9],
-      numberNameMappings: [
-        1: .same(proto: "name"),
-        2: .same(proto: "description"),
-        3: .same(proto: "unit"),
-        5: .same(proto: "gauge"),
-        7: .same(proto: "sum"),
-        9: .same(proto: "histogram"),
-        10: .standard(proto: "exponential_histogram"),
-        11: .same(proto: "summary"),
-  ])
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}description\0\u{1}unit\0\u{2}\u{2}gauge\0\u{2}\u{2}sum\0\u{2}\u{2}histogram\0\u{3}exponential_histogram\0\u{1}summary\0\u{c}\u{4}\u{1}\u{c}\u{6}\u{1}\u{c}\u{8}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1337,9 +1305,7 @@ extension Opentelemetry_Proto_Metrics_V1_Metric: SwiftProtobuf.Message, SwiftPro
 
 extension Opentelemetry_Proto_Metrics_V1_Gauge: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Gauge"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "data_points"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}data_points\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1369,11 +1335,7 @@ extension Opentelemetry_Proto_Metrics_V1_Gauge: SwiftProtobuf.Message, SwiftProt
 
 extension Opentelemetry_Proto_Metrics_V1_Sum: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Sum"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "data_points"),
-    2: .standard(proto: "aggregation_temporality"),
-    3: .standard(proto: "is_monotonic"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}data_points\0\u{3}aggregation_temporality\0\u{3}is_monotonic\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1413,10 +1375,7 @@ extension Opentelemetry_Proto_Metrics_V1_Sum: SwiftProtobuf.Message, SwiftProtob
 
 extension Opentelemetry_Proto_Metrics_V1_Histogram: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Histogram"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "data_points"),
-    2: .standard(proto: "aggregation_temporality"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}data_points\0\u{3}aggregation_temporality\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1451,10 +1410,7 @@ extension Opentelemetry_Proto_Metrics_V1_Histogram: SwiftProtobuf.Message, Swift
 
 extension Opentelemetry_Proto_Metrics_V1_ExponentialHistogram: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ExponentialHistogram"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "data_points"),
-    2: .standard(proto: "aggregation_temporality"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}data_points\0\u{3}aggregation_temporality\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1489,9 +1445,7 @@ extension Opentelemetry_Proto_Metrics_V1_ExponentialHistogram: SwiftProtobuf.Mes
 
 extension Opentelemetry_Proto_Metrics_V1_Summary: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Summary"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "data_points"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}data_points\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1521,18 +1475,7 @@ extension Opentelemetry_Proto_Metrics_V1_Summary: SwiftProtobuf.Message, SwiftPr
 
 extension Opentelemetry_Proto_Metrics_V1_NumberDataPoint: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".NumberDataPoint"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(
-      reservedNames: [],
-      reservedRanges: [1..<2],
-      numberNameMappings: [
-        7: .same(proto: "attributes"),
-        2: .standard(proto: "start_time_unix_nano"),
-        3: .standard(proto: "time_unix_nano"),
-        4: .standard(proto: "as_double"),
-        6: .standard(proto: "as_int"),
-        5: .same(proto: "exemplars"),
-        8: .same(proto: "flags"),
-  ])
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{4}\u{2}start_time_unix_nano\0\u{3}time_unix_nano\0\u{3}as_double\0\u{1}exemplars\0\u{3}as_int\0\u{1}attributes\0\u{1}flags\0\u{c}\u{1}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1609,22 +1552,7 @@ extension Opentelemetry_Proto_Metrics_V1_NumberDataPoint: SwiftProtobuf.Message,
 
 extension Opentelemetry_Proto_Metrics_V1_HistogramDataPoint: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".HistogramDataPoint"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(
-      reservedNames: [],
-      reservedRanges: [1..<2],
-      numberNameMappings: [
-        9: .same(proto: "attributes"),
-        2: .standard(proto: "start_time_unix_nano"),
-        3: .standard(proto: "time_unix_nano"),
-        4: .same(proto: "count"),
-        5: .same(proto: "sum"),
-        6: .standard(proto: "bucket_counts"),
-        7: .standard(proto: "explicit_bounds"),
-        8: .same(proto: "exemplars"),
-        10: .same(proto: "flags"),
-        11: .same(proto: "min"),
-        12: .same(proto: "max"),
-  ])
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{4}\u{2}start_time_unix_nano\0\u{3}time_unix_nano\0\u{1}count\0\u{1}sum\0\u{3}bucket_counts\0\u{3}explicit_bounds\0\u{1}exemplars\0\u{1}attributes\0\u{1}flags\0\u{1}min\0\u{1}max\0\u{c}\u{1}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1708,22 +1636,7 @@ extension Opentelemetry_Proto_Metrics_V1_HistogramDataPoint: SwiftProtobuf.Messa
 
 extension Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ExponentialHistogramDataPoint"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "attributes"),
-    2: .standard(proto: "start_time_unix_nano"),
-    3: .standard(proto: "time_unix_nano"),
-    4: .same(proto: "count"),
-    5: .same(proto: "sum"),
-    6: .same(proto: "scale"),
-    7: .standard(proto: "zero_count"),
-    8: .same(proto: "positive"),
-    9: .same(proto: "negative"),
-    10: .same(proto: "flags"),
-    11: .same(proto: "exemplars"),
-    12: .same(proto: "min"),
-    13: .same(proto: "max"),
-    14: .standard(proto: "zero_threshold"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}attributes\0\u{3}start_time_unix_nano\0\u{3}time_unix_nano\0\u{1}count\0\u{1}sum\0\u{1}scale\0\u{3}zero_count\0\u{1}positive\0\u{1}negative\0\u{1}flags\0\u{1}exemplars\0\u{1}min\0\u{1}max\0\u{3}zero_threshold\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1822,10 +1735,7 @@ extension Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint: SwiftPro
 
 extension Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint.Buckets: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint.protoMessageName + ".Buckets"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "offset"),
-    2: .standard(proto: "bucket_counts"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}offset\0\u{3}bucket_counts\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1860,18 +1770,7 @@ extension Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint.Buckets: 
 
 extension Opentelemetry_Proto_Metrics_V1_SummaryDataPoint: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".SummaryDataPoint"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(
-      reservedNames: [],
-      reservedRanges: [1..<2],
-      numberNameMappings: [
-        7: .same(proto: "attributes"),
-        2: .standard(proto: "start_time_unix_nano"),
-        3: .standard(proto: "time_unix_nano"),
-        4: .same(proto: "count"),
-        5: .same(proto: "sum"),
-        6: .standard(proto: "quantile_values"),
-        8: .same(proto: "flags"),
-  ])
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{4}\u{2}start_time_unix_nano\0\u{3}time_unix_nano\0\u{1}count\0\u{1}sum\0\u{3}quantile_values\0\u{1}attributes\0\u{1}flags\0\u{c}\u{1}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1931,10 +1830,7 @@ extension Opentelemetry_Proto_Metrics_V1_SummaryDataPoint: SwiftProtobuf.Message
 
 extension Opentelemetry_Proto_Metrics_V1_SummaryDataPoint.ValueAtQuantile: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = Opentelemetry_Proto_Metrics_V1_SummaryDataPoint.protoMessageName + ".ValueAtQuantile"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "quantile"),
-    2: .same(proto: "value"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}quantile\0\u{1}value\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1969,17 +1865,7 @@ extension Opentelemetry_Proto_Metrics_V1_SummaryDataPoint.ValueAtQuantile: Swift
 
 extension Opentelemetry_Proto_Metrics_V1_Exemplar: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Exemplar"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(
-      reservedNames: [],
-      reservedRanges: [1..<2],
-      numberNameMappings: [
-        7: .standard(proto: "filtered_attributes"),
-        2: .standard(proto: "time_unix_nano"),
-        3: .standard(proto: "as_double"),
-        6: .standard(proto: "as_int"),
-        4: .standard(proto: "span_id"),
-        5: .standard(proto: "trace_id"),
-  ])
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{4}\u{2}time_unix_nano\0\u{3}as_double\0\u{3}span_id\0\u{3}trace_id\0\u{3}as_int\0\u{3}filtered_attributes\0\u{c}\u{1}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
