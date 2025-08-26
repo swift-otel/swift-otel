@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.3.0
+        uses: actions/checkout@v5.0.0
 
       - name: Bootstrap Mint
         uses: irgaly/setup-mint@v1
@@ -40,7 +40,7 @@ jobs:
           SWIFTLY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout
-        uses: actions/checkout@v4.3.0
+        uses: actions/checkout@v5.0.0
 
       - name: Resolve Swift dependencies
         run: swift package resolve
@@ -74,7 +74,7 @@ jobs:
     container:
       image: swift:6.1-noble
     steps:
-      - uses: actions/checkout@v4.3.0
+      - uses: actions/checkout@v5.0.0
       - name: Run documentation check
         run: |
           which curl yq || (apt -q update && apt -yq install curl yq)
@@ -84,7 +84,7 @@ jobs:
     name: Foundation Imports Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.3.0
+      - uses: actions/checkout@v5.0.0
       - name: Run Foundation imports check
         run: scripts/check-foundation-imports.sh
 
@@ -94,7 +94,7 @@ jobs:
     outputs:
       examples: ${{ steps.find-examples.outputs.examples }}
     steps:
-      - uses: actions/checkout@v4.3.0
+      - uses: actions/checkout@v5.0.0
       - name: Find examples
         id: find-examples
         run: |
@@ -122,7 +122,7 @@ jobs:
           toolchain: ${{ matrix.swift }}
         env:
           SWIFTLY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/checkout@v4.3.0
+      - uses: actions/checkout@v5.0.0
       - name: Override example package dependency on root package
         run: swift package edit swift-otel --path ${{ github.workspace }}
       - name: Resolve example package dependencies
