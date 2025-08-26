@@ -134,7 +134,7 @@ package struct Opentelemetry_Proto_Trace_V1_ScopeSpans: Sendable {
 /// A Span represents a single operation performed by a single component of the system.
 ///
 /// The next available field id is 17.
-package struct Opentelemetry_Proto_Trace_V1_Span: @unchecked Sendable {
+package struct Opentelemetry_Proto_Trace_V1_Span: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -349,7 +349,7 @@ package struct Opentelemetry_Proto_Trace_V1_Span: @unchecked Sendable {
   /// different trace. For example, this can be used in batching operations,
   /// where a single batch handler processes multiple requests from different
   /// traces or when the handler receives a request from a different project.
-  package struct Link: @unchecked Sendable {
+  package struct Link: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -454,9 +454,7 @@ fileprivate let _protobuf_package = "opentelemetry.proto.trace.v1"
 
 extension Opentelemetry_Proto_Trace_V1_TracesData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".TracesData"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "resource_spans"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}resource_spans\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -486,14 +484,7 @@ extension Opentelemetry_Proto_Trace_V1_TracesData: SwiftProtobuf.Message, SwiftP
 
 extension Opentelemetry_Proto_Trace_V1_ResourceSpans: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ResourceSpans"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(
-      reservedNames: [],
-      reservedRanges: [1000..<1001],
-      numberNameMappings: [
-        1: .same(proto: "resource"),
-        2: .standard(proto: "scope_spans"),
-        3: .standard(proto: "schema_url"),
-  ])
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}resource\0\u{3}scope_spans\0\u{3}schema_url\0\u{c}h\u{f}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -537,11 +528,7 @@ extension Opentelemetry_Proto_Trace_V1_ResourceSpans: SwiftProtobuf.Message, Swi
 
 extension Opentelemetry_Proto_Trace_V1_ScopeSpans: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ScopeSpans"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "scope"),
-    2: .same(proto: "spans"),
-    3: .standard(proto: "schema_url"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}scope\0\u{1}spans\0\u{3}schema_url\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -585,23 +572,7 @@ extension Opentelemetry_Proto_Trace_V1_ScopeSpans: SwiftProtobuf.Message, SwiftP
 
 extension Opentelemetry_Proto_Trace_V1_Span: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Span"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "trace_id"),
-    2: .standard(proto: "span_id"),
-    3: .standard(proto: "trace_state"),
-    4: .standard(proto: "parent_span_id"),
-    5: .same(proto: "name"),
-    6: .same(proto: "kind"),
-    7: .standard(proto: "start_time_unix_nano"),
-    8: .standard(proto: "end_time_unix_nano"),
-    9: .same(proto: "attributes"),
-    10: .standard(proto: "dropped_attributes_count"),
-    11: .same(proto: "events"),
-    12: .standard(proto: "dropped_events_count"),
-    13: .same(proto: "links"),
-    14: .standard(proto: "dropped_links_count"),
-    15: .same(proto: "status"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}trace_id\0\u{3}span_id\0\u{3}trace_state\0\u{3}parent_span_id\0\u{1}name\0\u{1}kind\0\u{3}start_time_unix_nano\0\u{3}end_time_unix_nano\0\u{1}attributes\0\u{3}dropped_attributes_count\0\u{1}events\0\u{3}dropped_events_count\0\u{1}links\0\u{3}dropped_links_count\0\u{1}status\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -704,24 +675,12 @@ extension Opentelemetry_Proto_Trace_V1_Span: SwiftProtobuf.Message, SwiftProtobu
 }
 
 extension Opentelemetry_Proto_Trace_V1_Span.SpanKind: SwiftProtobuf._ProtoNameProviding {
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "SPAN_KIND_UNSPECIFIED"),
-    1: .same(proto: "SPAN_KIND_INTERNAL"),
-    2: .same(proto: "SPAN_KIND_SERVER"),
-    3: .same(proto: "SPAN_KIND_CLIENT"),
-    4: .same(proto: "SPAN_KIND_PRODUCER"),
-    5: .same(proto: "SPAN_KIND_CONSUMER"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0SPAN_KIND_UNSPECIFIED\0\u{1}SPAN_KIND_INTERNAL\0\u{1}SPAN_KIND_SERVER\0\u{1}SPAN_KIND_CLIENT\0\u{1}SPAN_KIND_PRODUCER\0\u{1}SPAN_KIND_CONSUMER\0")
 }
 
 extension Opentelemetry_Proto_Trace_V1_Span.Event: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = Opentelemetry_Proto_Trace_V1_Span.protoMessageName + ".Event"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "time_unix_nano"),
-    2: .same(proto: "name"),
-    3: .same(proto: "attributes"),
-    4: .standard(proto: "dropped_attributes_count"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}time_unix_nano\0\u{1}name\0\u{1}attributes\0\u{3}dropped_attributes_count\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -766,13 +725,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Event: SwiftProtobuf.Message, SwiftP
 
 extension Opentelemetry_Proto_Trace_V1_Span.Link: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = Opentelemetry_Proto_Trace_V1_Span.protoMessageName + ".Link"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "trace_id"),
-    2: .standard(proto: "span_id"),
-    3: .standard(proto: "trace_state"),
-    4: .same(proto: "attributes"),
-    5: .standard(proto: "dropped_attributes_count"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}trace_id\0\u{3}span_id\0\u{3}trace_state\0\u{1}attributes\0\u{3}dropped_attributes_count\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -822,13 +775,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Link: SwiftProtobuf.Message, SwiftPr
 
 extension Opentelemetry_Proto_Trace_V1_Status: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Status"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(
-      reservedNames: [],
-      reservedRanges: [1..<2],
-      numberNameMappings: [
-        2: .same(proto: "message"),
-        3: .same(proto: "code"),
-  ])
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\u{2}message\0\u{1}code\0\u{c}\u{1}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -862,10 +809,6 @@ extension Opentelemetry_Proto_Trace_V1_Status: SwiftProtobuf.Message, SwiftProto
 }
 
 extension Opentelemetry_Proto_Trace_V1_Status.StatusCode: SwiftProtobuf._ProtoNameProviding {
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "STATUS_CODE_UNSET"),
-    1: .same(proto: "STATUS_CODE_OK"),
-    2: .same(proto: "STATUS_CODE_ERROR"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0STATUS_CODE_UNSET\0\u{1}STATUS_CODE_OK\0\u{1}STATUS_CODE_ERROR\0")
 }
 #endif
