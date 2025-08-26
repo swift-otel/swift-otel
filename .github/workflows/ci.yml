@@ -80,6 +80,14 @@ jobs:
           which curl yq || (apt -q update && apt -yq install curl yq)
           scripts/check-docs.sh
 
+  check-foundation-imports:
+    name: Foundation Imports Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.3.0
+      - name: Run Foundation imports check
+        run: scripts/check-foundation-imports.sh
+
   construct-examples-matrix:
     name: Example Package (Construct Matrix)
     runs-on: ubuntu-latest
