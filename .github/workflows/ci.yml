@@ -8,7 +8,7 @@ concurrency:
 jobs:
   soundness:
     name: Soundness Check
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -24,21 +24,17 @@ jobs:
 
   unit-test:
     name: Unit Test
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        swift: ["latest", "6.2-snapshot"]
+        image: ["swift:6.1-noble", "swiftlang/swift:nightly-6.2-jammy"]
+
+    container:
+      image: ${{ matrix.image }}
 
     steps:
-      - name: Install Swift
-        uses: vapor/swiftly-action@v0.2.0
-        with:
-          toolchain: ${{ matrix.swift }}
-        env:
-          SWIFTLY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Checkout
         uses: actions/checkout@v5.0.0
 
@@ -110,8 +106,10 @@ jobs:
     strategy:
       matrix:
         example: ${{ fromJSON(needs.construct-examples-matrix.outputs.examples) }}
-        swift: ["6.1", "6.2-snapshot"]
+        image: ["swift:6.1-noble", "swiftlang/swift:nightly-6.2-jammy"]
       fail-fast: false
+    container:
+      image: ${{ matrix.image }}
     defaults:
       run:
         working-directory: ${{ matrix.example }}
