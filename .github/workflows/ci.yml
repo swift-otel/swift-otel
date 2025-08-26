@@ -45,8 +45,11 @@ jobs:
       - name: Resolve Swift dependencies
         run: swift package resolve
 
+      - name: Build package and tests
+        run: swift build --build-tests -Xswiftc -warnings-as-errors --enable-code-coverage
+
       - name: Run Unit Tests
-        run: swift test -Xswiftc -warnings-as-errors --enable-code-coverage
+        run: swift test --enable-code-coverage
 
       - name: Merge code coverage
         if: matrix.swift == 'latest'
