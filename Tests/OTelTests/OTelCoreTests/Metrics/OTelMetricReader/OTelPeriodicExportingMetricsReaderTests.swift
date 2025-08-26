@@ -182,7 +182,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
         }
     }
 
-    func test_exportThrowsError_logsError() async throws {
+    func test_exportThrowsError_logsWarning() async throws {
         let recordingLogHandler = RecordingLogHandler()
         let recordingLogger = Logger(label: "test", recordingLogHandler)
         let clock = TestClock()
@@ -197,7 +197,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             clock: clock
         )
         var sleepCalls = clock.sleepCalls.makeAsyncIterator()
-        var errorLogs = recordingLogHandler.recordedLogMessageStream.filter { $0.level == .error }.makeAsyncIterator()
+        var warningLogs = recordingLogHandler.recordedLogMessageStream.filter { $0.level == .warning }.makeAsyncIterator()
         await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask {
                 try await reader.run()
@@ -207,7 +207,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             await sleepCalls.next()
 
             // while the timer sequence is sleeping, check the export throw and error log counts.
-            XCTAssertEqual(recordingLogHandler.errorCount, 0)
+            XCTAssertEqual(recordingLogHandler.warningCount, 0)
             XCTAssertEqual(exporter.throwCount.withLockedValue { $0 }, 0)
 
             // advance the clock for the tick.
@@ -215,13 +215,13 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
 
             // await sleep for export timeout.
             await sleepCalls.next()
-            _ = await errorLogs.next()
+            _ = await warningLogs.next()
 
             // await sleep for tick.
             await sleepCalls.next()
 
             // while the timer sequence is sleeping, check the export cancellation and error log counts.
-            XCTAssertEqual(recordingLogHandler.errorCount, 1)
+            XCTAssertEqual(recordingLogHandler.warningCount, 1)
             XCTAssertEqual(exporter.throwCount.withLockedValue { $0 }, 1)
 
             // advance the clock for the tick.
@@ -229,13 +229,13 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
 
             // await sleep for export timeout and advance passed it.
             await sleepCalls.next()
-            _ = await errorLogs.next()
+            _ = await warningLogs.next()
 
             // await sleep for tick.
             await sleepCalls.next()
 
             // while the timer sequence is sleeping, check the export cancellation and error log counts.
-            XCTAssertEqual(recordingLogHandler.errorCount, 2)
+            XCTAssertEqual(recordingLogHandler.warningCount, 2)
             XCTAssertEqual(exporter.throwCount.withLockedValue { $0 }, 2)
 
             group.cancelAll()
