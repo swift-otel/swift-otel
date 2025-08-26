@@ -45,7 +45,7 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
 /// AnyValue is used to represent any type of attribute value. AnyValue may contain a
 /// primitive value such as a string or integer or it may contain an arbitrary nested
 /// object containing arrays, key-value lists and primitives.
-package struct Opentelemetry_Proto_Common_V1_AnyValue: @unchecked Sendable {
+package struct Opentelemetry_Proto_Common_V1_AnyValue: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -114,7 +114,7 @@ package struct Opentelemetry_Proto_Common_V1_AnyValue: @unchecked Sendable {
 
   /// The value is one of the listed fields. It is valid for all values to be unspecified
   /// in which case this AnyValue is considered to be "empty".
-  package enum OneOf_Value: Equatable, @unchecked Sendable {
+  package enum OneOf_Value: Equatable, Sendable {
     case stringValue(String)
     case boolValue(Bool)
     case intValue(Int64)
@@ -219,15 +219,7 @@ fileprivate let _protobuf_package = "opentelemetry.proto.common.v1"
 
 extension Opentelemetry_Proto_Common_V1_AnyValue: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".AnyValue"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "string_value"),
-    2: .standard(proto: "bool_value"),
-    3: .standard(proto: "int_value"),
-    4: .standard(proto: "double_value"),
-    5: .standard(proto: "array_value"),
-    6: .standard(proto: "kvlist_value"),
-    7: .standard(proto: "bytes_value"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}string_value\0\u{3}bool_value\0\u{3}int_value\0\u{3}double_value\0\u{3}array_value\0\u{3}kvlist_value\0\u{3}bytes_value\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -354,9 +346,7 @@ extension Opentelemetry_Proto_Common_V1_AnyValue: SwiftProtobuf.Message, SwiftPr
 
 extension Opentelemetry_Proto_Common_V1_ArrayValue: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".ArrayValue"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "values"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}values\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -386,9 +376,7 @@ extension Opentelemetry_Proto_Common_V1_ArrayValue: SwiftProtobuf.Message, Swift
 
 extension Opentelemetry_Proto_Common_V1_KeyValueList: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".KeyValueList"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "values"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}values\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -418,10 +406,7 @@ extension Opentelemetry_Proto_Common_V1_KeyValueList: SwiftProtobuf.Message, Swi
 
 extension Opentelemetry_Proto_Common_V1_KeyValue: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".KeyValue"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "key"),
-    2: .same(proto: "value"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}key\0\u{1}value\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -460,12 +445,7 @@ extension Opentelemetry_Proto_Common_V1_KeyValue: SwiftProtobuf.Message, SwiftPr
 
 extension Opentelemetry_Proto_Common_V1_InstrumentationScope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".InstrumentationScope"
-  package static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "version"),
-    3: .same(proto: "attributes"),
-    4: .standard(proto: "dropped_attributes_count"),
-  ]
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}version\0\u{1}attributes\0\u{3}dropped_attributes_count\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
