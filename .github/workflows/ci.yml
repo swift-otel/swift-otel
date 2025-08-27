@@ -31,7 +31,7 @@ jobs:
       matrix:
         swift:
           - version: "6.1"
-            image: swift:6.1-noble
+            image: swift:6.1
           - version: "6.2-snapshot"
             image: swiftlang/swift:nightly-6.2-jammy
 
@@ -112,7 +112,7 @@ jobs:
         example: ${{ fromJSON(needs.construct-examples-matrix.outputs.examples) }}
         swift:
           - version: "6.1"
-            image: swift:6.1-noble
+            image: swift:6.1
           - version: "6.2-snapshot"
             image: swiftlang/swift:nightly-6.2-jammy
       fail-fast: false
