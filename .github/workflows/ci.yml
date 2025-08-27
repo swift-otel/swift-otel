@@ -23,16 +23,20 @@ jobs:
           exit $(git status --porcelain | wc -l)
 
   unit-test:
-    name: Unit Test
+    name: Unit Test (Swift ${{ matrix.swift.version }})
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        image: ["swift:6.1-noble", "swiftlang/swift:nightly-6.2-jammy"]
+        swift:
+          - version: "6.1"
+            image: swift:6.1-noble
+          - version: "6.2-snapshot"
+            image: swiftlang/swift:nightly-6.2-jammy
 
     container:
-      image: ${{ matrix.image }}
+      image: ${{ matrix.swift.image }}
 
     steps:
       - name: Checkout
@@ -45,7 +49,7 @@ jobs:
         run: swift test -Xswiftc -warnings-as-errors --enable-code-coverage
 
       - name: Merge code coverage
-        if: matrix.swift == 'latest'
+        if: matrix.swift.version == '6.1'
         run: |
           llvm-cov export -format "lcov" \
             .build/debug/swift-otelPackageTests.xctest \
@@ -56,7 +60,7 @@ jobs:
           > info.lcov
 
       - name: Upload code coverage report to Codecov
-        if: matrix.swift == 'latest'
+        if: matrix.swift.version == '6.1'
         uses: codecov/codecov-action@v5.5.0
         with:
           files: ./info.lcov
@@ -100,26 +104,24 @@ jobs:
           | tee -a $GITHUB_OUTPUT # format: examples=["Examples/a", "Examples/b"]
 
   test-examples:
-    name: Example Package
+    name: Example Package (Swift ${{ matrix.swift.version }}, ${{ matrix.example }})
     runs-on: ubuntu-latest
     needs: construct-examples-matrix
     strategy:
       matrix:
         example: ${{ fromJSON(needs.construct-examples-matrix.outputs.examples) }}
-        image: ["swift:6.1-noble", "swiftlang/swift:nightly-6.2-jammy"]
+        swift:
+          - version: "6.1"
+            image: swift:6.1-noble
+          - version: "6.2-snapshot"
+            image: swiftlang/swift:nightly-6.2-jammy
       fail-fast: false
     container:
-      image: ${{ matrix.image }}
+      image: ${{ matrix.swift.image }}
     defaults:
       run:
         working-directory: ${{ matrix.example }}
     steps:
-      - name: Install Swift
-        uses: vapor/swiftly-action@v0.2.0
-        with:
-          toolchain: ${{ matrix.swift }}
-        env:
-          SWIFTLY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v5.0.0
       - name: Override example package dependency on root package
         run: swift package edit swift-otel --path ${{ github.workspace }}
