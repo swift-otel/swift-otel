@@ -52,3 +52,24 @@ extension Logger {
         return result
     }
 }
+
+extension Logger {
+    func log(
+        level: Logger.Level,
+        error: some Error,
+        message: @autoclosure () -> Logger.Message,
+        metadata: @autoclosure () -> Logger.Metadata? = nil,
+        file: String = #fileID,
+        function: String = #function,
+        line: UInt = #line
+    ) {
+        self.log(
+            level: level,
+            message(),
+            metadata: (metadata() ?? [:]).merging(["error": "\(error)", "error_type": "\(type(of: error))"]) { $1 },
+            file: file,
+            function: function,
+            line: line
+        )
+    }
+}

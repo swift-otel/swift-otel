@@ -57,10 +57,8 @@ struct OTelPeriodicExportingMetricsReader<Clock: _Concurrency.Clock> where Clock
             try await withTimeout(configuration.exportTimeout, clock: clock) {
                 try await exporter.export(batch)
             }
-        } catch is TimeoutError {
-            logger.warning("Timed out exporting metrics.", metadata: ["timeout": "\(configuration.exportTimeout)"])
         } catch {
-            logger.error("Failed to export metrics.", metadata: ["error": "\(error)"])
+            logger.log(level: .warning, error: error, message: "Failed to export metrics.")
         }
     }
 }
@@ -75,12 +73,12 @@ extension OTelPeriodicExportingMetricsReader: CustomStringConvertible, Service {
             logger.trace("Timer fired.", metadata: ["interval": "\(interval)"])
             await tick()
         }
-        logger.debug("Shutting down.")
+        logger.info("Shutting down.")
         // Unlike traces, force-flush is just a regular tick for metrics; no need for a different function.
         await tick()
         try await exporter.forceFlush()
         await exporter.shutdown()
-        logger.debug("Shut down.")
+        logger.info("Shut down.")
     }
 }
 

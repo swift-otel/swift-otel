@@ -88,11 +88,7 @@ struct OTelResourceDetection<Clock: _Concurrency.Clock>: Sendable where Clock.Du
                         logger.trace("Detected resource.", metadata: ["detector": "\(detector)"])
                         return (index, resource)
                     } catch {
-                        logger.error("Failed to detect resource.", metadata: [
-                            "detector": "\(detector)",
-                            "error_type": "\(type(of: error))",
-                            "error_description": "\(error)",
-                        ])
+                        logger.log(level: .warning, error: error, message: "Failed to detect resource.", metadata: ["detector": "\(detector)"])
                         return (index, OTelResource())
                     }
                 }
