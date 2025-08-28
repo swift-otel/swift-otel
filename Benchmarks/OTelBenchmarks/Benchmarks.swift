@@ -13,7 +13,6 @@
 
 import Benchmark
 import OTel
-import Tracing
 
 let benchmarks: @Sendable () -> Void = {
     let defaultMetrics: [BenchmarkMetric] = [.mallocCountTotal, .cpuTotal]

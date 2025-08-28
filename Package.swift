@@ -137,3 +137,23 @@ struct PlatformRequirements {
     static let clockAPI = Self(name: "ClockAPI", macOS: "13", iOS: "16", tvOS: "16", watchOS: "9", visionOS: "1")
     static let gRPCSwift = Self(name: "gRPCSwift", macOS: "15", iOS: "18", tvOS: "18", watchOS: "11", visionOS: "2")
 }
+
+if ["true", "y", "yes", "on", "1"].contains(Context.environment["OTEL_ENABLE_BENCHMARKS"]?.lowercased()) {
+    package.dependencies.append(
+        .package(url: "https://github.com/ordo-one/package-benchmark", from: "1.27.0")
+    )
+    package.targets.append(
+        .executableTarget(
+            name: "OTelBenchmarks",
+            dependencies: [
+                "OTel",
+                .product(name: "Benchmark", package: "package-benchmark"),
+            ],
+            path: "Benchmarks/OTelBenchmarks",
+            swiftSettings: sharedSwiftSettings,
+            plugins: [
+                .plugin(name: "BenchmarkPlugin", package: "package-benchmark")
+            ]
+        )
+    )
+}
