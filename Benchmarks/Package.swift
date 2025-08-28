@@ -1,23 +1,21 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.1
 import PackageDescription
 
 let package = Package(
-    name: "swif-otel-benchmarks",
-    platforms: [
-        .macOS(.v13),
-    ],
+    name: "swift-otel-benchmarks",
+    platforms: [.macOS(.v13)],
     dependencies: [
-        .package(url: "https://github.com/ordo-one/package-benchmark.git", from: "1.0.0"),
-        .package(path: ".."),
+        .package(url: "https://github.com/ordo-one/package-benchmark.git", from: "1.29.0"),
+        .package(name: "swift-otel", path: "..", traits: ["OTLPHTTP", "OTLPGRPC"]),
     ],
     targets: [
         .executableTarget(
-            name: "OTelTracing",
+            name: "OTelBenchmarks",
             dependencies: [
                 .product(name: "Benchmark", package: "package-benchmark"),
                 .product(name: "OTel", package: "swift-otel"),
             ],
-            path: "Benchmarks/OTelTracing",
+            path: "Benchmarks/",
             plugins: [
                 .plugin(name: "BenchmarkPlugin", package: "package-benchmark"),
             ]
