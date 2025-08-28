@@ -37,7 +37,7 @@ jobs:
 
     container:
       image: ${{ matrix.swift.image }}
-      options: --network host
+      options: --dns 1.1.1.1 --dns 8.8.8.8
 
     steps:
       - name: Checkout
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: swift:6.1-noble
-      options: --network host
+      options: --dns 1.1.1.1 --dns 8.8.8.8
     steps:
       - uses: actions/checkout@v5.0.0
       - name: Run documentation check
@@ -120,7 +120,7 @@ jobs:
       fail-fast: false
     container:
       image: ${{ matrix.swift.image }}
-      options: --network host
+      options: --dns 1.1.1.1 --dns 8.8.8.8
     defaults:
       run:
         working-directory: ${{ matrix.example }}
