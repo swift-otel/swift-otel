@@ -32,7 +32,7 @@ let package = Package(
 
         // MARK: - OTLPCore
 
-        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.30.0"),
+        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.31.0"),
 
         // MARK: - OTLPGRPC
 
