@@ -140,7 +140,7 @@ struct PlatformRequirements {
 
 if ["true", "y", "yes", "on", "1"].contains(Context.environment["OTEL_ENABLE_BENCHMARKS"]?.lowercased()) {
     package.dependencies.append(
-        .package(url: "https://github.com/ordo-one/package-benchmark", from: "1.27.0")
+        .package(url: "https://github.com/ordo-one/package-benchmark.git", from: "1.27.0")
     )
     package.targets.append(
         .executableTarget(
