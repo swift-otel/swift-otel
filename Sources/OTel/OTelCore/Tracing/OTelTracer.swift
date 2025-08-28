@@ -133,12 +133,9 @@ extension OTelTracer: Tracer {
         line: UInt
     ) -> OTelSpan {
         let parentContext = context()
-        var childContext = parentContext
 
         let traceID: TraceID
         let traceState: TraceState
-        let spanID = idGenerator.nextSpanID()
-
         if let parentSpanContext = parentContext.spanContext {
             traceID = parentSpanContext.traceID
             traceState = parentSpanContext.traceState
@@ -155,20 +152,25 @@ extension OTelTracer: Tracer {
             links: [],
             parentContext: parentContext
         )
-        let traceFlags: TraceFlags = samplingResult.decision == .recordAndSample ? .sampled : []
-        let spanContext = OTelSpanContext.local(
-            traceID: traceID,
-            spanID: spanID,
-            parentSpanID: parentContext.spanContext?.spanID,
-            traceFlags: traceFlags,
-            traceState: traceState
-        )
-        childContext.spanContext = spanContext
 
-        let span: OTelSpan = {
-            guard samplingResult.decision != .drop else {
-                return .noOp(NoOpTracer.NoOpSpan(context: childContext))
-            }
+        let span: OTelSpan
+        switch samplingResult.decision {
+        case .drop:
+            span = .noOp(NoOpTracer.NoOpSpan(context: parentContext))
+
+        case .record, .recordAndSample:
+            let spanID = idGenerator.nextSpanID()
+            var childContext = parentContext
+
+            let traceFlags: TraceFlags = samplingResult.decision == .recordAndSample ? .sampled : []
+            let spanContext = OTelSpanContext.local(
+                traceID: traceID,
+                spanID: spanID,
+                parentSpanID: parentContext.spanContext?.spanID,
+                traceFlags: traceFlags,
+                traceState: traceState
+            )
+            childContext.spanContext = spanContext
 
             let recordingSpan = OTelSpan.recording(
                 operationName: operationName,
@@ -183,9 +185,10 @@ extension OTelTracer: Tracer {
                 }
             )
             recordingSpans.withLockedValue { $0[spanContext] = recordingSpan }
-            return recordingSpan
-        }()
+            span = recordingSpan
+        }
 
+        // TODO: should we be yielding the span if it's a noop span?
         eventStreamContinuation.yield(.spanStarted(span, parentContext: parentContext))
 
         return span
