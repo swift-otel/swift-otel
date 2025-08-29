@@ -206,41 +206,36 @@ final class OTelRecordingSpan: Span, Sendable {
     let kind: SpanKind
     let context: ServiceContext
 
-    var operationName: String {
-        get {
-            _operationName.withLockedValue { $0 }
-        }
-        set {
-            _operationName.withLockedValue { $0 = newValue }
-        }
+    private struct State {
+        var operationName: String
+        var attributes: SpanAttributes
+        var status: SpanStatus?
+        var events: [SpanEvent]
+        var links: [SpanLink]
+        var endTimeNanosecondsSinceEpoch: UInt64?
     }
 
-    private let _operationName: NIOLockedValueBox<String>
+    private let _state: NIOLockedValueBox<State>
+
+    var operationName: String {
+        get { _state.withLockedValue { $0.operationName } }
+        set { _state.withLockedValue { $0.operationName = newValue } }
+    }
 
     var attributes: SpanAttributes {
-        get {
-            _attributes.withLockedValue { $0 }
-        }
-        set {
-            _attributes.withLockedValue { $0 = newValue }
-        }
+        get { _state.withLockedValue { $0.attributes } }
+        set { _state.withLockedValue { $0.attributes = newValue } }
     }
 
-    private let _attributes: NIOLockedValueBox<SpanAttributes>
+    var status: SpanStatus? { _state.withLockedValue { $0.status } }
 
-    var status: SpanStatus? { _status.withLockedValue { $0 } }
-    private let _status = NIOLockedValueBox<SpanStatus?>(nil)
+    var events: [SpanEvent] { _state.withLockedValue { $0.events } }
 
-    var events: [SpanEvent] { _events.withLockedValue { $0 } }
-    private let _events = NIOLockedValueBox([SpanEvent]())
-
-    var links: [SpanLink] { _links.withLockedValue { $0 } }
-    private let _links = NIOLockedValueBox([SpanLink]())
+    var links: [SpanLink] { _state.withLockedValue { $0.links } }
 
     let startTimeNanosecondsSinceEpoch: UInt64
 
-    var endTimeNanosecondsSinceEpoch: UInt64? { _endTimeNanosecondsSinceEpoch.withLockedValue { $0 } }
-    private let _endTimeNanosecondsSinceEpoch = NIOLockedValueBox<UInt64?>(nil)
+    var endTimeNanosecondsSinceEpoch: UInt64? { _state.withLockedValue { $0.endTimeNanosecondsSinceEpoch } }
 
     private let onEnd: @Sendable (OTelRecordingSpan, _ endTimeNanosecondsSinceEpoch: UInt64) -> Void
 
@@ -254,12 +249,18 @@ final class OTelRecordingSpan: Span, Sendable {
         startTimeNanosecondsSinceEpoch: UInt64,
         onEnd: @escaping @Sendable (OTelRecordingSpan, _ endTimeNanosecondsSinceEpoch: UInt64) -> Void
     ) {
-        _operationName = NIOLockedValueBox(operationName)
         self.kind = kind
         self.context = context
-        _attributes = NIOLockedValueBox(attributes)
         self.startTimeNanosecondsSinceEpoch = startTimeNanosecondsSinceEpoch
         self.onEnd = onEnd
+        _state = NIOLockedValueBox(
+            State(
+                operationName: operationName,
+                attributes: attributes,
+                events: [],
+                links: []
+            )
+        )
     }
 
     func setStatus(_ status: SpanStatus) {
@@ -285,11 +286,11 @@ final class OTelRecordingSpan: Span, Sendable {
             }
         }()
 
-        _status.withLockedValue { $0 = status }
+        _state.withLockedValue { $0.status = status }
     }
 
     func addEvent(_ event: SpanEvent) {
-        _events.withLockedValue { $0.append(event) }
+        _state.withLockedValue { $0.events.append(event) }
     }
 
     func recordError(
@@ -312,12 +313,12 @@ final class OTelRecordingSpan: Span, Sendable {
     }
 
     func addLink(_ link: SpanLink) {
-        _links.withLockedValue { $0.append(link) }
+        _state.withLockedValue { $0.links.append(link) }
     }
 
     func end(at instant: @autoclosure () -> some TracerInstant) {
         let endTimeNanosecondsSinceEpoch = instant().nanosecondsSinceEpoch
-        _endTimeNanosecondsSinceEpoch.withLockedValue { $0 = endTimeNanosecondsSinceEpoch }
+        _state.withLockedValue { $0.endTimeNanosecondsSinceEpoch = endTimeNanosecondsSinceEpoch }
         onEnd(self, endTimeNanosecondsSinceEpoch)
     }
 }
