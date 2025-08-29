@@ -18,7 +18,6 @@ env:
 
 jobs:
   benchmark:
-    if: false  # disabled until main has working benchmaks merged
     name: Check benchmark regressions (Swift ${{ matrix.swift.version }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
