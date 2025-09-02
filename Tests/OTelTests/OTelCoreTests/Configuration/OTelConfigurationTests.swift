@@ -813,48 +813,6 @@ import Testing
         }
     }
 
-    // OTEL_EXPORTER_OTLP_INSECURE
-    // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
-    // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#boolean
-    // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
-    @Test func testOTLPExporterInsecure() {
-        #expect(OTel.Configuration.OTLPExporterConfiguration.default.insecure == false)
-
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_INSECURE": "true",
-        ]).traces.otlpExporter.insecure == true)
-
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_INSECURE": "TRUE",
-        ]).traces.otlpExporter.insecure == true)
-
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_INSECURE": "false",
-        ]).traces.otlpExporter.insecure == false)
-
-        // The OTel spec says only case-insensitive "true" should be true, everything else is false.
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_INSECURE": "ON",
-        ]).traces.otlpExporter.insecure == false)
-
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_INSECURE": "YES",
-        ]).traces.otlpExporter.insecure == false)
-
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_INSECURE": "invalid",
-        ]).traces.otlpExporter.insecure == false)
-
-        OTel.Configuration.default.withEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_INSECURE": "true",
-            "OTEL_EXPORTER_OTLP_TRACES_INSECURE": "false",
-        ]) { config in
-            #expect(config.logs.otlpExporter.insecure == true)
-            #expect(config.metrics.otlpExporter.insecure == true)
-            #expect(config.traces.otlpExporter.insecure == false)
-        }
-    }
-
     // OTEL_EXPORTER_OTLP_CERTIFICATE
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options

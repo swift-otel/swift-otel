@@ -96,7 +96,6 @@ extension OTel.Configuration.OTLPExporterConfiguration {
         case (_, .some, .none): endpointHasBeenExplicitlySet = false
         case (_, _, .some): endpointHasBeenExplicitlySet = true
         }
-        insecure.override(using: .otlpExporterInsecure, for: signal, from: environment, logger: logger)
         certificateFilePath.override(using: .otlpExporterCertificate, for: signal, from: environment, logger: logger)
         clientKeyFilePath.override(using: .otlpExporterClientKey, for: signal, from: environment, logger: logger)
         clientCertificateFilePath.override(using: .otlpExporterClientCertificate, for: signal, from: environment, logger: logger)

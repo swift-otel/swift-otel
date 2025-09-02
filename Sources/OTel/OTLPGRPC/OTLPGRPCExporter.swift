@@ -149,15 +149,10 @@ extension HTTP2ClientTransport.Posix {
             throw OTLPGRPCExporterError.invalidEndpoint(configuration.grpcEndpoint)
         }
 
-        /// > A scheme of https indicates a secure connection and takes precedence over the insecure configuration
-        /// > setting. A scheme of http indicates an insecure connection and takes precedence over the insecure
-        /// > configuration setting. If the gRPC client implementation does not support an endpoint with a scheme of
-        /// > http or https then the endpoint SHOULD be transformed to the most sensible format for that implementation.
-        /// > —— source: https://opentelemetry.io/docs/specs/otel/protocol/exporter/
         let insecure = switch endpointComponents.scheme {
         case "https": false
         case "http": true
-        default: configuration.insecure
+        default: throw OTLPGRPCExporterError.invalidEndpoint(configuration.grpcEndpoint)
         }
 
         let security: HTTP2ClientTransport.Posix.TransportSecurity

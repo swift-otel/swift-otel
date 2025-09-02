@@ -749,20 +749,6 @@ extension OTel.Configuration {
             endpointHasBeenExplicitlySet ? endpoint : "http://localhost:4317"
         }
 
-        /// Whether to enable client transport security for gRPC connections.
-        ///
-        /// Controls whether to use insecure (non-TLS) connections. Only applies to OTLP/gRPC
-        /// when the endpoint lacks an explicit http/https scheme.
-        ///
-        /// - Environment variable(s):
-        ///   - `OTEL_EXPORTER_OTLP_INSECURE`
-        ///   - `OTEL_EXPORTER_OTLP_TRACES_INSECURE`
-        ///   - `OTEL_EXPORTER_OTLP_METRICS_INSECURE`
-        ///   - `OTEL_EXPORTER_OTLP_LOGS_INSECURE`
-        /// - Default value: `false`
-        /// - Notes: Signal-specific configuration takes precedence over the general configuration.
-        public var insecure: Bool
-
         /// Path to certificate for verifying server's TLS credentials.
         ///
         /// When not specified, the system's default certificate store is used.
@@ -869,7 +855,6 @@ extension OTel.Configuration {
         @_documentation(visibility: internal)
         public static let `default`: Self = .init(
             endpoint: "http://localhost:4318",
-            insecure: false,
             certificateFilePath: nil,
             clientKeyFilePath: nil,
             clientCertificateFilePath: nil,
