@@ -671,8 +671,7 @@ extension OTel.Configuration {
     public struct OTLPExporterConfiguration: Sendable {
         /// Target URL to which the exporter sends spans, metrics, or logs.
         ///
-        /// The endpoint URL specifies where telemetry data should be sent. Must honor all URL
-        /// components including scheme, host, port, and path. HTTPS scheme indicates secure connection.
+        /// The endpoint URL specifies where telemetry data should be sent.
         ///
         /// - Environment variable(s):
         ///   - `OTEL_EXPORTER_OTLP_ENDPOINT`
@@ -683,6 +682,9 @@ extension OTel.Configuration {
         ///   - `http://localhost:4317` (for OTLP/gRPC)
         ///   - `http://localhost:4318` (for OTLP/HTTP)
         /// - Notes: Signal-specific configuration takes precedence over the general configuration.
+        ///
+        /// - Important: The endpoint MUST include a scheme, which MUST be either `http` or `https`. TLS is only used
+        ///              when the scheme is `https`.
         ///
         /// - Important: When used with OTLP/HTTP, the _default_ endpoint is appended with a signal-specific path:
         ///   - Traces: `/v1/traces` → `http://localhost:4318/v1/traces`
