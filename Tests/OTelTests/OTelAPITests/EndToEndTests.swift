@@ -777,5 +777,18 @@ import Tracing
             #expect("\(error)" == #"invalidConfiguration("makeTracingBackend called but config has traces disabled")"#)
         }
     }
+
+    @available(gRPCSwift, *)
+    @Test func testMakeBackendThrowsWhenGRPCEndpointHasNoScheme() throws {
+        do {
+            let error = try #require(throws: (any Error).self) {
+                var config = OTel.Configuration.default
+                config.logs.otlpExporter.protocol = .grpc
+                config.logs.otlpExporter.endpoint = "example.com:443"
+                _ = try OTel.makeLoggingBackend(configuration: config)
+            }
+            #expect("\(error)" == #"invalidEndpoint("example.com:443")"#)
+        }
+    }
 }
 #endif // compiler(>=6.2)
