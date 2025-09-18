@@ -124,18 +124,6 @@ extension OTelTracer: Service {
 
 private let noOpSpan = NoOpTracer.NoOpSpan(context: .topLevel)
 
-private let droppedSpan: NoOpTracer.NoOpSpan = {
-    var context = ServiceContext.topLevel
-    context.spanContext = .local(
-        traceID: TraceID(bytes: .null),
-        spanID: SpanID(bytes: .null),
-        parentSpanID: nil,
-        traceFlags: [],
-        traceState: TraceState()
-    )
-    return NoOpTracer.NoOpSpan(context: context)
-}()
-
 extension OTelTracer: Tracer {
     func startSpan(
         _ operationName: String,
@@ -170,7 +158,7 @@ extension OTelTracer: Tracer {
         let span: OTelSpan
         switch samplingResult.decision {
         case .drop:
-            span = .noOp(droppedSpan)
+            span = .noOp(noOpSpan)
 
         case .record, .recordAndSample:
             let spanID = idGenerator.nextSpanID()

@@ -97,35 +97,6 @@ final class OTelTracerTests: XCTestCase {
         )
     }
 
-    func test_startSpan_whenSamplerDrops_doesNotSetSampledFlag() throws {
-        let idGenerator = OTelConstantIDGenerator(traceID: .oneToSixteen, spanID: .oneToEight)
-        let sampler = OTelConstantSampler(decision: .drop)
-        let propagator = OTelW3CPropagator()
-        let processor = OTelNoOpSpanProcessor()
-
-        let tracer = OTelTracer(
-            idGenerator: idGenerator,
-            sampler: sampler,
-            propagator: propagator,
-            processor: processor,
-            environment: [:],
-            resource: OTelResource()
-        )
-
-        let span = tracer.startSpan("test")
-        let spanContext = try XCTUnwrap(span.context.spanContext)
-        XCTAssertEqual(
-            spanContext,
-            .local(
-                traceID: .allZeroes,
-                spanID: .allZeroes,
-                parentSpanID: nil,
-                traceFlags: [],
-                traceState: TraceState()
-            )
-        )
-    }
-
     func test_startSpan_whenSamplerRecordsWithoutSampling_doesNotSetSampledFlag() throws {
         let idGenerator = OTelConstantIDGenerator(traceID: .oneToSixteen, spanID: .oneToEight)
         let sampler = OTelConstantSampler(decision: .record)
@@ -173,6 +144,7 @@ final class OTelTracerTests: XCTestCase {
         let span = tracer.startSpan("test")
         XCTAssertFalse(span.isRecording)
         XCTAssertEqual(span.operationName, "noop")
+        XCTAssertNil(span.context.spanContext)
     }
 
     func test_startSpan_onSpanEnd_whenSpanIsSampled_forwardsSpanToProcessor() async throws {
