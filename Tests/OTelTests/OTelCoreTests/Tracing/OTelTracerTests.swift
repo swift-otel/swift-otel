@@ -16,6 +16,7 @@ import NIOConcurrencyHelpers
 @testable import OTel
 import ServiceContextModule
 import ServiceLifecycle
+import Tracing
 import W3CTraceContext
 import XCTest
 
@@ -411,6 +412,75 @@ final class OTelTracerTests: XCTestCase {
         let batch = await batches.next()
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["test"])
     }
+
+    func test_startSpan_whenSamplerIsConstantOff_doesNotCallAnything() async throws {
+        struct TestFailingConformer: OTelIDGenerator, OTelSampler, OTelPropagator, OTelSpanProcessor, OTelSpanExporter {
+            func nextTraceID() -> TraceID {
+                XCTFail()
+                return .allZeroes
+            }
+
+            func nextSpanID() -> SpanID {
+                XCTFail()
+                return .allZeroes
+            }
+
+            func samplingResult(operationName: String, kind: SpanKind, traceID: TraceID, attributes: Tracing.SpanAttributes, links: [SpanLink], parentContext: ServiceContext) -> OTelSamplingResult {
+                XCTFail()
+                return .init(decision: .drop)
+            }
+
+            func extractSpanContext<Carrier, Extract>(from carrier: Carrier, using extractor: Extract) throws -> OTelSpanContext? where Carrier == Extract.Carrier, Extract: Extractor {
+                XCTFail()
+                return nil
+            }
+
+            func inject<Carrier, Inject>(_ spanContext: OTelSpanContext, into carrier: inout Carrier, using injector: Inject) where Carrier == Inject.Carrier, Inject: Injector {
+                XCTFail()
+            }
+
+            func onEnd(_ span: OTelFinishedSpan) { XCTFail() }
+
+            func forceFlush() async throws { XCTFail() }
+
+            func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws { XCTFail() }
+
+            func shutdown() async { XCTFail() }
+
+            func run() async throws { XCTFail() }
+
+            var context: ServiceContext {
+                XCTFail()
+                return .topLevel
+            }
+
+            var instant: StubInstant {
+                XCTFail()
+                return .constant(42)
+            }
+        }
+        let testFailingConformer = TestFailingConformer()
+        let tracer = OTelTracer(
+            idGenerator: testFailingConformer,
+            sampler: OTelAlwaysOffSampler(),
+            propagator: testFailingConformer,
+            processor: testFailingConformer,
+            environment: [:],
+            resource: OTelResource()
+        )
+
+        let span = tracer.startSpan(
+            "thing",
+            context: testFailingConformer.context,
+            ofKind: .internal,
+            at: testFailingConformer.instant,
+            function: #function,
+            file: #file,
+            line: #line
+        )
+        XCTAssertFalse(span.isRecording)
+        XCTAssertNil(span.context.spanContext)
+    }
 }
 
 extension OTelTracer {
@@ -471,6 +541,48 @@ final class RecordingProcessorWrapper<Wrapped: OTelSpanProcessor & Sendable>: OT
     func forceFlush() async throws {
         state.numForceFlushCalls += 1
         try await wrapped.forceFlush()
+    }
+
+    func run() async throws {
+        state.numRunCalls += 1
+        try await wrapped.run()
+    }
+}
+
+final class RecordingExporterWrapper<Wrapped: OTelSpanExporter & Sendable>: OTelSpanExporter, Sendable {
+    struct State {
+        var numExportCalls = 0
+        var numForceFlushCalls = 0
+        var numShutdownCalls = 0
+        var numRunCalls = 0
+    }
+
+    private let _state = NIOLockedValueBox(State())
+
+    let wrapped: Wrapped
+
+    init(wrapping wrapped: Wrapped) {
+        self.wrapped = wrapped
+    }
+
+    var state: State {
+        get { _state.withLockedValue { $0 } }
+        set { _state.withLockedValue { $0 = newValue } }
+    }
+
+    func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws {
+        state.numExportCalls += 1
+        try await wrapped.export(batch)
+    }
+
+    func forceFlush() async throws {
+        state.numForceFlushCalls += 1
+        try await wrapped.forceFlush()
+    }
+
+    func shutdown() async {
+        state.numShutdownCalls += 1
+        await wrapped.shutdown()
     }
 
     func run() async throws {

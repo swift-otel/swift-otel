@@ -316,8 +316,8 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
 }
 
 internal enum WrappedSampler: OTelSampler {
-    case alwaysOn(OTelConstantSampler)
-    case alwaysOff(OTelConstantSampler)
+    case alwaysOn(OTelAlwaysOnSampler)
+    case alwaysOff(OTelAlwaysOffSampler)
     case traceIDRatio(OTelTraceIDRatioBasedSampler)
     case parentBasedAlwaysOn(OTelParentBasedSampler)
     case parentBasedAlwaysOff(OTelParentBasedSampler)
@@ -325,7 +325,9 @@ internal enum WrappedSampler: OTelSampler {
 
     func samplingResult(operationName: String, kind: SpanKind, traceID: TraceID, attributes: SpanAttributes, links: [SpanLink], parentContext: ServiceContext) -> OTelSamplingResult {
         switch self {
-        case .alwaysOn(let wrapped), .alwaysOff(let wrapped):
+        case .alwaysOn(let wrapped):
+            wrapped.samplingResult(operationName: operationName, kind: kind, traceID: traceID, attributes: attributes, links: links, parentContext: parentContext)
+        case .alwaysOff(let wrapped):
             wrapped.samplingResult(operationName: operationName, kind: kind, traceID: traceID, attributes: attributes, links: links, parentContext: parentContext)
         case .traceIDRatio(let wrapped):
             wrapped.samplingResult(operationName: operationName, kind: kind, traceID: traceID, attributes: attributes, links: links, parentContext: parentContext)
@@ -336,8 +338,8 @@ internal enum WrappedSampler: OTelSampler {
 
     init(configuration: OTel.Configuration) {
         switch configuration.traces.sampler.backing {
-        case .alwaysOn: self = .alwaysOn(OTelConstantSampler(isOn: true))
-        case .alwaysOff: self = .alwaysOff(OTelConstantSampler(isOn: false))
+        case .alwaysOn: self = .alwaysOn(OTelAlwaysOnSampler())
+        case .alwaysOff: self = .alwaysOff(OTelAlwaysOffSampler())
         case .traceIDRatio:
             switch configuration.traces.sampler.argument {
             case .traceIDRatio(let samplingProbability):
@@ -345,8 +347,8 @@ internal enum WrappedSampler: OTelSampler {
             default:
                 self = .traceIDRatio(OTelTraceIDRatioBasedSampler(ratio: 1.0))
             }
-        case .parentBasedAlwaysOn: self = .parentBasedAlwaysOn(OTelParentBasedSampler(rootSampler: OTelConstantSampler(isOn: true)))
-        case .parentBasedAlwaysOff: self = .parentBasedAlwaysOff(OTelParentBasedSampler(rootSampler: OTelConstantSampler(isOn: false)))
+        case .parentBasedAlwaysOn: self = .parentBasedAlwaysOn(OTelParentBasedSampler(rootSampler: OTelAlwaysOnSampler()))
+        case .parentBasedAlwaysOff: self = .parentBasedAlwaysOff(OTelParentBasedSampler(rootSampler: OTelAlwaysOffSampler()))
         case .parentBasedTraceIDRatio:
             switch configuration.traces.sampler.argument {
             case .traceIDRatio(let samplingProbability):

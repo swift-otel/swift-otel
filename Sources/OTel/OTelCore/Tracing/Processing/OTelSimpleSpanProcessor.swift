@@ -62,7 +62,10 @@ struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProcessor {
     }
 
     func onEnd(_ span: OTelFinishedSpan) {
-        guard span.spanContext.traceFlags.contains(.sampled) else { return }
+        guard span.spanContext.traceFlags.contains(.sampled) else {
+            print("OHHHHH NNOOOOOEEEESS")
+            return
+        }
         continuation.yield(span)
     }
 

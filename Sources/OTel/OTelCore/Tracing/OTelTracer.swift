@@ -125,7 +125,23 @@ extension OTelTracer: Service {
 private let noOpSpan = NoOpTracer.NoOpSpan(context: .topLevel)
 
 extension OTelTracer: Tracer {
+    @inlinable
     func startSpan(
+        _ operationName: String,
+        context: @autoclosure () -> ServiceContext,
+        ofKind kind: SpanKind,
+        at instant: @autoclosure () -> some TracerInstant,
+        function: String,
+        file fileID: String,
+        line: UInt
+    ) -> OTelSpan {
+        _startSpan(operationName, context: context(), ofKind: kind, at: instant(), function: function, file: fileID, line: line)
+    }
+}
+
+extension OTelTracer {
+    @usableFromInline
+    func _startSpan(
         _ operationName: String,
         context: @autoclosure () -> ServiceContext,
         ofKind kind: SpanKind,
@@ -219,6 +235,43 @@ extension OTelTracer: Tracer {
         guard let spanContext = context.spanContext else { return nil }
         guard let recordingSpan = recordingSpans.withLockedValue({ $0[spanContext] }) else { return nil }
         return recordingSpan
+    }
+}
+
+/// Specialization for `AlwaysOffSampler` to avoid generating IDs or evaluating autoclosure parameters.
+extension OTelTracer where Sampler == OTelAlwaysOffSampler {
+    @inlinable
+    func _startSpan(
+        _ operationName: String,
+        context: @autoclosure () -> ServiceContext,
+        ofKind kind: SpanKind,
+        at instant: @autoclosure () -> some TracerInstant,
+        function: String,
+        file fileID: String,
+        line: UInt
+    ) -> OTelSpan {
+        .noOp(noOpSpan)
+    }
+}
+
+/// Specialization for `AlwaysOffSampler` to avoid generating IDs or evaluating autoclosure parameters.
+extension OTelTracer where Sampler == WrappedSampler {
+    @inlinable
+    func _startSpan(
+        _ operationName: String,
+        context: @autoclosure () -> ServiceContext,
+        ofKind kind: SpanKind,
+        at instant: @autoclosure () -> some TracerInstant,
+        function: String,
+        file fileID: String,
+        line: UInt
+    ) -> OTelSpan {
+        switch sampler {
+        case .alwaysOff:
+            .noOp(noOpSpan)
+        default:
+            startSpan(operationName, context: context(), ofKind: kind, at: instant(), function: function, file: fileID, line: line)
+        }
     }
 }
 

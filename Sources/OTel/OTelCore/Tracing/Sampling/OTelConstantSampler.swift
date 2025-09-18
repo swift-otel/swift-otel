@@ -48,3 +48,33 @@ struct OTelConstantSampler: OTelSampler {
         OTelSamplingResult(decision: decision, attributes: [:])
     }
 }
+
+struct OTelAlwaysOffSampler: OTelSampler {
+    static let result = OTelSamplingResult(decision: .drop)
+
+    func samplingResult(
+        operationName: String,
+        kind: SpanKind,
+        traceID: TraceID,
+        attributes: SpanAttributes,
+        links: [SpanLink],
+        parentContext: ServiceContext
+    ) -> OTelSamplingResult {
+        Self.result
+    }
+}
+
+struct OTelAlwaysOnSampler: OTelSampler {
+    static let result = OTelSamplingResult(decision: .recordAndSample)
+
+    func samplingResult(
+        operationName: String,
+        kind: SpanKind,
+        traceID: TraceID,
+        attributes: SpanAttributes,
+        links: [SpanLink],
+        parentContext: ServiceContext
+    ) -> OTelSamplingResult {
+        Self.result
+    }
+}
