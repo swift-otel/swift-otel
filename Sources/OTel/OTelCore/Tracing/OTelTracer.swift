@@ -22,13 +22,12 @@ import W3CTraceContext
 /// [OpenTelemetry Specification: Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/api.md#tracer)
 final class OTelTracer<
     IDGenerator: OTelIDGenerator,
-    Sampler: OTelSampler,
     Propagator: OTelPropagator,
     Processor: OTelSpanProcessor,
     Clock: _Concurrency.Clock
 >: Sendable where Clock.Duration == Duration {
     private let idGenerator: IDGenerator
-    private let sampler: Sampler
+    private let sampler: WrappedSampler
     private let propagator: Propagator
     private let processor: Processor
     private let resource: OTelResource
@@ -40,7 +39,7 @@ final class OTelTracer<
 
     init(
         idGenerator: IDGenerator,
-        sampler: Sampler,
+        sampler: WrappedSampler,
         propagator: Propagator,
         processor: Processor,
         environment: OTelEnvironment,
@@ -76,7 +75,7 @@ extension OTelTracer where Clock == ContinuousClock {
     ///   - resource: Attributes about the resource being traced. Should be obtained using <doc:resource-detection>.
     convenience init(
         idGenerator: IDGenerator,
-        sampler: Sampler,
+        sampler: WrappedSampler,
         propagator: Propagator,
         processor: Processor,
         environment: OTelEnvironment,
@@ -122,10 +121,9 @@ extension OTelTracer: Service {
     }
 }
 
-private let noOpSpan = NoOpTracer.NoOpSpan(context: .topLevel)
+private let noOpSpan = OTelSpan.noOp(NoOpTracer.NoOpSpan(context: .topLevel))
 
 extension OTelTracer: Tracer {
-    @inlinable
     func startSpan(
         _ operationName: String,
         context: @autoclosure () -> ServiceContext,
@@ -135,21 +133,12 @@ extension OTelTracer: Tracer {
         file fileID: String,
         line: UInt
     ) -> OTelSpan {
-        _startSpan(operationName, context: context(), ofKind: kind, at: instant(), function: function, file: fileID, line: line)
-    }
-}
-
-extension OTelTracer {
-    @usableFromInline
-    func _startSpan(
-        _ operationName: String,
-        context: @autoclosure () -> ServiceContext,
-        ofKind kind: SpanKind,
-        at instant: @autoclosure () -> some TracerInstant,
-        function: String,
-        file fileID: String,
-        line: UInt
-    ) -> OTelSpan {
+        switch sampler {
+        case .alwaysOff:
+            return noOpSpan
+        default:
+            break
+        }
         let parentContext = context()
 
         let traceID: TraceID
@@ -171,10 +160,9 @@ extension OTelTracer {
             parentContext: parentContext
         )
 
-        let span: OTelSpan
         switch samplingResult.decision {
         case .drop:
-            span = .noOp(noOpSpan)
+            return noOpSpan
 
         case .record, .recordAndSample:
             let spanID = idGenerator.nextSpanID()
@@ -203,11 +191,10 @@ extension OTelTracer {
                 }
             )
             recordingSpans.withLockedValue { $0[spanContext] = recordingSpan }
-            span = recordingSpan
+            let span = recordingSpan
             eventStreamContinuation.yield(.spanStarted(span, parentContext: parentContext))
+            return span
         }
-
-        return span
     }
 
     func forceFlush() {
@@ -235,43 +222,6 @@ extension OTelTracer {
         guard let spanContext = context.spanContext else { return nil }
         guard let recordingSpan = recordingSpans.withLockedValue({ $0[spanContext] }) else { return nil }
         return recordingSpan
-    }
-}
-
-/// Specialization for `AlwaysOffSampler` to avoid generating IDs or evaluating autoclosure parameters.
-extension OTelTracer where Sampler == OTelAlwaysOffSampler {
-    @inlinable
-    func _startSpan(
-        _ operationName: String,
-        context: @autoclosure () -> ServiceContext,
-        ofKind kind: SpanKind,
-        at instant: @autoclosure () -> some TracerInstant,
-        function: String,
-        file fileID: String,
-        line: UInt
-    ) -> OTelSpan {
-        .noOp(noOpSpan)
-    }
-}
-
-/// Specialization for `AlwaysOffSampler` to avoid generating IDs or evaluating autoclosure parameters.
-extension OTelTracer where Sampler == WrappedSampler {
-    @inlinable
-    func _startSpan(
-        _ operationName: String,
-        context: @autoclosure () -> ServiceContext,
-        ofKind kind: SpanKind,
-        at instant: @autoclosure () -> some TracerInstant,
-        function: String,
-        file fileID: String,
-        line: UInt
-    ) -> OTelSpan {
-        switch sampler {
-        case .alwaysOff:
-            .noOp(noOpSpan)
-        default:
-            startSpan(operationName, context: context(), ofKind: kind, at: instant(), function: function, file: fileID, line: line)
-        }
     }
 }
 
