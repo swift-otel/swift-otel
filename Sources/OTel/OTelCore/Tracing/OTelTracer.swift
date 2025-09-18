@@ -22,13 +22,12 @@ import W3CTraceContext
 /// [OpenTelemetry Specification: Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/api.md#tracer)
 final class OTelTracer<
     IDGenerator: OTelIDGenerator,
-    Sampler: OTelSampler,
     Propagator: OTelPropagator,
     Processor: OTelSpanProcessor,
     Clock: _Concurrency.Clock
 >: Sendable where Clock.Duration == Duration {
     private let idGenerator: IDGenerator
-    private let sampler: Sampler
+    private let sampler: WrappedSampler
     private let propagator: Propagator
     private let processor: Processor
     private let resource: OTelResource
@@ -40,7 +39,7 @@ final class OTelTracer<
 
     init(
         idGenerator: IDGenerator,
-        sampler: Sampler,
+        sampler: WrappedSampler,
         propagator: Propagator,
         processor: Processor,
         environment: OTelEnvironment,
@@ -76,7 +75,7 @@ extension OTelTracer where Clock == ContinuousClock {
     ///   - resource: Attributes about the resource being traced. Should be obtained using <doc:resource-detection>.
     convenience init(
         idGenerator: IDGenerator,
-        sampler: Sampler,
+        sampler: WrappedSampler,
         propagator: Propagator,
         processor: Processor,
         environment: OTelEnvironment,
@@ -122,19 +121,7 @@ extension OTelTracer: Service {
     }
 }
 
-private let noOpSpan = NoOpTracer.NoOpSpan(context: .topLevel)
-
-private let droppedSpan: NoOpTracer.NoOpSpan = {
-    var context = ServiceContext.topLevel
-    context.spanContext = .local(
-        traceID: TraceID(bytes: .null),
-        spanID: SpanID(bytes: .null),
-        parentSpanID: nil,
-        traceFlags: [],
-        traceState: TraceState()
-    )
-    return NoOpTracer.NoOpSpan(context: context)
-}()
+private let noOpSpan = OTelSpan.noOp(NoOpTracer.NoOpSpan(context: .topLevel))
 
 extension OTelTracer: Tracer {
     func startSpan(
@@ -146,6 +133,9 @@ extension OTelTracer: Tracer {
         file fileID: String,
         line: UInt
     ) -> OTelSpan {
+        // Fast-path for constant sampler.
+        if case .constant(let sampler) = sampler, sampler.decision == .drop { return noOpSpan }
+
         let parentContext = context()
 
         let traceID: TraceID
@@ -167,10 +157,9 @@ extension OTelTracer: Tracer {
             parentContext: parentContext
         )
 
-        let span: OTelSpan
         switch samplingResult.decision {
         case .drop:
-            span = .noOp(droppedSpan)
+            return noOpSpan
 
         case .record, .recordAndSample:
             let spanID = idGenerator.nextSpanID()
@@ -199,13 +188,10 @@ extension OTelTracer: Tracer {
                 }
             )
             recordingSpans.withLockedValue { $0[spanContext] = recordingSpan }
-            span = recordingSpan
+            let span = recordingSpan
+            eventStreamContinuation.yield(.spanStarted(span, parentContext: parentContext))
+            return span
         }
-
-        // TODO: should we be yielding the span if it's a noop span?
-        eventStreamContinuation.yield(.spanStarted(span, parentContext: parentContext))
-
-        return span
     }
 
     func forceFlush() {

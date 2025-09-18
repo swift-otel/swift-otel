@@ -12,9 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
+import NIOConcurrencyHelpers
 @testable import OTel
 import ServiceContextModule
 import ServiceLifecycle
+import Tracing
 import W3CTraceContext
 import XCTest
 
@@ -33,7 +35,7 @@ final class OTelTracerTests: XCTestCase {
 
         let tracer = OTelTracer(
             idGenerator: idGenerator,
-            sampler: sampler,
+            sampler: .constant(sampler),
             propagator: propagator,
             processor: processor,
             environment: [:],
@@ -63,7 +65,7 @@ final class OTelTracerTests: XCTestCase {
 
         let tracer = OTelTracer(
             idGenerator: idGenerator,
-            sampler: sampler,
+            sampler: .constant(sampler),
             propagator: propagator,
             processor: processor,
             environment: [:],
@@ -97,35 +99,6 @@ final class OTelTracerTests: XCTestCase {
         )
     }
 
-    func test_startSpan_whenSamplerDrops_doesNotSetSampledFlag() throws {
-        let idGenerator = OTelConstantIDGenerator(traceID: .oneToSixteen, spanID: .oneToEight)
-        let sampler = OTelConstantSampler(decision: .drop)
-        let propagator = OTelW3CPropagator()
-        let processor = OTelNoOpSpanProcessor()
-
-        let tracer = OTelTracer(
-            idGenerator: idGenerator,
-            sampler: sampler,
-            propagator: propagator,
-            processor: processor,
-            environment: [:],
-            resource: OTelResource()
-        )
-
-        let span = tracer.startSpan("test")
-        let spanContext = try XCTUnwrap(span.context.spanContext)
-        XCTAssertEqual(
-            spanContext,
-            .local(
-                traceID: .allZeroes,
-                spanID: .allZeroes,
-                parentSpanID: nil,
-                traceFlags: [],
-                traceState: TraceState()
-            )
-        )
-    }
-
     func test_startSpan_whenSamplerRecordsWithoutSampling_doesNotSetSampledFlag() throws {
         let idGenerator = OTelConstantIDGenerator(traceID: .oneToSixteen, spanID: .oneToEight)
         let sampler = OTelConstantSampler(decision: .record)
@@ -134,7 +107,7 @@ final class OTelTracerTests: XCTestCase {
 
         let tracer = OTelTracer(
             idGenerator: idGenerator,
-            sampler: sampler,
+            sampler: .constant(sampler),
             propagator: propagator,
             processor: processor,
             environment: [:],
@@ -163,7 +136,7 @@ final class OTelTracerTests: XCTestCase {
 
         let tracer = OTelTracer(
             idGenerator: idGenerator,
-            sampler: sampler,
+            sampler: .constant(sampler),
             propagator: propagator,
             processor: processor,
             environment: [:],
@@ -173,6 +146,7 @@ final class OTelTracerTests: XCTestCase {
         let span = tracer.startSpan("test")
         XCTAssertFalse(span.isRecording)
         XCTAssertEqual(span.operationName, "noop")
+        XCTAssertNil(span.context.spanContext)
     }
 
     func test_startSpan_onSpanEnd_whenSpanIsSampled_forwardsSpanToProcessor() async throws {
@@ -185,7 +159,7 @@ final class OTelTracerTests: XCTestCase {
 
         let tracer = OTelTracer(
             idGenerator: idGenerator,
-            sampler: sampler,
+            sampler: .constant(sampler),
             propagator: propagator,
             processor: processor,
             environment: [:],
@@ -218,11 +192,11 @@ final class OTelTracerTests: XCTestCase {
         let propagator = OTelW3CPropagator()
         let exporter = OTelStreamingSpanExporter()
         var batches = exporter.batches.makeAsyncIterator()
-        let processor = OTelSimpleSpanProcessor(exporter: exporter)
+        let processor = RecordingProcessorWrapper(wrapping: OTelSimpleSpanProcessor(exporter: exporter))
 
         let tracer = OTelTracer(
             idGenerator: idGenerator,
-            sampler: sampler,
+            sampler: .other(sampler),
             propagator: propagator,
             processor: processor,
             environment: [:],
@@ -246,6 +220,9 @@ final class OTelTracerTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(batch1).map(\.operationName), ["2"])
 
         await serviceGroup.triggerGracefulShutdown()
+
+        XCTAssertEqual(processor.state.numOnStartCalls, 1)
+        XCTAssertEqual(processor.state.numOnEndCalls, 1)
     }
 
     func test_forceFlush_forceFlushesProcessor() async throws {
@@ -258,7 +235,7 @@ final class OTelTracerTests: XCTestCase {
 
         let tracer = OTelTracer(
             idGenerator: idGenerator,
-            sampler: sampler,
+            sampler: .constant(sampler),
             propagator: propagator,
             processor: processor,
             environment: [:],
@@ -287,7 +264,7 @@ final class OTelTracerTests: XCTestCase {
     func test_spanIdentifiedByServiceContext_withoutSpanContext_returnsSpan() {
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
-            sampler: OTelConstantSampler(isOn: true),
+            sampler: .constant(OTelConstantSampler(isOn: true)),
             propagator: OTelW3CPropagator(),
             processor: OTelNoOpSpanProcessor(),
             environment: [:],
@@ -300,7 +277,7 @@ final class OTelTracerTests: XCTestCase {
     func test_spanIdentifiedByServiceContext_withSpanContext_identifyingRecordingSpan_returnsSpan() async {
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
-            sampler: OTelConstantSampler(isOn: true),
+            sampler: .constant(OTelConstantSampler(isOn: true)),
             propagator: OTelW3CPropagator(),
             processor: OTelNoOpSpanProcessor(),
             environment: [:],
@@ -314,7 +291,7 @@ final class OTelTracerTests: XCTestCase {
     func test_spanIdentifiedByServiceContext_withSpanContext_identifyingEndedSpan_returnsNil() async {
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
-            sampler: OTelConstantSampler(isOn: true),
+            sampler: .constant(OTelConstantSampler(isOn: true)),
             propagator: OTelW3CPropagator(),
             processor: OTelNoOpSpanProcessor(),
             environment: [:],
@@ -334,7 +311,7 @@ final class OTelTracerTests: XCTestCase {
         let propagator = OTelInMemoryPropagator()
         let tracer = OTelTracer(
             idGenerator: idGenerator,
-            sampler: OTelConstantSampler(isOn: true),
+            sampler: .constant(OTelConstantSampler(isOn: true)),
             propagator: propagator,
             processor: OTelNoOpSpanProcessor(),
             environment: [:],
@@ -360,7 +337,7 @@ final class OTelTracerTests: XCTestCase {
         let propagator = OTelInMemoryPropagator()
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
-            sampler: OTelConstantSampler(isOn: true),
+            sampler: .constant(OTelConstantSampler(isOn: true)),
             propagator: propagator,
             processor: OTelNoOpSpanProcessor(),
             environment: [:],
@@ -384,7 +361,7 @@ final class OTelTracerTests: XCTestCase {
         let propagator = OTelInMemoryPropagator(extractionResult: .success(spanContext))
         let tracer = OTelTracer(
             idGenerator: idGenerator,
-            sampler: OTelConstantSampler(isOn: true),
+            sampler: .constant(OTelConstantSampler(isOn: true)),
             propagator: propagator,
             processor: OTelNoOpSpanProcessor(),
             environment: [:],
@@ -409,7 +386,7 @@ final class OTelTracerTests: XCTestCase {
         let propagator = OTelInMemoryPropagator(extractionResult: .failure(TestError()))
         let tracer = OTelTracer(
             idGenerator: idGenerator,
-            sampler: OTelConstantSampler(isOn: true),
+            sampler: .constant(OTelConstantSampler(isOn: true)),
             propagator: propagator,
             processor: processor,
             environment: [:],
@@ -435,13 +412,82 @@ final class OTelTracerTests: XCTestCase {
         let batch = await batches.next()
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["test"])
     }
+
+    func test_startSpan_whenSamplerIsConstantOff_doesNotCallAnything() async throws {
+        struct TestFailingConformer: OTelIDGenerator, OTelSampler, OTelPropagator, OTelSpanProcessor, OTelSpanExporter {
+            func nextTraceID() -> TraceID {
+                XCTFail()
+                return .allZeroes
+            }
+
+            func nextSpanID() -> SpanID {
+                XCTFail()
+                return .allZeroes
+            }
+
+            func samplingResult(operationName: String, kind: SpanKind, traceID: TraceID, attributes: Tracing.SpanAttributes, links: [SpanLink], parentContext: ServiceContext) -> OTelSamplingResult {
+                XCTFail()
+                return .init(decision: .drop)
+            }
+
+            func extractSpanContext<Carrier, Extract>(from carrier: Carrier, using extractor: Extract) throws -> OTelSpanContext? where Carrier == Extract.Carrier, Extract: Extractor {
+                XCTFail()
+                return nil
+            }
+
+            func inject<Carrier, Inject>(_ spanContext: OTelSpanContext, into carrier: inout Carrier, using injector: Inject) where Carrier == Inject.Carrier, Inject: Injector {
+                XCTFail()
+            }
+
+            func onEnd(_ span: OTelFinishedSpan) { XCTFail() }
+
+            func forceFlush() async throws { XCTFail() }
+
+            func export(_ batch: some Collection<OTelFinishedSpan> & Sendable) async throws { XCTFail() }
+
+            func shutdown() async { XCTFail() }
+
+            func run() async throws { XCTFail() }
+
+            var context: ServiceContext {
+                XCTFail()
+                return .topLevel
+            }
+
+            var instant: StubInstant {
+                XCTFail()
+                return .constant(42)
+            }
+        }
+        let testFailingConformer = TestFailingConformer()
+        let tracer = OTelTracer(
+            idGenerator: testFailingConformer,
+            sampler: .constant(OTelConstantSampler(isOn: false)),
+            propagator: testFailingConformer,
+            processor: testFailingConformer,
+            environment: [:],
+            resource: OTelResource()
+        )
+
+        let span = tracer.startSpan(
+            "thing",
+            context: testFailingConformer.context,
+            ofKind: .internal,
+            at: testFailingConformer.instant,
+            function: #function,
+            file: #file,
+            line: #line
+        )
+        XCTAssertFalse(span.isRecording)
+        XCTAssertNil(span.context.spanContext)
+    }
 }
 
 extension OTelTracer {
     // Overload with logging disabled.
     fileprivate convenience init(
         idGenerator: IDGenerator,
-        sampler: Sampler,
+        sampler: WrappedSampler,
         propagator: Propagator,
         processor: Processor,
         environment: OTelEnvironment,
@@ -458,5 +504,47 @@ extension OTelTracer {
             logger: ._otelDisabled,
             clock: clock
         )
+    }
+}
+
+final class RecordingProcessorWrapper<Wrapped: OTelSpanProcessor & Sendable>: OTelSpanProcessor, Sendable {
+    struct State {
+        var numOnStartCalls = 0
+        var numOnEndCalls = 0
+        var numForceFlushCalls = 0
+        var numRunCalls = 0
+    }
+
+    private let _state = NIOLockedValueBox(State())
+
+    let wrapped: Wrapped
+
+    init(wrapping wrapped: Wrapped) {
+        self.wrapped = wrapped
+    }
+
+    var state: State {
+        get { _state.withLockedValue { $0 } }
+        set { _state.withLockedValue { $0 = newValue } }
+    }
+
+    func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
+        state.numOnStartCalls += 1
+        wrapped.onStart(span, parentContext: parentContext)
+    }
+
+    func onEnd(_ span: OTelFinishedSpan) {
+        state.numOnEndCalls += 1
+        wrapped.onEnd(span)
+    }
+
+    func forceFlush() async throws {
+        state.numForceFlushCalls += 1
+        try await wrapped.forceFlush()
+    }
+
+    func run() async throws {
+        state.numRunCalls += 1
+        try await wrapped.run()
     }
 }
