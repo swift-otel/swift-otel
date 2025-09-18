@@ -188,10 +188,8 @@ extension OTelTracer: Tracer {
             )
             recordingSpans.withLockedValue { $0[spanContext] = recordingSpan }
             span = recordingSpan
+            eventStreamContinuation.yield(.spanStarted(span, parentContext: parentContext))
         }
-
-        // TODO: should we be yielding the span if it's a noop span?
-        eventStreamContinuation.yield(.spanStarted(span, parentContext: parentContext))
 
         return span
     }

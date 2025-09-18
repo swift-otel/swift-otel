@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
+import NIOConcurrencyHelpers
 @testable import OTel
 import ServiceContextModule
 import ServiceLifecycle
@@ -190,7 +191,7 @@ final class OTelTracerTests: XCTestCase {
         let propagator = OTelW3CPropagator()
         let exporter = OTelStreamingSpanExporter()
         var batches = exporter.batches.makeAsyncIterator()
-        let processor = OTelSimpleSpanProcessor(exporter: exporter)
+        let processor = RecordingProcessorWrapper(wrapping: OTelSimpleSpanProcessor(exporter: exporter))
 
         let tracer = OTelTracer(
             idGenerator: idGenerator,
@@ -218,6 +219,9 @@ final class OTelTracerTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(batch1).map(\.operationName), ["2"])
 
         await serviceGroup.triggerGracefulShutdown()
+
+        XCTAssertEqual(processor.state.numOnStartCalls, 1)
+        XCTAssertEqual(processor.state.numOnEndCalls, 1)
     }
 
     func test_forceFlush_forceFlushesProcessor() async throws {
@@ -430,5 +434,47 @@ extension OTelTracer {
             logger: ._otelDisabled,
             clock: clock
         )
+    }
+}
+
+final class RecordingProcessorWrapper<Wrapped: OTelSpanProcessor & Sendable>: OTelSpanProcessor, Sendable {
+    struct State {
+        var numOnStartCalls = 0
+        var numOnEndCalls = 0
+        var numForceFlushCalls = 0
+        var numRunCalls = 0
+    }
+
+    private let _state = NIOLockedValueBox(State())
+
+    let wrapped: Wrapped
+
+    init(wrapping wrapped: Wrapped) {
+        self.wrapped = wrapped
+    }
+
+    var state: State {
+        get { _state.withLockedValue { $0 } }
+        set { _state.withLockedValue { $0 = newValue } }
+    }
+
+    func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
+        state.numOnStartCalls += 1
+        wrapped.onStart(span, parentContext: parentContext)
+    }
+
+    func onEnd(_ span: OTelFinishedSpan) {
+        state.numOnEndCalls += 1
+        wrapped.onEnd(span)
+    }
+
+    func forceFlush() async throws {
+        state.numForceFlushCalls += 1
+        try await wrapped.forceFlush()
+    }
+
+    func run() async throws {
+        state.numRunCalls += 1
+        try await wrapped.run()
     }
 }
