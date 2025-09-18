@@ -32,8 +32,8 @@ jobs:
         swift:
           - version: "6.1"
             image: swift:6.1-rhel-ubi9
-          - version: "6.2-snapshot"
-            image: swiftlang/swift:nightly-6.2-rhel-ubi9
+          - version: "6.2"
+            image: swift:6.2-rhel-ubi9
 
     container:
       image: ${{ matrix.swift.image }}
@@ -118,8 +118,8 @@ jobs:
         swift:
           - version: "6.1"
             image: swift:6.1-rhel-ubi9
-          - version: "6.2-snapshot"
-            image: swiftlang/swift:nightly-6.2-rhel-ubi9
+          - version: "6.2"
+            image: swift:6.2-rhel-ubi9
       fail-fast: false
     container:
       image: ${{ matrix.swift.image }}
