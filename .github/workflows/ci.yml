@@ -53,7 +53,6 @@ jobs:
         run: swift test --enable-code-coverage
 
       - name: Merge code coverage
-        if: matrix.swift.version == '6.1'
         run: |
           llvm-cov export -format "lcov" \
             .build/debug/swift-otelPackageTests.xctest \
