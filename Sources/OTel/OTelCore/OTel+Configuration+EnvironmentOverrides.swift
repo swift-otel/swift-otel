@@ -40,6 +40,8 @@ extension OTel.Configuration.MetricsConfiguration {
     internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
         exportInterval.override(using: .metricExportInterval, from: environment, logger: logger)
         exportTimeout.override(using: .metricExportTimeout, from: environment, logger: logger)
+        defaultValueHistogramBuckets.override(using: .metricDefaultValueHistogramBuckets, from: environment, logger: logger)
+        defaultDurationHistogramBuckets.override(using: .metricDefaultDurationHistogramBuckets, from: environment, logger: logger)
         exporter.override(using: .metricsExporter, from: environment, logger: logger)
         otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .metrics, logger: logger)
     }

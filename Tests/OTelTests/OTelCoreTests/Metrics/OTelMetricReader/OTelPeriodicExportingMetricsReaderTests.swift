@@ -435,9 +435,23 @@ extension OTel.Configuration.MetricsConfiguration {
         enabled: Bool = Self.default.enabled,
         exportInterval: Duration = Self.default.exportInterval,
         exportTimeout: Duration = Self.default.exportTimeout,
+        defaultDurationHistogramBuckets: [Duration] = Self.default.defaultDurationHistogramBuckets,
+        durationHistogramBuckets: [String: [Duration]] = Self.default.durationHistogramBuckets,
+        defaultValueHistogramBuckets: [Double] = Self.default.defaultValueHistogramBuckets,
+        valueHistogramBuckets: [String: [Double]] = Self.default.valueHistogramBuckets,
         exporter: ExporterSelection = Self.default.exporter,
         otlpExporter: OTel.Configuration.OTLPExporterConfiguration = Self.default.otlpExporter
     ) -> Self {
-        self.init(enabled: enabled, exportInterval: exportInterval, exportTimeout: exportTimeout, exporter: exporter, otlpExporter: otlpExporter)
+        self.init(
+            enabled: enabled,
+            exportInterval: exportInterval,
+            exportTimeout: exportTimeout,
+            defaultDurationHistogramBuckets: defaultDurationHistogramBuckets,
+            durationHistogramBuckets: durationHistogramBuckets,
+            defaultValueHistogramBuckets: defaultValueHistogramBuckets,
+            valueHistogramBuckets: valueHistogramBuckets,
+            exporter: exporter,
+            otlpExporter: otlpExporter
+        )
     }
 }

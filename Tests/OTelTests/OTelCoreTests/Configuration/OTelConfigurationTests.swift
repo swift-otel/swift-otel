@@ -896,6 +896,26 @@ import Testing
             #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("code_value"))
         }
     }
+
+    @Test func testMetricHistogramBuckets() {
+        OTel.Configuration.default.with { config in
+            #expect(config.metrics.defaultDurationHistogramBuckets == [0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000].map(Duration.milliseconds))
+            #expect(config.metrics.defaultValueHistogramBuckets == [0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000])
+            #expect(config.metrics.durationHistogramBuckets == [:])
+            #expect(config.metrics.valueHistogramBuckets == [:])
+        }
+        OTel.Configuration.default.with { config in
+            config.metrics.defaultValueHistogramBuckets = [1, 2, 3]
+            #expect(config.metrics.defaultValueHistogramBuckets == [1, 2, 3])
+        }
+        OTel.Configuration.default.withEnvironmentOverrides(environment: [
+            "OTEL_SWIFT_METRIC_DEFAULT_VALUE_HISTOGRAM_BUCKETS": "1,2,3",
+            "OTEL_SWIFT_METRIC_DEFAULT_DURATION_HISTOGRAM_BUCKETS": "4,5,6",
+        ]) { config in
+            #expect(config.metrics.defaultValueHistogramBuckets == [1, 2, 3])
+            #expect(config.metrics.defaultDurationHistogramBuckets == [4, 5, 6].map(Duration.milliseconds))
+        }
+    }
 }
 
 extension OTel.Configuration {
