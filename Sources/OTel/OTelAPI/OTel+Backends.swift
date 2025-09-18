@@ -238,6 +238,16 @@ extension OTel {
         }
         let resource = OTelResource(configuration: resolvedConfiguration)
         let registry = OTelMetricRegistry(logger: logger)
+        let factory = OTLPMetricsFactory(
+            registry: registry,
+            configuration: .init(
+                defaultDurationHistogramBuckets: resolvedConfiguration.metrics.defaultDurationHistogramBuckets,
+                durationHistogramBuckets: resolvedConfiguration.metrics.durationHistogramBuckets,
+                defaultValueHistogramBuckets: resolvedConfiguration.metrics.defaultValueHistogramBuckets,
+                valueHistogramBuckets: resolvedConfiguration.metrics.valueHistogramBuckets,
+                registrationPreprocessor: { ($0, $1) }
+            )
+        )
         let metricsExporter = try WrappedMetricExporter(configuration: resolvedConfiguration, logger: logger)
         let readerConfig = resolvedConfiguration.metrics
 
@@ -253,7 +263,7 @@ extension OTel {
             ))
         }
         let serviceGroup = ServiceGroup(configuration: .init(services: serviceConfigs, logger: logger))
-        return (OTLPMetricsFactory(registry: registry), serviceGroup)
+        return (factory, serviceGroup)
     }
 
     /// Create a tracing backend with an OTLP exporter.
