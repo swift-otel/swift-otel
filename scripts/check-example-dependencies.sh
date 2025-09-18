@@ -21,7 +21,7 @@ fatal() { error "$@"; exit 1; }
 current_script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 repo_root="$(git -C "${current_script_dir}" rev-parse --show-toplevel)"
 
-if [ "${PWD}" == "${repo_root}" ] || [ ! -r "${PWD}/Package.resolved" ]; then
+if [ "${PWD}" == "${repo_root}" ] || [ ! -r "${PWD}/Package.swift" ]; then
   fatal "This script should be run from the package root of an example projects _after_ building."
 fi
 
