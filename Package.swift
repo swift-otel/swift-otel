@@ -63,21 +63,15 @@ let package = Package(
                 .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "W3CTraceContext", package: "swift-w3c-trace-context"),
-                /// NOTE: Using `.when(traits: ["A", "B"])` is supposed to work as an OR, but is currently broken.
-                ///       so we "splat" it into two conditional dependencies. This produces a build warning about a
-                ///       duplicate dependency when both traits are enabled (which is the default, too), but it's the
-                ///       best we can do until the SwiftPM issue is addressed.
-                // Depend on this if either trait is enabled.
-                // .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPHTTP", "OTLPGRPC"])),
-                .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPHTTP"])),
-                .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPGRPC"])),
+                // OTLP exporter -- only when OTLPHTTP and/or OTLPGRPC traits are enabled.
+                .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPHTTP", "OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
                 // OTLP/HTTP exporter -- only when OTLPHTTP trait is enabled.
-                .product(name: "AsyncHTTPClient", package: "async-http-client", condition: .when(traits: ["OTLPHTTP"])),
-                .product(name: "NIOSSL", package: "swift-nio-ssl", condition: .when(traits: ["OTLPHTTP"])),
+                .product(name: "AsyncHTTPClient", package: "async-http-client", condition: .when(traits: ["OTLPHTTP"], alwaysIncludeOnKnownBrokenToolchains: true)),
+                .product(name: "NIOSSL", package: "swift-nio-ssl", condition: .when(traits: ["OTLPHTTP"], alwaysIncludeOnKnownBrokenToolchains: true)),
                 // OTLP/GRPC exporter -- only when OTLPGRPC trait is enabled.
-                .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf", condition: .when(traits: ["OTLPGRPC"])),
-                .product(name: "GRPCCore", package: "grpc-swift-2", condition: .when(traits: ["OTLPGRPC"])),
-                .product(name: "GRPCNIOTransportHTTP2", package: "grpc-swift-nio-transport", condition: .when(traits: ["OTLPGRPC"])),
+                .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf", condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
+                .product(name: "GRPCCore", package: "grpc-swift-2", condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
+                .product(name: "GRPCNIOTransportHTTP2", package: "grpc-swift-nio-transport", condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
             ],
             swiftSettings: sharedSwiftSettings
         ),
@@ -93,6 +87,22 @@ let package = Package(
     ],
     swiftLanguageModes: [.v6]
 )
+
+extension TargetDependencyCondition {
+    static func when(traits: Set<String>, alwaysIncludeOnKnownBrokenToolchains: Bool) -> Self? {
+        if alwaysIncludeOnKnownBrokenToolchains {
+            // NOTE: We can relax the upper bound here once a 6.2.x has fixed trait-based conditional dependencies.
+            // See: https://github.com/swiftlang/swift-package-manager/pull/9136
+            #if compiler(>=6.2.0) && compiler(<6.3.0)
+            return nil
+            #else
+            return .when(traits: traits)
+            #endif
+        } else {
+            return .when(traits: traits)
+        }
+    }
+}
 
 /// A set of related platform requirements to prevent version drift in availability annotations and package platforms.
 struct PlatformRequirements {
