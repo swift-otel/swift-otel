@@ -117,8 +117,8 @@ final class OTelTracerTests: XCTestCase {
         XCTAssertEqual(
             spanContext,
             .local(
-                traceID: .oneToSixteen,
-                spanID: .oneToEight,
+                traceID: .allZeroes,
+                spanID: .allZeroes,
                 parentSpanID: nil,
                 traceFlags: [],
                 traceState: TraceState()
