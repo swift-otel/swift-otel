@@ -63,7 +63,6 @@ jobs:
           > info.lcov
 
       - name: Upload code coverage report to Codecov
-        if: matrix.swift.version == '6.1'
         uses: codecov/codecov-action@v5.5.1
         with:
           files: ./info.lcov
