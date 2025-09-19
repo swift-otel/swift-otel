@@ -229,6 +229,8 @@ import Tracing
                     config.metrics.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.metrics.otlpExporter.protocol = .httpProtobuf
                     config.metrics.otlpExporter.headers = [("morale", "acceptable")]
+                    config.metrics.defaultValueHistogramBuckets = [.zero, 42]
+                    config.metrics.defaultDurationHistogramBuckets = [.zero, .microseconds(42)]
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
@@ -239,9 +241,14 @@ import Tracing
                             try await serviceGroup.run()
                         }
                         group.addTask {
-                            Gauge(label: "break_room.coffee_temperature").record(85)
-                            Counter(label: "macro_data_refinement.files.processed").increment(by: 12)
                             Counter(label: "optics_design.revisions.count").increment(by: 99)
+                            Gauge(label: "break_room.coffee_temperature").record(85.2)
+                            Recorder(label: "macro_data_refinement.files").record(42)
+                            Recorder(label: "macro_data_refinement.files").record(41)
+                            Recorder(label: "macro_data_refinement.files").record(43)
+                            Timer(label: "macro_data_refinement.duration").record(.microseconds(42))
+                            Timer(label: "macro_data_refinement.duration").record(.microseconds(41))
+                            Timer(label: "macro_data_refinement.duration").record(.microseconds(43))
                             await serviceGroup.triggerGracefulShutdown()
                         }
                         try await group.waitForAll()
@@ -256,12 +263,66 @@ import Tracing
                 }
                 try testServer.receiveBodyAndVerify { body in
                     let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(serializedBytes: ByteBufferWrapper(backing: body))
+
                     #expect(message.resourceMetrics.count == 1)
+                    let resource = try #require(message.resourceMetrics.first?.resource)
+                    #expect(resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
+                    #expect(resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                     #expect(message.resourceMetrics.first?.scopeMetrics.count == 1)
-                    #expect(message.resourceMetrics.first?.scopeMetrics.first?.metrics.count == 3)
-                    #expect(message.resourceMetrics.first?.resource.attributes.count == 2)
-                    #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
-                    #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+                    let metrics = try #require(message.resourceMetrics.first?.scopeMetrics.first?.metrics)
+                    #expect(metrics.count == 4)
+                    var sums: [Opentelemetry_Proto_Metrics_V1_Sum] = []
+                    var gauges: [Opentelemetry_Proto_Metrics_V1_Gauge] = []
+                    var histograms: [Opentelemetry_Proto_Metrics_V1_Histogram] = []
+                    for metric in metrics {
+                        switch metric.data {
+                        case .sum(let sum): sums.append(sum)
+                        case .gauge(let gauge): gauges.append(gauge)
+                        case .histogram(let histogram): histograms.append(histogram)
+                        default: Issue.record("Unexpected metric type: \(metric)")
+                        }
+                    }
+                    #expect((sums.count, gauges.count, histograms.count) == (1, 1, 2))
+
+                    let counter = try #require(metrics.first { $0.name == "optics_design.revisions.count" })
+                    switch counter.data {
+                    case .sum(let sum):
+                        #expect(sum.dataPoints.count == 1)
+                        #expect(sum.dataPoints.first?.asInt == 99)
+                    default: Issue.record("Unexpected metric type: \(counter)")
+                    }
+
+                    let gauge = try #require(metrics.first { $0.name == "break_room.coffee_temperature" })
+                    switch gauge.data {
+                    case .gauge(let gauge):
+                        #expect(gauge.dataPoints.count == 1)
+                        #expect(gauge.dataPoints.first?.asDouble == 85.2)
+                    default: Issue.record("Unexpected metric type: \(gauge)")
+                    }
+
+                    let recorder = try #require(metrics.first { $0.name == "macro_data_refinement.files" })
+                    switch recorder.data {
+                    case .histogram(let histogram):
+                        #expect(histogram.dataPoints.count == 1)
+                        #expect(histogram.dataPoints.first?.min == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.max == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.sum == 42.0 + 41.0 + 43.0)
+                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42.0, .infinity])
+                        #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
+                    default: Issue.record("Unexpected metric type: \(recorder)")
+                    }
+
+                    let timer = try #require(metrics.first { $0.name == "macro_data_refinement.duration" })
+                    switch timer.data {
+                    case .histogram(let histogram):
+                        #expect(histogram.dataPoints.count == 1)
+                        #expect(histogram.dataPoints.first?.min == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.max == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.sum == 42e-6 + 41e-6 + 43e-6)
+                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42e-6, .infinity])
+                        #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
+                    default: Issue.record("Unexpected metric type: \(timer)")
+                    }
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
@@ -293,6 +354,8 @@ import Tracing
                     config.metrics.otlpExporter.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                     config.metrics.otlpExporter.protocol = .httpJSON
                     config.metrics.otlpExporter.headers = [("morale", "acceptable")]
+                    config.metrics.defaultValueHistogramBuckets = [.zero, 42]
+                    config.metrics.defaultDurationHistogramBuckets = [.zero, .microseconds(42)]
                     config.serviceName = "innie"
                     config.resourceAttributes = ["deployment.environment": "prod"]
                     let observability = try OTel.bootstrap(configuration: config)
@@ -303,9 +366,14 @@ import Tracing
                             try await serviceGroup.run()
                         }
                         group.addTask {
-                            Gauge(label: "break_room.coffee_temperature").record(85)
-                            Counter(label: "macro_data_refinement.files.processed").increment(by: 12)
                             Counter(label: "optics_design.revisions.count").increment(by: 99)
+                            Gauge(label: "break_room.coffee_temperature").record(85.2)
+                            Recorder(label: "macro_data_refinement.files").record(42)
+                            Recorder(label: "macro_data_refinement.files").record(41)
+                            Recorder(label: "macro_data_refinement.files").record(43)
+                            Timer(label: "macro_data_refinement.duration").record(.microseconds(42))
+                            Timer(label: "macro_data_refinement.duration").record(.microseconds(41))
+                            Timer(label: "macro_data_refinement.duration").record(.microseconds(43))
                             await serviceGroup.triggerGracefulShutdown()
                         }
                         try await group.waitForAll()
@@ -321,11 +389,64 @@ import Tracing
                 try testServer.receiveBodyAndVerify { body in
                     let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
                     #expect(message.resourceMetrics.count == 1)
+                    let resource = try #require(message.resourceMetrics.first?.resource)
+                    #expect(resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
+                    #expect(resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                     #expect(message.resourceMetrics.first?.scopeMetrics.count == 1)
-                    #expect(message.resourceMetrics.first?.scopeMetrics.first?.metrics.count == 3)
-                    #expect(message.resourceMetrics.first?.resource.attributes.count == 2)
-                    #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
-                    #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+                    let metrics = try #require(message.resourceMetrics.first?.scopeMetrics.first?.metrics)
+                    #expect(metrics.count == 4)
+                    var sums: [Opentelemetry_Proto_Metrics_V1_Sum] = []
+                    var gauges: [Opentelemetry_Proto_Metrics_V1_Gauge] = []
+                    var histograms: [Opentelemetry_Proto_Metrics_V1_Histogram] = []
+                    for metric in metrics {
+                        switch metric.data {
+                        case .sum(let sum): sums.append(sum)
+                        case .gauge(let gauge): gauges.append(gauge)
+                        case .histogram(let histogram): histograms.append(histogram)
+                        default: Issue.record("Unexpected metric type: \(metric)")
+                        }
+                    }
+                    #expect((sums.count, gauges.count, histograms.count) == (1, 1, 2))
+
+                    let counter = try #require(metrics.first { $0.name == "optics_design.revisions.count" })
+                    switch counter.data {
+                    case .sum(let sum):
+                        #expect(sum.dataPoints.count == 1)
+                        #expect(sum.dataPoints.first?.asInt == 99)
+                    default: Issue.record("Unexpected metric type: \(counter)")
+                    }
+
+                    let gauge = try #require(metrics.first { $0.name == "break_room.coffee_temperature" })
+                    switch gauge.data {
+                    case .gauge(let gauge):
+                        #expect(gauge.dataPoints.count == 1)
+                        #expect(gauge.dataPoints.first?.asDouble == 85.2)
+                    default: Issue.record("Unexpected metric type: \(gauge)")
+                    }
+
+                    let recorder = try #require(metrics.first { $0.name == "macro_data_refinement.files" })
+                    switch recorder.data {
+                    case .histogram(let histogram):
+                        #expect(histogram.dataPoints.count == 1)
+                        #expect(histogram.dataPoints.first?.min == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.max == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.sum == 42.0 + 41.0 + 43.0)
+                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42.0, .infinity])
+                        #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
+                    default: Issue.record("Unexpected metric type: \(recorder)")
+                    }
+
+                    let timer = try #require(metrics.first { $0.name == "macro_data_refinement.duration" })
+                    switch timer.data {
+                    case .histogram(let histogram):
+                        #expect(histogram.dataPoints.count == 1)
+                        #expect(histogram.dataPoints.first?.min == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.max == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.sum == 42e-6 + 41e-6 + 43e-6)
+                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42e-6, .infinity])
+                        #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
+                    default: Issue.record("Unexpected metric type: \(timer)")
+                    }
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)

@@ -112,6 +112,17 @@ extension Int: OTelEnvironmentVariableRepresentable {
     static var hint: String? { "Value must be a non-negative integer" }
 }
 
+extension Double: OTelEnvironmentVariableRepresentable {
+    init?(environmentVariableValue: String) {
+        guard let value = Double(environmentVariableValue) else { return nil }
+        self = value
+    }
+
+    var environmentVariableValue: String { "\(self)" }
+
+    static var hint: String? { "Value must be a double" }
+}
+
 extension Duration: OTelEnvironmentVariableRepresentable {
     init?(environmentVariableValue: String) {
         // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#duration
