@@ -2,6 +2,7 @@ name: Benchmark PR vs main
 
 on:
   workflow_dispatch:
+  pull_request_target:
   pull_request:
     branches:
       - main
@@ -20,11 +21,11 @@ jobs:
   benchmark:
     name: Check benchmark regressions (Swift ${{ matrix.swift.version }})
     runs-on: ubuntu-latest
+    outputs:
+      comment_md: ${{ steps.benchmark-comment.outputs.comment_md }}
     timeout-minutes: 15
     continue-on-error: true
     permissions:
-      issues: write
-      pull-requests: write
       contents: read
 
     strategy:
@@ -116,13 +117,22 @@ jobs:
           swift package benchmark baseline compare main pull_request --no-progress --quiet --format markdown >> comment.md
           echo "</details>" >> comment.md
           set -e
+          content=$(cat comment.md)
+          echo "comment_md=$content" >> $GITHUB_OUTPUT
+      - name: Exit with correct status
+        run: |
+          exit ${{env.exitStatus}}
 
+  comment-on-pr:
+    if: github.event_name == 'pull_request_target'  # for permisions
+    runs-on: ubuntu-latest
+    needs: benchmark
+    steps:
       - name: Comment PR
-        if: ${{ env.hasBenchmark == '1' }}
         uses: thollander/actions-comment-pull-request@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          file-path: comment.md
+          message: ${{ needs.benchmark.outputs.comment_md }}
           comment-tag: benchmark
       - name: Exit with correct status
         run: |
