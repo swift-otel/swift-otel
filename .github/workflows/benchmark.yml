@@ -22,7 +22,7 @@ jobs:
     name: Check benchmark regressions (Swift ${{ matrix.swift.version }})
     runs-on: ubuntu-latest
     outputs:
-      comment_md: ${{ steps.benchmark-comment.outputs.comment_md }}
+      comment_md: ${{ steps.benchmark-comment.outputs.content }}
     timeout-minutes: 15
     continue-on-error: true
     permissions:
@@ -117,8 +117,11 @@ jobs:
           swift package benchmark baseline compare main pull_request --no-progress --quiet --format markdown >> comment.md
           echo "</details>" >> comment.md
           set -e
-          content=$(cat comment.md)
-          echo "comment_md=$content" >> $GITHUB_OUTPUT
+          {
+            echo 'content<<EOF'
+            cat multi-line-file.txt
+            echo EOF
+          } >> $GITHUB_OUTPUT
       - name: Exit with correct status
         run: |
           exit ${{env.exitStatus}}
