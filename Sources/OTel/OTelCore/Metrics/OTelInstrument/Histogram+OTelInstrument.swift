@@ -38,8 +38,8 @@ extension Histogram: OTelMetricInstrument {
                     timeNanosecondsSinceEpoch: instant.nanosecondsSinceEpoch,
                     count: UInt64(state.count),
                     sum: state.sum.bucketRepresentation,
-                    min: nil,
-                    max: nil,
+                    min: state.min?.bucketRepresentation,
+                    max: state.max?.bucketRepresentation,
                     buckets: state.buckets.map {
                         .init(
                             upperBound: $0.bound.bucketRepresentation,
