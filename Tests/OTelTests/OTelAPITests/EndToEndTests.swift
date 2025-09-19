@@ -304,8 +304,8 @@ import Tracing
                     switch recorder.data {
                     case .histogram(let histogram):
                         #expect(histogram.dataPoints.count == 1)
-                        #expect(histogram.dataPoints.first?.min == 0) // Swift OTel doesn't support this yet.
-                        #expect(histogram.dataPoints.first?.max == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.min == 41)
+                        #expect(histogram.dataPoints.first?.max == 43)
                         #expect(histogram.dataPoints.first?.sum == 42.0 + 41.0 + 43.0)
                         #expect(histogram.dataPoints.first?.explicitBounds == [0, 42.0, .infinity])
                         #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
@@ -316,8 +316,8 @@ import Tracing
                     switch timer.data {
                     case .histogram(let histogram):
                         #expect(histogram.dataPoints.count == 1)
-                        #expect(histogram.dataPoints.first?.min == 0) // Swift OTel doesn't support this yet.
-                        #expect(histogram.dataPoints.first?.max == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.min == 41e-6)
+                        #expect(histogram.dataPoints.first?.max == 43e-6)
                         #expect(histogram.dataPoints.first?.sum == 42e-6 + 41e-6 + 43e-6)
                         #expect(histogram.dataPoints.first?.explicitBounds == [0, 42e-6, .infinity])
                         #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
@@ -428,8 +428,8 @@ import Tracing
                     switch recorder.data {
                     case .histogram(let histogram):
                         #expect(histogram.dataPoints.count == 1)
-                        #expect(histogram.dataPoints.first?.min == 0) // Swift OTel doesn't support this yet.
-                        #expect(histogram.dataPoints.first?.max == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.min == 41)
+                        #expect(histogram.dataPoints.first?.max == 43)
                         #expect(histogram.dataPoints.first?.sum == 42.0 + 41.0 + 43.0)
                         #expect(histogram.dataPoints.first?.explicitBounds == [0, 42.0, .infinity])
                         #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
@@ -440,8 +440,8 @@ import Tracing
                     switch timer.data {
                     case .histogram(let histogram):
                         #expect(histogram.dataPoints.count == 1)
-                        #expect(histogram.dataPoints.first?.min == 0) // Swift OTel doesn't support this yet.
-                        #expect(histogram.dataPoints.first?.max == 0) // Swift OTel doesn't support this yet.
+                        #expect(histogram.dataPoints.first?.min == 41e-6)
+                        #expect(histogram.dataPoints.first?.max == 43e-6)
                         #expect(histogram.dataPoints.first?.sum == 42e-6 + 41e-6 + 43e-6)
                         #expect(histogram.dataPoints.first?.explicitBounds == [0, 42e-6, .infinity])
                         #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
