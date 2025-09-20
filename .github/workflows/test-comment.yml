@@ -1,8 +1,8 @@
-name: Benchmark Comment
+name: Test Comment
 
 on:
   workflow_run:
-    workflows: ["Benchmark PR vs main"]
+    workflows: ["Test Comment Gen"]
     types:
       - completed
 

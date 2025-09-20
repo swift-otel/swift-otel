@@ -1,20 +1,10 @@
-name: Benchmark PR vs main
+name: Test Comment Gen
 
 on:
   workflow_dispatch:
   pull_request:
     branches:
-      - main
-    paths:
-      - '**.swift'
-      - '**.yml'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-benchmark
-  cancel-in-progress: true
-
-env:
-  OTEL_ENABLE_BENCHMARKS: true
+      - 'sb/test-comment-gen'
 
 jobs:
   # Note that comment is done in a separate workflow
