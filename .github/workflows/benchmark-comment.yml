@@ -1,0 +1,27 @@
+# https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
+
+on:
+  workflow_run:
+    workflows: ["Benchmark PR vs main"]
+    types:
+      - completed
+
+jobs:
+  collect-benchmark-result:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: comment.md
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file-path: comment.md
+          comment-tag: benchmark
