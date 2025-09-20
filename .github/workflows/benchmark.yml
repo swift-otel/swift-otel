@@ -150,7 +150,7 @@ jobs:
         run: |
           echo "# Hello" >> comment.md
           echo "```swift" >> comment.md
-          echo "print(42) >> comment.md
+          echo "print(42)" >> comment.md
           echo "```" >> comment.md
       - name: Encodde markdown comment
         id: encode-comment
