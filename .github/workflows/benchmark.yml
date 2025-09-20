@@ -3,6 +3,11 @@ name: Benchmark PR vs main
 on:
   workflow_dispatch:
   pull_request_target:
+    branches:
+      - main
+    paths:
+      - '**.swift'
+      - '**.yml'
   pull_request:
     branches:
       - main
