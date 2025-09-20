@@ -1,4 +1,3 @@
-# https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
 name: Benchmark Comment
 
 on:
@@ -7,12 +6,13 @@ on:
     types:
       - completed
 
+# https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
 jobs:
   collect-benchmark-result:
     runs-on: ubuntu-latest
-    if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success'
+    # if: >
+    #   github.event.workflow_run.event == 'pull_request' &&
+    #   github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v4
