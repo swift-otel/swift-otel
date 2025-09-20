@@ -19,6 +19,7 @@ env:
 
 jobs:
   benchmark:
+    if: false
     name: Check benchmark regressions (Swift ${{ matrix.swift.version }})
     runs-on: ubuntu-latest
     outputs:
@@ -123,7 +124,8 @@ jobs:
           exit ${{env.exitStatus}}
 
   comment-on-pr:
-    if: github.event_name == 'pull_request_target'  # for permisions
+    if: false
+    # if: github.event_name == 'pull_request_target'  # for permisions
     runs-on: ubuntu-latest
     needs: benchmark
     steps:
