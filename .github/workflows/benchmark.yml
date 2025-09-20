@@ -136,3 +136,36 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file-path: comment.md
           comment-tag: benchmark
+
+
+  test-comment-gen:
+    if: github.event_name == 'pull_request'
+    outputs:
+      comment_md: ${{ steps.encode-comment.outputs.comment_md }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate markdown file
+        run: |
+          echo "# Hello" >> comment.md
+          echo "```swift" >> comment.md
+          echo "print(42) >> comment.md
+          echo "```" >> comment.md
+      - name: Encodde markdown comment
+        id: encode-comment
+        run: |
+          echo "comment_md=$(cat comment.md | base64 -w0) | tee -a $GITHUB_OUTPUT
+
+  test-comment:
+    if: github.event_name == 'pull_request_target'  # for permisions
+    runs-on: ubuntu-latest
+    needs: test-comment-gen
+    steps:
+      - name: Decode markdown comment
+        run: |
+          echo ${{ needs.test-comment-gen.outputs.comment_md }} | base64 -d | tee comment.md
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file-path: comment.md
+          comment-tag: benchmark
