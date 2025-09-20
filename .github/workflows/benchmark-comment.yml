@@ -1,4 +1,5 @@
 # https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
+name: Benchmark Comment
 
 on:
   workflow_run:
