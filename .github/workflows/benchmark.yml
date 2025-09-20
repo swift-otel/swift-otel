@@ -155,7 +155,7 @@ jobs:
       - name: Encodde markdown comment
         id: encode-comment
         run: |
-          echo "comment_md=$(cat comment.md | base64 -w0) | tee -a $GITHUB_OUTPUT
+          echo "comment_md=$(cat comment.md | base64 -w0)" | tee -a $GITHUB_OUTPUT
 
   test-comment:
     if: github.event_name == 'pull_request_target'  # for permisions
