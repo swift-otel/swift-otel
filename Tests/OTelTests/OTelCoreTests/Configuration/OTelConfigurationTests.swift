@@ -909,8 +909,8 @@ import Testing
             #expect(config.metrics.defaultValueHistogramBuckets == [1, 2, 3])
         }
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
-            "OTEL_SWIFT_METRIC_DEFAULT_VALUE_HISTOGRAM_BUCKETS": "1,2,3",
-            "OTEL_SWIFT_METRIC_DEFAULT_DURATION_HISTOGRAM_BUCKETS": "4,5,6",
+            "OTEL_SWIFT_METRICS_DEFAULT_VALUE_HISTOGRAM_BUCKETS": "1,2,3",
+            "OTEL_SWIFT_METRICS_DEFAULT_DURATION_HISTOGRAM_BUCKETS": "4,5,6",
         ]) { config in
             #expect(config.metrics.defaultValueHistogramBuckets == [1, 2, 3])
             #expect(config.metrics.defaultDurationHistogramBuckets == [4, 5, 6].map(Duration.milliseconds))

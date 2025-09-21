@@ -57,8 +57,8 @@ extension OTel.Configuration.Key.GeneralKey {
     static let metricsExporter = Self(key: "OTEL_METRICS_EXPORTER")
     static let metricExportInterval = Self(key: "OTEL_METRIC_EXPORT_INTERVAL")
     static let metricExportTimeout = Self(key: "OTEL_METRIC_EXPORT_TIMEOUT")
-    static let metricDefaultValueHistogramBuckets = Self(key: "OTEL_SWIFT_METRIC_DEFAULT_VALUE_HISTOGRAM_BUCKETS")
-    static let metricDefaultDurationHistogramBuckets = Self(key: "OTEL_SWIFT_METRIC_DEFAULT_DURATION_HISTOGRAM_BUCKETS")
+    static let metricDefaultValueHistogramBuckets = Self(key: "OTEL_SWIFT_METRICS_DEFAULT_VALUE_HISTOGRAM_BUCKETS")
+    static let metricDefaultDurationHistogramBuckets = Self(key: "OTEL_SWIFT_METRICS_DEFAULT_DURATION_HISTOGRAM_BUCKETS")
     static let logsExporter = Self(key: "OTEL_LOGS_EXPORTER")
     static let logsLevel = Self(key: "OTEL_SWIFT_LOG_LEVEL") // SDK-specific => different format.
     static let propagators = Self(key: "OTEL_PROPAGATORS")

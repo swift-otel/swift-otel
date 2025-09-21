@@ -332,7 +332,7 @@ extension OTel.Configuration {
 
         /// The default bucket upper bounds for duration histograms created for a Swift Metrics `Timer`.
         ///
-        /// - Environment variable(s): None.
+        /// - Environment variable(s): `OTEL_SWIFT_METRICS_DEFAULT_DURATION_HISTOGRAM_BUCKETS`.
         /// - Default value: `[0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000].map(Duration.milliseconds)`.
         /// - Notes: Buckets from `-∞` and  to `+∞` are derived, e.g. `[0, 5]` implies `(-∞, 0]`, `(0, 5]`, and `(5, +∞)`.
         public var defaultDurationHistogramBuckets: [Duration]
@@ -345,7 +345,7 @@ extension OTel.Configuration {
 
         /// The default bucket upper bounds for value histograms created for a Swift Metrics `Recorder`.
         ///
-        /// - Environment variable(s): None.
+        /// - Environment variable(s): `OTEL_SWIFT_METRICS_DEFAULT_VALUE_HISTOGRAM_BUCKETS`.
         /// - Default value: `[0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000]`
         /// - Notes: Buckets from `-∞` and  to `+∞` are derived, e.g. `[0, 5]` implies `(-∞, 0]`, `(0, 5]`, and `(5, +∞)`.
         public var defaultValueHistogramBuckets: [Double]
