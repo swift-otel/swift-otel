@@ -16,3 +16,7 @@
 - ``makeMetricsBackend(configuration:)``
 - ``makeTracingBackend(configuration:)``
 - ``makeLoggingMetadataProvider(configuration:)``
+
+### Trace ID
+
+- ``ServiceContextModule/ServiceContext/otelTraceID``
