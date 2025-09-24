@@ -14,8 +14,8 @@ let package = Package(
         .library(name: "OTel", targets: ["OTel"]),
     ],
     traits: [
-        .trait(name: "OTLPHTTP"),
-        .trait(name: "OTLPGRPC"),
+        .trait(name: "OTLPHTTP", description: "OTLP/HTTP exporter support"),
+        .trait(name: "OTLPGRPC", description: "OTLP/gRPC exporter support"),
         .default(enabledTraits: ["OTLPHTTP", "OTLPGRPC"]),
     ],
     dependencies: [
