@@ -22,13 +22,12 @@ import W3CTraceContext
 /// [OpenTelemetry Specification: Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/api.md#tracer)
 final class OTelTracer<
     IDGenerator: OTelIDGenerator,
-    Sampler: OTelSampler,
     Propagator: OTelPropagator,
     Processor: OTelSpanProcessor,
     Clock: _Concurrency.Clock
 >: Sendable where Clock.Duration == Duration {
     private let idGenerator: IDGenerator
-    private let sampler: Sampler
+    private let sampler: WrappedSampler
     private let propagator: Propagator
     private let processor: Processor
     private let resource: OTelResource
@@ -40,7 +39,7 @@ final class OTelTracer<
 
     init(
         idGenerator: IDGenerator,
-        sampler: Sampler,
+        sampler: WrappedSampler,
         propagator: Propagator,
         processor: Processor,
         environment: OTelEnvironment,
@@ -76,7 +75,7 @@ extension OTelTracer where Clock == ContinuousClock {
     ///   - resource: Attributes about the resource being traced. Should be obtained using <doc:resource-detection>.
     convenience init(
         idGenerator: IDGenerator,
-        sampler: Sampler,
+        sampler: WrappedSampler,
         propagator: Propagator,
         processor: Processor,
         environment: OTelEnvironment,
@@ -122,6 +121,8 @@ extension OTelTracer: Service {
     }
 }
 
+private let noOpSpan = OTelSpan.noOp(NoOpTracer.NoOpSpan(context: .topLevel))
+
 extension OTelTracer: Tracer {
     func startSpan(
         _ operationName: String,
@@ -132,13 +133,13 @@ extension OTelTracer: Tracer {
         file fileID: String,
         line: UInt
     ) -> OTelSpan {
+        // Fast-path for constant sampler.
+        if case .constant(let sampler) = sampler, sampler.decision == .drop { return noOpSpan }
+
         let parentContext = context()
-        var childContext = parentContext
 
         let traceID: TraceID
         let traceState: TraceState
-        let spanID = idGenerator.nextSpanID()
-
         if let parentSpanContext = parentContext.spanContext {
             traceID = parentSpanContext.traceID
             traceState = parentSpanContext.traceState
@@ -155,20 +156,24 @@ extension OTelTracer: Tracer {
             links: [],
             parentContext: parentContext
         )
-        let traceFlags: TraceFlags = samplingResult.decision == .recordAndSample ? .sampled : []
-        let spanContext = OTelSpanContext.local(
-            traceID: traceID,
-            spanID: spanID,
-            parentSpanID: parentContext.spanContext?.spanID,
-            traceFlags: traceFlags,
-            traceState: traceState
-        )
-        childContext.spanContext = spanContext
 
-        let span: OTelSpan = {
-            guard samplingResult.decision != .drop else {
-                return .noOp(NoOpTracer.NoOpSpan(context: childContext))
-            }
+        switch samplingResult.decision {
+        case .drop:
+            return noOpSpan
+
+        case .record, .recordAndSample:
+            let spanID = idGenerator.nextSpanID()
+            var childContext = parentContext
+
+            let traceFlags: TraceFlags = samplingResult.decision == .recordAndSample ? .sampled : []
+            let spanContext = OTelSpanContext.local(
+                traceID: traceID,
+                spanID: spanID,
+                parentSpanID: parentContext.spanContext?.spanID,
+                traceFlags: traceFlags,
+                traceState: traceState
+            )
+            childContext.spanContext = spanContext
 
             let recordingSpan = OTelSpan.recording(
                 operationName: operationName,
@@ -183,12 +188,10 @@ extension OTelTracer: Tracer {
                 }
             )
             recordingSpans.withLockedValue { $0[spanContext] = recordingSpan }
-            return recordingSpan
-        }()
-
-        eventStreamContinuation.yield(.spanStarted(span, parentContext: parentContext))
-
-        return span
+            let span = recordingSpan
+            eventStreamContinuation.yield(.spanStarted(span, parentContext: parentContext))
+            return span
+        }
     }
 
     func forceFlush() {

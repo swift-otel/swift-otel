@@ -16,7 +16,7 @@ import W3CTraceContext
 
 /// A sampler that always takes the same sampling decision.
 struct OTelConstantSampler: OTelSampler {
-    private let decision: OTelSamplingResult.Decision
+    let decision: OTelSamplingResult.Decision
 
     /// Create a sampler that always takes the given decision.
     ///
