@@ -103,10 +103,10 @@ extension OTel {
     /// ```
     ///
     /// - SeeAlso:
-    ///   - `OTel.bootstrap(configuration:)` for simple, all-in-one observability setup
-    ///   - `OTel.makeMetricsBackend(configuration:)` for metrics backend creation
-    ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
-    ///   - `OTel.Configuration` for configuration options and environment variables
+    ///   - ``bootstrap(configuration:)`` for simple, all-in-one observability setup
+    ///   - ``Configuration`` for configuration options and environment variables
+    ///   - ``makeMetricsBackend(configuration:)`` for metrics backend creation
+    ///   - ``makeTracingBackend(configuration:)`` for tracing backend creation
     public static func makeLoggingBackend(configuration: OTel.Configuration = .default) throws -> (factory: @Sendable (String) -> any LogHandler, service: some Service) {
         let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeLoggingBackend")
         var configuration = configuration
@@ -221,10 +221,10 @@ extension OTel {
     /// ```
     ///
     /// - SeeAlso:
-    ///   - `OTel.bootstrap(configuration:)` for simple, all-in-one observability setup
-    ///   - `OTel.makeLoggingBackend(configuration:)` for logging backend creation
-    ///   - `OTel.makeTracingBackend(configuration:)` for tracing backend creation
-    ///   - `OTel.Configuration` for configuration options and environment variables
+    ///   - ``bootstrap(configuration:)`` for simple, all-in-one observability setup
+    ///   - ``Configuration`` for configuration options and environment variables
+    ///   - ``makeLoggingBackend(configuration:)`` for logging backend creation
+    ///   - ``makeTracingBackend(configuration:)`` for tracing backend creation
     public static func makeMetricsBackend(configuration: OTel.Configuration = .default) throws -> (factory: some MetricsFactory, service: some Service) {
         let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeMetricsBackend")
         var configuration = configuration
@@ -347,10 +347,10 @@ extension OTel {
     /// ```
     ///
     /// - SeeAlso:
-    ///   - `OTel.bootstrap(configuration:)` for simple, all-in-one observability setup
-    ///   - `OTel.makeLoggingBackend(configuration:)` for logging backend creation
-    ///   - `OTel.makeMetricsBackend(configuration:)` for metrics backend creation
-    ///   - `OTel.Configuration` for configuration options and environment variables
+    ///   - ``bootstrap(configuration:)`` for simple, all-in-one observability setup
+    ///   - ``Configuration`` for configuration options and environment variables
+    ///   - ``makeLoggingBackend(configuration:)`` for logging backend creation
+    ///   - ``makeMetricsBackend(configuration:)`` for metrics backend creation
     public static func makeTracingBackend(configuration: OTel.Configuration = .default) throws -> (factory: some Tracer, service: some Service) {
         let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeTracingBackend")
         var configuration = configuration
