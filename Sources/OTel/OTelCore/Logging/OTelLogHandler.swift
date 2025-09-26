@@ -68,9 +68,9 @@ struct OTelLogHandler: Sendable, LogHandler {
         line: UInt
     ) {
         let codeMetadata: Logger.Metadata = [
-            "code.filepath": "\(file)",
-            "code.function": "\(function)",
-            "code.lineno": "\(line)",
+            "code.file.path": "\(file)",
+            "code.function.name": "\(function)",
+            "code.line.number": "\(line)",
         ]
 
         let effectiveMetadata: Logger.Metadata
