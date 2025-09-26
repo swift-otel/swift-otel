@@ -24,7 +24,7 @@ extension OTel {
     /// package, but wish to correlate their logging events with the current instrumentation trace, if it exists.
     ///
     /// - Note: When using the OTLP logging backend, this metadata is already included in the log record.
-    static func makeLoggingMetadataProvider(
+    public static func makeLoggingMetadataProvider(
         configuration: OTel.Configuration.LoggingMetadataProviderConfiguration = .default
     ) -> Logger.MetadataProvider {
         .otel(
