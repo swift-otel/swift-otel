@@ -83,6 +83,23 @@ jobs:
           which curl yq || (apt -q update && apt -yq install curl yq)
           scripts/check-docs.sh
 
+  check-api-breakage:
+    name: API Breakage Check
+    runs-on: ubuntu-latest
+    container:
+      image: swift:latest
+      options: --dns 1.1.1.1 --dns 8.8.8.8
+    steps:
+      - uses: actions/checkout@v5.0.0
+      - name: Mark the workspace as safe
+        # https://github.com/actions/checkout/issues/766
+        run: git config --global --add safe.directory ${GITHUB_WORKSPACE}
+      - name: Run API breakage check
+        run: |
+          git fetch ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} ${GITHUB_BASE_REF}:pull-base-ref
+          BASELINE_REF=pull-base-ref MODULE_NAME=OTel scripts/check-api-breakage.sh
+
+
   check-foundation-imports:
     name: Foundation Imports Check
     runs-on: ubuntu-latest
