@@ -34,7 +34,7 @@ final class OTelLogHandlerTests: XCTestCase {
 
         XCTAssertEqual(processor.records, [
             .stub(
-                metadata: ["code.filepath": "file", "code.function": "function", "code.lineno": "42"],
+                metadata: ["code.file.path": "file", "code.function.name": "function", "code.line.number": "42"],
                 resource: resource
             ),
         ])
@@ -57,7 +57,7 @@ final class OTelLogHandlerTests: XCTestCase {
 
         XCTAssertEqual(processor.records, [
             .stub(
-                metadata: ["code.filepath": "file", "code.function": "function", "code.lineno": "42", "logger": "42"],
+                metadata: ["code.file.path": "file", "code.function.name": "function", "code.line.number": "42", "logger": "42"],
                 resource: resource
             ),
         ])
@@ -74,13 +74,13 @@ final class OTelLogHandlerTests: XCTestCase {
                 nanosecondsSinceEpoch: { 42 }
             )
         }
-        logger[metadataKey: "code.filepath"] = "custom/file/path"
+        logger[metadataKey: "code.file.path"] = "custom/file/path"
 
         logger.info(.stub, file: "file", function: "function", line: 42)
 
         XCTAssertEqual(processor.records, [
             .stub(
-                metadata: ["code.filepath": "custom/file/path", "code.function": "function", "code.lineno": "42"],
+                metadata: ["code.file.path": "custom/file/path", "code.function.name": "function", "code.line.number": "42"],
                 resource: resource
             ),
         ])
@@ -102,7 +102,7 @@ final class OTelLogHandlerTests: XCTestCase {
 
         XCTAssertEqual(processor.records, [
             .stub(
-                metadata: ["code.filepath": "file", "code.function": "function", "code.lineno": "42", "handler": "42"],
+                metadata: ["code.file.path": "file", "code.function.name": "function", "code.line.number": "42", "handler": "42"],
                 resource: resource
             ),
         ])
@@ -126,9 +126,9 @@ final class OTelLogHandlerTests: XCTestCase {
         XCTAssertEqual(processor.records, [
             .stub(
                 metadata: [
-                    "code.filepath": "file",
-                    "code.function": "function",
-                    "code.lineno": "42",
+                    "code.file.path": "file",
+                    "code.function.name": "function",
+                    "code.line.number": "42",
                     "shared": "logger",
                 ],
                 resource: resource
@@ -154,9 +154,9 @@ final class OTelLogHandlerTests: XCTestCase {
         XCTAssertEqual(processor.records, [
             .stub(
                 metadata: [
-                    "code.filepath": "file",
-                    "code.function": "function",
-                    "code.lineno": "42",
+                    "code.file.path": "file",
+                    "code.function.name": "function",
+                    "code.line.number": "42",
                     "shared": "ad-hoc",
                 ],
                 resource: resource
@@ -175,11 +175,11 @@ final class OTelLogHandlerTests: XCTestCase {
                 nanosecondsSinceEpoch: { 42 }
             )
         }
-        logger[metadataKey: "code.lineno"] = "84"
+        logger[metadataKey: "code.line.number"] = "84"
 
         logger.info(
             .stub,
-            metadata: ["code.filepath": "custom/file/path"],
+            metadata: ["code.file.path": "custom/file/path"],
             file: "file",
             function: "function",
             line: 42
@@ -187,7 +187,7 @@ final class OTelLogHandlerTests: XCTestCase {
 
         XCTAssertEqual(processor.records, [
             .stub(
-                metadata: ["code.filepath": "custom/file/path", "code.function": "function", "code.lineno": "84"],
+                metadata: ["code.file.path": "custom/file/path", "code.function.name": "function", "code.line.number": "84"],
                 resource: resource
             ),
         ])
@@ -213,9 +213,9 @@ final class OTelLogHandlerTests: XCTestCase {
 
         let record = try XCTUnwrap(processor.records.first)
         XCTAssertEqual(record.metadata, [
-            "code.filepath": "file",
-            "code.function": "function",
-            "code.lineno": "42",
+            "code.file.path": "file",
+            "code.function.name": "function",
+            "code.line.number": "42",
             "shared": "logger",
         ])
     }
