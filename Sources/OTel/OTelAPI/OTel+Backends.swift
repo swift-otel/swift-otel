@@ -372,7 +372,6 @@ extension OTel {
             sampler: sampler,
             propagator: propagator,
             processor: processor,
-            environment: .detected(),
             resource: resource,
             logger: logger
         )

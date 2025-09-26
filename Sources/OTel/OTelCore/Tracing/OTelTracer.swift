@@ -42,7 +42,6 @@ final class OTelTracer<
         sampler: WrappedSampler,
         propagator: Propagator,
         processor: Processor,
-        environment: OTelEnvironment,
         resource: OTelResource,
         logger: Logger,
         clock: Clock
@@ -78,7 +77,6 @@ extension OTelTracer where Clock == ContinuousClock {
         sampler: WrappedSampler,
         propagator: Propagator,
         processor: Processor,
-        environment: OTelEnvironment,
         resource: OTelResource,
         logger: Logger
     ) {
@@ -87,7 +85,6 @@ extension OTelTracer where Clock == ContinuousClock {
             sampler: sampler,
             propagator: propagator,
             processor: processor,
-            environment: environment,
             resource: resource,
             logger: logger,
             clock: .continuous
