@@ -38,7 +38,7 @@ struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProcessor {
     }
 
     func run() async throws {
-        logger.info("Starting.")
+        logger.debug("Starting.")
         await withGracefulShutdownHandler {
             for await span in stream {
                 do {
@@ -50,11 +50,11 @@ struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProcessor {
                 }
             }
         } onGracefulShutdown: {
-            logger.info("Shutting down.")
+            logger.debug("Shutting down.")
             continuation.finish()
         }
         await exporter.shutdown()
-        logger.info("Shut down.")
+        logger.debug("Shut down.")
     }
 
     func onStart(_ span: OTelSpan, parentContext: ServiceContext) {

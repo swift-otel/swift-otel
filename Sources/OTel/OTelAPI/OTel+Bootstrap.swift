@@ -138,29 +138,24 @@ extension OTel {
 extension OTel {
     internal static func bootstrapTraces(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
         let backend = try makeTracingBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
+        logger.info("Bootstrapping instrumentation system with \(resolvedConfiguration.traces.exporterName) exporter.")
         InstrumentationSystem.bootstrap(backend.factory)
         return backend.service
     }
 
     internal static func bootstrapMetrics(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
         let backend = try makeMetricsBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
+        logger.info("Bootstrapping metrics system with \(resolvedConfiguration.metrics.exporterName) exporter.")
         MetricsSystem.bootstrap(backend.factory)
         return backend.service
     }
 
     internal static func bootstrapLogs(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
         let backend = try makeLoggingBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
-        let exporterName = switch (resolvedConfiguration.logs.exporter.backing, resolvedConfiguration.logs.otlpExporter.protocol.backing) {
-        case (.console, _): "console"
-        case (.none, _): "none"
-        case (.otlp, .httpProtobuf): "OTLP/HTTP+Protobuf"
-        case (.otlp, .httpJSON): "OTLP/HTTP+json"
-        case (.otlp, .grpc): "OTLP/gRPC"
-        }
         if resolvedConfiguration.logs.exporter.backing != .console {
             logger.info(
                 """
-                Bootstrapping logging system with \(exporterName) exporter.
+                Bootstrapping logging system with \(resolvedConfiguration.logs.exporterName) exporter.
                 ---
                 Only Swift OTel diagnostic logging will use the console logger.
 
@@ -181,8 +176,49 @@ extension OTel {
                 ---
                 """
             )
+        } else {
+            logger.info("Bootstrapping logging system with \(resolvedConfiguration.logs.exporterName) exporter.")
         }
         LoggingSystem.bootstrap(backend.factory)
         return backend.service
+    }
+}
+
+extension OTel.Configuration.LogsConfiguration {
+    fileprivate var exporterName: String {
+        switch (exporter.backing, otlpExporter.protocol.backing) {
+        case (.none, _): "none"
+        case (.console, _): "console"
+        case (.otlp, .httpProtobuf): "OTLP/HTTP+Protobuf"
+        case (.otlp, .httpJSON): "OTLP/HTTP+json"
+        case (.otlp, .grpc): "OTLP/gRPC"
+        }
+    }
+}
+
+extension OTel.Configuration.MetricsConfiguration {
+    fileprivate var exporterName: String {
+        switch (exporter.backing, otlpExporter.protocol.backing) {
+        case (.none, _): "none"
+        case (.console, _): "console"
+        case (.prometheus, _): "prometheus"
+        case (.otlp, .httpProtobuf): "OTLP/HTTP+Protobuf"
+        case (.otlp, .httpJSON): "OTLP/HTTP+json"
+        case (.otlp, .grpc): "OTLP/gRPC"
+        }
+    }
+}
+
+extension OTel.Configuration.TracesConfiguration {
+    fileprivate var exporterName: String {
+        switch (exporter.backing, otlpExporter.protocol.backing) {
+        case (.none, _): "none"
+        case (.console, _): "console"
+        case (.jaeger, _): "jaeger"
+        case (.zipkin, _): "zipkin"
+        case (.otlp, .httpProtobuf): "OTLP/HTTP+Protobuf"
+        case (.otlp, .httpJSON): "OTLP/HTTP+json"
+        case (.otlp, .grpc): "OTLP/gRPC"
+        }
     }
 }

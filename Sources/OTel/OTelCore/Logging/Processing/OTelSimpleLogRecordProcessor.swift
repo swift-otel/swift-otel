@@ -27,7 +27,7 @@ struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTelLogRec
     }
 
     func run() async throws {
-        logger.info("Starting.")
+        logger.debug("Starting.")
         await withGracefulShutdownHandler {
             for await record in stream {
                 do {
@@ -38,11 +38,11 @@ struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTelLogRec
                 }
             }
         } onGracefulShutdown: {
-            logger.info("Shutting down.")
+            logger.debug("Shutting down.")
             continuation.finish()
         }
         await exporter.shutdown()
-        logger.info("Shut down.")
+        logger.debug("Shut down.")
     }
 
     func onEmit(_ record: inout OTelLogRecord) {
@@ -51,7 +51,7 @@ struct OTelSimpleLogRecordProcessor<Exporter: OTelLogRecordExporter>: OTelLogRec
     }
 
     func forceFlush() async throws {
-        logger.info("Force flushing exporter.")
+        logger.debug("Force flushing exporter.")
         try await exporter.forceFlush()
     }
 }

@@ -90,13 +90,13 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
                 }
                 await taskGroup.waitForAll()
             } onGracefulShutdown: {
-                self.logger.info("Shutting down.")
+                self.logger.debug("Shutting down.")
                 self.spanContinuation.finish()
                 self.explicitTick.finish()
             }
             try? await self.forceFlush()
             await self.exporter.shutdown()
-            self.logger.info("Shut down.")
+            self.logger.debug("Shut down.")
         }
     }
 
@@ -105,7 +105,7 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
             logger.debug("Skipping force flush: buffer is empty")
             return
         }
-        logger.info("Force flushing.", metadata: ["buffer_size": "\(buffer.count)"])
+        logger.debug("Force flushing.", metadata: ["buffer_size": "\(buffer.count)"])
         try await withTimeout(configuration.exportTimeout, clock: clock) {
             await withTaskGroup { group in
                 var buffer = self.buffer
