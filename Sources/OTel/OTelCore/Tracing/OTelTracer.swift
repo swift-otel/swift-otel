@@ -94,7 +94,7 @@ extension OTelTracer where Clock == ContinuousClock {
 
 extension OTelTracer: Service {
     func run() async throws {
-        logger.info("Starting.")
+        logger.debug("Starting.")
         await withGracefulShutdownHandler {
             for await event in eventStream {
                 // We don't want to propagate the current span's service context into
@@ -111,10 +111,10 @@ extension OTelTracer: Service {
                 }
             }
         } onGracefulShutdown: {
-            self.logger.info("Shutting down.")
+            self.logger.debug("Shutting down.")
             self.eventStreamContinuation.finish()
         }
-        logger.info("Shut down.")
+        logger.debug("Shut down.")
     }
 }
 

@@ -69,7 +69,7 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     }
 
     func run() async throws {
-        logger.info("Starting.")
+        logger.debug("Starting.")
         let timerSequence = AsyncTimerSequence(interval: configuration.scheduleDelay, clock: clock).map { _ in }
         let mergedSequence = merge(timerSequence, explicitTickStream).cancelOnGracefulShutdown()
 
@@ -88,13 +88,13 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
                 }
                 await taskGroup.waitForAll()
             } onGracefulShutdown: {
-                self.logger.info("Shutting down.")
+                self.logger.debug("Shutting down.")
                 self.logContinuation.finish()
                 self.explicitTick.finish()
             }
             try? await self.forceFlush()
             await self.exporter.shutdown()
-            self.logger.info("Shut down.")
+            self.logger.debug("Shut down.")
         }
     }
 
@@ -103,7 +103,7 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
             logger.debug("Skipping force flush: buffer is empty")
             return
         }
-        logger.info("Force flushing.", metadata: ["buffer_size": "\(buffer.count)"])
+        logger.debug("Force flushing.", metadata: ["buffer_size": "\(buffer.count)"])
         try await withTimeout(configuration.exportTimeout, clock: clock) {
             await withTaskGroup { group in
                 var buffer = self.buffer
