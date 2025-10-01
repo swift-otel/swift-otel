@@ -35,7 +35,6 @@ let package = Package(
     platforms: [.macOS("13.0")],
     dependencies: [
         // ...
-        // NOTE: this will use `from: "1.0.0"` once its available.
         .package(url: "https://github.com/swift-otel/swift-otel.git", from: "1.0.0"),
     ],
     targets: [
