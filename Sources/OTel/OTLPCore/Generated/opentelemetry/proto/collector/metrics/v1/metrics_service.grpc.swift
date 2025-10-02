@@ -85,11 +85,6 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService {
     package protocol StreamingServiceProtocol: GRPCCore.RegistrableRPCService {
         /// Handle the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A streaming request of `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -119,11 +114,6 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService {
     package protocol ServiceProtocol: Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.StreamingServiceProtocol {
         /// Handle the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -150,11 +140,6 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService {
     /// > central collector.
     package protocol SimpleServiceProtocol: Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.ServiceProtocol {
         /// Handle the "Export" method.
-        ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
         ///
         /// - Parameters:
         ///   - request: A `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest` message.
@@ -237,11 +222,6 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService {
     package protocol ClientProtocol: Sendable {
         /// Call the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest` message.
         ///   - serializer: A serializer for `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest` messages.
@@ -284,11 +264,6 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService {
 
         /// Call the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest` message.
         ///   - serializer: A serializer for `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest` messages.
@@ -324,11 +299,6 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService {
 extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.ClientProtocol {
     /// Call the "Export" method.
     ///
-    /// > Source IDL Documentation:
-    /// >
-    /// > For performance reasons, it is recommended to keep this RPC
-    /// > alive for the entire life of the application.
-    ///
     /// - Parameters:
     ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -357,11 +327,6 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.ClientProtocol
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
 extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.ClientProtocol {
     /// Call the "Export" method.
-    ///
-    /// > Source IDL Documentation:
-    /// >
-    /// > For performance reasons, it is recommended to keep this RPC
-    /// > alive for the entire life of the application.
     ///
     /// - Parameters:
     ///   - message: request message to send.

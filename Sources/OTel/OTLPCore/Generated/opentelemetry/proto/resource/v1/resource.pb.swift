@@ -46,11 +46,28 @@ package struct Opentelemetry_Proto_Resource_V1_Resource: Sendable {
   /// Set of attributes that describe the resource.
   /// Attribute keys MUST be unique (it is not allowed to have more than one
   /// attribute with the same key).
+  ///
+  /// The attribute values SHOULD NOT contain empty values.
+  /// The attribute values SHOULD NOT contain bytes values.
+  /// The attribute values SHOULD NOT contain array values different than array of string values, bool values, int values,
+  /// double values.
+  /// The attribute values SHOULD NOT contain kvlist values.
+  /// The behavior of software that receives attributes containing such values can be unpredictable.
+  /// These restrictions can change in a minor release.
+  /// The restrictions take origin from the OpenTelemetry specification:
+  /// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.47.0/specification/common/README.md#attribute.
   package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
 
   /// dropped_attributes_count is the number of dropped attributes. If the value is 0, then
   /// no attributes were dropped.
   package var droppedAttributesCount: UInt32 = 0
+
+  /// Set of entities that participate in this Resource.
+  ///
+  /// Note: keys in the references MUST exist in attributes of this message.
+  ///
+  /// Status: [Development]
+  package var entityRefs: [Opentelemetry_Proto_Common_V1_EntityRef] = []
 
   package var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -63,7 +80,7 @@ fileprivate let _protobuf_package = "opentelemetry.proto.resource.v1"
 
 extension Opentelemetry_Proto_Resource_V1_Resource: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Resource"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}attributes\0\u{3}dropped_attributes_count\0")
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}attributes\0\u{3}dropped_attributes_count\0\u{3}entity_refs\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -73,6 +90,7 @@ extension Opentelemetry_Proto_Resource_V1_Resource: SwiftProtobuf.Message, Swift
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedMessageField(value: &self.attributes) }()
       case 2: try { try decoder.decodeSingularUInt32Field(value: &self.droppedAttributesCount) }()
+      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.entityRefs) }()
       default: break
       }
     }
@@ -85,12 +103,16 @@ extension Opentelemetry_Proto_Resource_V1_Resource: SwiftProtobuf.Message, Swift
     if self.droppedAttributesCount != 0 {
       try visitor.visitSingularUInt32Field(value: self.droppedAttributesCount, fieldNumber: 2)
     }
+    if !self.entityRefs.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.entityRefs, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   package static func ==(lhs: Opentelemetry_Proto_Resource_V1_Resource, rhs: Opentelemetry_Proto_Resource_V1_Resource) -> Bool {
     if lhs.attributes != rhs.attributes {return false}
     if lhs.droppedAttributesCount != rhs.droppedAttributesCount {return false}
+    if lhs.entityRefs != rhs.entityRefs {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

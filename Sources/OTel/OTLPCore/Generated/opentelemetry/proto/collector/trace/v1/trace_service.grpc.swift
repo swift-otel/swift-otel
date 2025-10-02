@@ -85,11 +85,6 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService {
     package protocol StreamingServiceProtocol: GRPCCore.RegistrableRPCService {
         /// Handle the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A streaming request of `Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -119,11 +114,6 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService {
     package protocol ServiceProtocol: Opentelemetry_Proto_Collector_Trace_V1_TraceService.StreamingServiceProtocol {
         /// Handle the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -150,11 +140,6 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService {
     /// > case spans are sent/received to/from multiple Applications).
     package protocol SimpleServiceProtocol: Opentelemetry_Proto_Collector_Trace_V1_TraceService.ServiceProtocol {
         /// Handle the "Export" method.
-        ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
         ///
         /// - Parameters:
         ///   - request: A `Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest` message.
@@ -237,11 +222,6 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService {
     package protocol ClientProtocol: Sendable {
         /// Call the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest` message.
         ///   - serializer: A serializer for `Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest` messages.
@@ -284,11 +264,6 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService {
 
         /// Call the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest` message.
         ///   - serializer: A serializer for `Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest` messages.
@@ -324,11 +299,6 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService {
 extension Opentelemetry_Proto_Collector_Trace_V1_TraceService.ClientProtocol {
     /// Call the "Export" method.
     ///
-    /// > Source IDL Documentation:
-    /// >
-    /// > For performance reasons, it is recommended to keep this RPC
-    /// > alive for the entire life of the application.
-    ///
     /// - Parameters:
     ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -357,11 +327,6 @@ extension Opentelemetry_Proto_Collector_Trace_V1_TraceService.ClientProtocol {
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
 extension Opentelemetry_Proto_Collector_Trace_V1_TraceService.ClientProtocol {
     /// Call the "Export" method.
-    ///
-    /// > Source IDL Documentation:
-    /// >
-    /// > For performance reasons, it is recommended to keep this RPC
-    /// > alive for the entire life of the application.
     ///
     /// - Parameters:
     ///   - message: request message to send.
