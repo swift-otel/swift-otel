@@ -59,6 +59,7 @@ OTLP_CORE_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/logs/v1/logs.proto
 OTLP_CORE_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/metrics/v1/metrics.proto
 OTLP_CORE_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/trace/v1/trace.proto
 OTLP_CORE_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/profiles/v1development/profiles.proto
+OTLP_CORE_PROTOS += grpc-status-proto/status.proto
 
 OTLP_GRPC_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/collector/logs/v1/logs_service.proto
 OTLP_GRPC_PROTOS += $(PROTO_ROOT)/opentelemetry/proto/collector/metrics/v1/metrics_service.proto
@@ -74,6 +75,7 @@ $(OTLP_CORE_SWIFTS): $(OTLP_CORE_PROTOS) $(PROTOC_GEN_SWIFT)
 	@mkdir -pv $(OTLP_CORE_SWIFT_ROOT)
 	protoc $(OTLP_CORE_PROTOS) \
 		--proto_path=$(PROTO_ROOT) \
+		-I grpc-status-proto \
 		--plugin=$(PROTOC_GEN_SWIFT) \
 		--swift_out=$(OTLP_CORE_SWIFT_ROOT) \
 		--swift_opt=Visibility=Package \
@@ -81,6 +83,7 @@ $(OTLP_CORE_SWIFTS): $(OTLP_CORE_PROTOS) $(PROTOC_GEN_SWIFT)
 		--experimental_allow_proto3_optional
 	protoc $(OTLP_GRPC_PROTOS) \
 		--proto_path=$(PROTO_ROOT) \
+		-I grpc-status-proto \
 		--plugin=$(PROTOC_GEN_SWIFT) \
 		--swift_out=$(OTLP_CORE_SWIFT_ROOT) \
 		--swift_opt=Visibility=Package \
