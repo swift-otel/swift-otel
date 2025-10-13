@@ -30,7 +30,7 @@ services:
       - "9090:9090"  # Prometheus web UI
 
   jaeger:
-    image: jaegertracing/all-in-one
+    image: jaegertracing/jaeger:latest
     ports:
       - "16686:16686"  # Jaeger Web UI
 
