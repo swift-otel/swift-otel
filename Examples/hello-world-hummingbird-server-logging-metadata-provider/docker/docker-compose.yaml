@@ -11,7 +11,7 @@ services:
       - "4318:4318"  # OTLP/HTTP receiver
 
   jaeger:
-    image: jaegertracing/all-in-one
+    image: jaegertracing/jaeger:latest
     ports:
       - "16686:16686"  # Jaeger Web UI
 
