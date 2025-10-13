@@ -15,6 +15,7 @@
 import Logging
 import Metrics
 import OTel // NOTE: Not @testable import, to test public API visibility.
+import ServiceLifecycle
 import Testing
 import Tracing
 
@@ -101,6 +102,47 @@ import Tracing
             config.traces.enabled = false
             _ = try OTel.bootstrap(configuration: config)
             LoggingSystem.bootstrap { _ in SwiftLogNoOpLogHandler() }
+        }
+    }
+
+    @Test func testBootstrapWithAllTelemetryDisabled() async throws {
+        actor WrappedBool {
+            var value: Bool
+
+            init(initialValue: Bool) {
+                value = initialValue
+            }
+
+            func set(to value: Bool) { self.value = value }
+        }
+
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            var config = OTel.Configuration.default
+            config.logs.enabled = false
+            config.metrics.enabled = false
+            config.traces.enabled = false
+            let observability = try OTel.bootstrap(configuration: config)
+            let observabilityService = ServiceGroup(
+                services: [observability],
+                logger: Logger(label: "ObservabilityService")
+            )
+
+            // Test that the service created by bootstrapping OTel with all services does not terminate immediately
+            // (aka. within 100ms)
+            let didTriggerShutdown = WrappedBool(initialValue: false)
+            try await withThrowingTaskGroup { group in
+                group.addTask {
+                    try await observabilityService.run()
+                    let didTriggerShutdown = await didTriggerShutdown.value
+                    #expect(didTriggerShutdown)
+                }
+                group.addTask {
+                    try await Task.sleep(for: .milliseconds(100))
+                    await didTriggerShutdown.set(to: true)
+                    await observabilityService.triggerGracefulShutdown()
+                }
+                try await group.waitForAll()
+            }
         }
     }
 }
