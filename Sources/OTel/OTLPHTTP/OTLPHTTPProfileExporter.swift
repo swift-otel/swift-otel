@@ -33,12 +33,13 @@ final class OTLPHTTPProfileExporter: OTelProfileExporter {
         try await exporter.run()
     }
 
-    func export(_ batch: some Collection<Opentelemetry_Proto_Profiles_V1development_ResourceProfiles> & Sendable) async throws {
+    func export(_ batch: some Collection<Opentelemetry_Proto_Profiles_V1development_ResourceProfiles> & Sendable, _ dictionary: Opentelemetry_Proto_Profiles_V1development_ProfilesDictionary) async throws {
         guard !batch.isEmpty else { return }
         let proto = Request.with { request in
             for profile in batch {
                 request.resourceProfiles.append(profile)
             }
+            request.dictionary = dictionary
         }
         let response = try await exporter.send(proto)
         if response.hasPartialSuccess {

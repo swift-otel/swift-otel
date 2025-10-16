@@ -339,15 +339,15 @@ internal enum WrappedProfileExporter: OTelProfileExporter {
         }
     }
 
-    func export(_ batch: some Collection<Opentelemetry_Proto_Profiles_V1development_ResourceProfiles> & Sendable) async throws {
+    func export(_ batch: some Collection<Opentelemetry_Proto_Profiles_V1development_ResourceProfiles> & Sendable, _ dictionary: Opentelemetry_Proto_Profiles_V1development_ProfilesDictionary) async throws {
         switch self {
         #if OTLPGRPC
-        case .grpc(let exporter): try await exporter.export(batch)
+        case .grpc(let exporter): try await exporter.export(batch, dictionary)
         #endif
         #if OTLPHTTP
-        case .http(let exporter): try await exporter.export(batch)
+        case .http(let exporter): try await exporter.export(batch, dictionary)
         #endif
-        case .console(let exporter): exporter.export(batch)
+        case .console(let exporter): exporter.export(batch, dictionary)
         case .none: break
         }
     }

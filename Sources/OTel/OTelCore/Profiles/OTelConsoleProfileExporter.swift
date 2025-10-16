@@ -11,7 +11,7 @@ struct OTelConsoleProfileExporter: OTelProfileExporter {
         try await gracefulShutdown()
     }
 
-    func export(_ batch: some Collection<Opentelemetry_Proto_Profiles_V1development_ResourceProfiles> & Sendable) {
+    func export(_ batch: some Collection<Opentelemetry_Proto_Profiles_V1development_ResourceProfiles> & Sendable, _ dictionary: Opentelemetry_Proto_Profiles_V1development_ProfilesDictionary) {
         for profile in batch {
             try? print(profile.jsonString())
         }

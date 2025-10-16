@@ -3,13 +3,13 @@
 //  swift-otel
 //
 
+import _ProfileRecorderSampleConversion
 import AsyncAlgorithms
 import Foundation
 import Logging
 import NIOCore
 import NIOFileSystem
 import ProfileRecorder
-import ProfileRecorderSampleConversion
 import ServiceLifecycle
 
 struct OTelPeriodicProfileSampler<Clock: _Concurrency.Clock> where Clock.Duration == Duration {
@@ -37,12 +37,12 @@ struct OTelPeriodicProfileSampler<Clock: _Concurrency.Clock> where Clock.Duratio
     func tick() async {
         do {
             let symbolizer: any Symbolizer = ProfileRecorderSampler._makeDefaultSymbolizer()
-            let bytes = try await FileSystem.shared.withTemporaryDirectory {
+            let result = try await FileSystem.shared.withTemporaryDirectory {
                 _,
                     tmpDirPath in
                 let symbolisedSamplesPath = tmpDirPath.appending("samples.otlp.pb")
 
-                try await ProfileRecorderSampler.sharedInstance._withSamples(
+                return try await ProfileRecorderSampler.sharedInstance._withSamples(
                     sampleCount: 1,
                     timeBetweenSamples: .zero,
                     format: .raw,
@@ -61,12 +61,10 @@ struct OTelPeriodicProfileSampler<Clock: _Concurrency.Clock> where Clock.Duratio
                         format: .perfSymbolized,
                         logger: logger
                     )
+                    return renderer.resultForSwiftOTel
                 }
-
-                return try Data(contentsOf: URL(filePath: symbolisedSamplesPath.string))
             }
 
-            let profile = try Opentelemetry_Proto_Profiles_V1development_Profile(serializedBytes: bytes)
             let batch = [
                 Opentelemetry_Proto_Profiles_V1development_ResourceProfiles.with {
                     $0.resource = .init(resource)
@@ -77,13 +75,12 @@ struct OTelPeriodicProfileSampler<Clock: _Concurrency.Clock> where Clock.Duratio
                             $0.attributes = []
                             $0.droppedAttributesCount = 0
                         }
-                        $0.profiles = [profile]
+                        $0.profiles = result.resourceProfiles.first!.scopeProfiles.first!.profiles
                     }]
                 },
             ]
-            try await exporter.export(batch)
+            try await exporter.export(batch, result.dictionary)
         } catch {
-            // TODO: log
             logger.info("samples failed", metadata: ["error": "\(error)"])
         }
     }
