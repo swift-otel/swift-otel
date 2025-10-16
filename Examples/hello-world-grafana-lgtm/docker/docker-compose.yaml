@@ -1,7 +1,7 @@
 version: "3.5"
 services:
   grafana:
-    image: docker-upstream.apple.com/grafana/otel-lgtm:latest
+    image: grafana/otel-lgtm:latest
     environment:
       - GF_PATHS_DATA=/data/grafana
     volumes:
