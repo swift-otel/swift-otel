@@ -19,6 +19,7 @@ struct OTelPeriodicProfileSampler<Clock: _Concurrency.Clock> where Clock.Duratio
     var exporter: OTelProfileExporter
     var configuration: OTel.Configuration.ProfilesConfiguration
     var clock: Clock
+    var symbolizer: any Symbolizer
 
     init(
         resource: OTelResource,
@@ -32,11 +33,11 @@ struct OTelPeriodicProfileSampler<Clock: _Concurrency.Clock> where Clock.Duratio
         self.configuration = configuration
         self.logger = logger.withMetadata(component: "OTelPeriodicExportingProfileSampler")
         self.clock = clock
+        symbolizer = ProfileRecorderSampler._makeDefaultSymbolizer()
     }
 
     func tick() async {
         do {
-            let symbolizer: any Symbolizer = ProfileRecorderSampler._makeDefaultSymbolizer()
             let result = try await FileSystem.shared.withTemporaryDirectory {
                 _,
                     tmpDirPath in
