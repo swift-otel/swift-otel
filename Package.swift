@@ -97,8 +97,10 @@ extension TargetDependencyCondition {
             // NOTE: Once 6.2.1 has been out for some reasonable time, we could potentially remove this workaround.
             // See: https://github.com/swiftlang/swift-package-manager/pull/9141
             #if compiler(>=6.2.0) && compiler(<6.2.1)
+            print("WORKAROUND ENABLED")
             return nil
             #else
+            print("WORKAROUND DISABLED")
             return .when(traits: traits)
             #endif
         } else {
