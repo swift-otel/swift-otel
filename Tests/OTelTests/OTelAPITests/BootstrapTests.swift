@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) // Swift Testing exit tests only added in 6.2
+import Foundation
 import Logging
 import Metrics
 import OTel // NOTE: Not @testable import, to test public API visibility.
@@ -105,7 +106,7 @@ import Tracing
         }
     }
 
-    @Test func testBootstrapWithAllTelemetryDisabled() async throws {
+    @Test func testBootstrapWithAllTelemetryDisabledViaEnvironmentVariable() async throws {
         actor WrappedBool {
             var value: Bool
 
@@ -117,11 +118,10 @@ import Tracing
         }
 
         await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
-            var config = OTel.Configuration.default
-            config.logs.enabled = false
-            config.metrics.enabled = false
-            config.traces.enabled = false
-            let observability = try OTel.bootstrap(configuration: config)
+            var environment = ProcessInfo.processInfo.environment
+            environment["OTEL_SDK_DISABLED"] = "true"
+            let config = OTel.Configuration.default
+            let observability = try OTel.bootstrap(configuration: config, environment: environment)
             let observabilityService = ServiceGroup(
                 services: [observability],
                 logger: Logger(label: "ObservabilityService")
@@ -142,6 +142,18 @@ import Tracing
                     await observabilityService.triggerGracefulShutdown()
                 }
                 try await group.waitForAll()
+            }
+        }
+    }
+
+    @Test func testBootstrapWithAllTelemetryDisabled() async throws {
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            var config = OTel.Configuration.default
+            config.logs.enabled = false
+            config.metrics.enabled = false
+            config.traces.enabled = false
+            #expect(throws: (any Error).self) {
+                _ = try OTel.bootstrap(configuration: config)
             }
         }
     }
