@@ -113,9 +113,17 @@ extension OTel {
     /// try await serviceGroup.run()
     /// ```
     public static func bootstrap(configuration: Configuration = .default) throws -> some Service {
+        try Self.bootstrap(configuration: configuration, environment: ProcessInfo.processInfo.environment)
+    }
+
+    package static func bootstrap(configuration: Configuration = .default, environment: [String: String]) throws -> some Service {
         let logger = configuration.makeDiagnosticLogger().withMetadata(component: "bootstrap")
         var configuration = configuration
-        configuration.applyEnvironmentOverrides(environment: ProcessInfo.processInfo.environment, logger: logger)
+        if configuration.logs.disabled, configuration.metrics.disabled, configuration.traces.disabled {
+            throw OTel.Configuration.Error.invalidConfiguration("bootstrap called but config has all telemetry disabled")
+        }
+
+        configuration.applyEnvironmentOverrides(environment: environment, logger: logger)
 
         var services: [Service] = []
 
