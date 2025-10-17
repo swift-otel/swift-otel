@@ -128,6 +128,18 @@ extension OTel {
         if configuration.traces.enabled {
             try services.append(bootstrapTraces(resolvedConfiguration: configuration, logger: logger))
         }
+        if services.isEmpty {
+            // If we created a service group that doesn't contain any services, it would return immediately, which would
+            // then take down the entire service lifecycle of a server because OTel terminates unexpectedly. To fix
+            // this, add a dummy service to the service group that doesn't do anything and just waits for a graceful
+            // shutdown.
+            struct DummyService: Service {
+                func run() async throws {
+                    try await gracefulShutdown()
+                }
+            }
+            services.append(DummyService())
+        }
 
         return ServiceGroup(services: services, logger: logger)
     }
