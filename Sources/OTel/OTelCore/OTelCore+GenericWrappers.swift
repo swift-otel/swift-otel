@@ -12,9 +12,9 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
+import ServiceLifecycle
 import Tracing
 import W3CTraceContext
-import ServiceLifecycle
 
 /// The wrapper types in this file exist to support our simplified public API surface.
 ///
