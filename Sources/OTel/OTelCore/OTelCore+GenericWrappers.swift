@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
+import ServiceLifecycle
 import Tracing
 import W3CTraceContext
 
@@ -69,7 +70,7 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
         case .http(let exporter): try await exporter.run()
         #endif
         case .console(let exporter): try await exporter.run()
-        case .none: break
+        case .none: try await gracefulShutdown()
         }
     }
 
@@ -158,7 +159,7 @@ internal enum WrappedMetricExporter: OTelMetricExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.run()
         #endif
-        case .none: break
+        case .none: try await gracefulShutdown()
         }
     }
 
@@ -245,7 +246,7 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
         #if OTLPHTTP
         case .http(let exporter): try await exporter.run()
         #endif
-        case .none: break
+        case .none: try await gracefulShutdown()
         }
     }
 
