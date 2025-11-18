@@ -111,10 +111,12 @@ extension OTelPeriodicProfileSampler where Clock == ContinuousClock {
         configuration: OTel.Configuration.ProfilesConfiguration,
         logger: Logger
     ) {
-        self.resource = resource
-        self.exporter = exporter
-        self.configuration = configuration
-        self.logger = logger.withMetadata(component: "OTelPeriodicProfileSampler")
-        clock = .continuous
+        self.init(
+            resource: resource,
+            exporter: exporter,
+            configuration: configuration,
+            logger: logger.withMetadata(component: "OTelPeriodicProfileSampler"),
+            clock: .continuous
+        )
     }
 }
