@@ -96,7 +96,7 @@ extension OTelMetricPoint.OTelMetricData {
         XCTAssertEqual(point.value, value, file: file, line: line)
     }
 
-    func assertIsCumulativeHistogramWith(count: Int, sum: Double, buckets: [OTelHistogramDataPoint.Bucket], file: StaticString = #filePath, line: UInt = #line) {
+    func assertIsCumulativeHistogramWith(count: Int, sum: Double, bucketCounts: [UInt64], explicitBounds: [Double], file: StaticString = #filePath, line: UInt = #line) {
         guard
             case .histogram(let histogram) = data,
             histogram.aggregationTemporality == .cumulative,
@@ -109,7 +109,8 @@ extension OTelMetricPoint.OTelMetricData {
 
         XCTAssertEqual(point.count, UInt64(count), file: file, line: line)
         XCTAssertEqual(point.sum, sum, file: file, line: line)
-        XCTAssertEqual(point.buckets, buckets, file: file, line: line)
+        XCTAssertEqual(point.bucketCounts, bucketCounts, file: file, line: line)
+        XCTAssertEqual(point.explicitBounds, explicitBounds, file: file, line: line)
     }
 }
 #endif

@@ -22,49 +22,44 @@ final class HistogramMeasurementTests: XCTestCase {
             .milliseconds(500),
             .seconds(1),
         ])
-        histogram.measure().data.assertIsCumulativeHistogramWith(count: 0, sum: 0.0, buckets: [
-            .init(upperBound: 0.1, count: 0),
-            .init(upperBound: 0.25, count: 0),
-            .init(upperBound: 0.5, count: 0),
-            .init(upperBound: 1.0, count: 0),
-            .init(upperBound: .infinity, count: 0),
-        ])
+        histogram.measure().data.assertIsCumulativeHistogramWith(
+            count: 0,
+            sum: 0.0,
+            bucketCounts: [0, 0, 0, 0, 0],
+            explicitBounds: [0.1, 0.25, 0.5, 1.0]
+        )
 
         histogram.record(.milliseconds(400))
-        histogram.measure().data.assertIsCumulativeHistogramWith(count: 1, sum: 0.4, buckets: [
-            .init(upperBound: 0.1, count: 0),
-            .init(upperBound: 0.25, count: 0),
-            .init(upperBound: 0.5, count: 1),
-            .init(upperBound: 1.0, count: 0),
-            .init(upperBound: .infinity, count: 0),
-        ])
+        histogram.measure().data.assertIsCumulativeHistogramWith(
+            count: 1,
+            sum: 0.4,
+            bucketCounts: [0, 0, 1, 0, 0],
+            explicitBounds: [0.1, 0.25, 0.5, 1.0]
+        )
 
         histogram.record(.milliseconds(600))
-        histogram.measure().data.assertIsCumulativeHistogramWith(count: 2, sum: 1.0, buckets: [
-            .init(upperBound: 0.1, count: 0),
-            .init(upperBound: 0.25, count: 0),
-            .init(upperBound: 0.5, count: 1),
-            .init(upperBound: 1.0, count: 1),
-            .init(upperBound: .infinity, count: 0),
-        ])
+        histogram.measure().data.assertIsCumulativeHistogramWith(
+            count: 2,
+            sum: 1.0,
+            bucketCounts: [0, 0, 1, 1, 0],
+            explicitBounds: [0.1, 0.25, 0.5, 1.0]
+        )
 
         histogram.record(.milliseconds(1200))
-        histogram.measure().data.assertIsCumulativeHistogramWith(count: 3, sum: 2.2, buckets: [
-            .init(upperBound: 0.1, count: 0),
-            .init(upperBound: 0.25, count: 0),
-            .init(upperBound: 0.5, count: 1),
-            .init(upperBound: 1.0, count: 1),
-            .init(upperBound: .infinity, count: 1),
-        ])
+        histogram.measure().data.assertIsCumulativeHistogramWith(
+            count: 3,
+            sum: 2.2,
+            bucketCounts: [0, 0, 1, 1, 1],
+            explicitBounds: [0.1, 0.25, 0.5, 1.0]
+        )
 
         histogram.record(.milliseconds(80))
-        histogram.measure().data.assertIsCumulativeHistogramWith(count: 4, sum: 2.28, buckets: [
-            .init(upperBound: 0.1, count: 1),
-            .init(upperBound: 0.25, count: 0),
-            .init(upperBound: 0.5, count: 1),
-            .init(upperBound: 1.0, count: 1),
-            .init(upperBound: .infinity, count: 1),
-        ])
+        histogram.measure().data.assertIsCumulativeHistogramWith(
+            count: 4,
+            sum: 2.28,
+            bucketCounts: [1, 0, 1, 1, 1],
+            explicitBounds: [0.1, 0.25, 0.5, 1.0]
+        )
     }
 
     func test_measure_followingConcurrentRecord_returnsCumulativeHistogram() async {
@@ -81,10 +76,12 @@ final class HistogramMeasurementTests: XCTestCase {
                 }
             }
         }
-        histogram.measure().data.assertIsCumulativeHistogramWith(count: 200_000, sum: 100_000, buckets: [
-            .init(upperBound: 0.5, count: 100_000),
-            .init(upperBound: .infinity, count: 100_000),
-        ])
+        histogram.measure().data.assertIsCumulativeHistogramWith(
+            count: 200_000,
+            sum: 100_000,
+            bucketCounts: [100_000, 100_000],
+            explicitBounds: [0.5]
+        )
     }
 
     func test_measure_measurementIncludesIdentifyingFields() {

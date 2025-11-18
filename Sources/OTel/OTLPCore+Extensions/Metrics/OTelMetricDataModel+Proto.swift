@@ -177,10 +177,8 @@ extension Opentelemetry_Proto_Metrics_V1_HistogramDataPoint {
         if let max = point.max {
             self.max = max
         }
-        for bucket in point.buckets {
-            bucketCounts.append(bucket.count)
-            explicitBounds.append(bucket.upperBound)
-        }
+        bucketCounts = point.bucketCounts
+        explicitBounds = point.explicitBounds
     }
 }
 

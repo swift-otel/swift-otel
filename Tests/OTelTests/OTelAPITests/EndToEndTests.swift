@@ -307,7 +307,7 @@ import Tracing
                         #expect(histogram.dataPoints.first?.min == 41)
                         #expect(histogram.dataPoints.first?.max == 43)
                         #expect(histogram.dataPoints.first?.sum == 42.0 + 41.0 + 43.0)
-                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42.0, .infinity])
+                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42.0])
                         #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
                     default: Issue.record("Unexpected metric type: \(recorder)")
                     }
@@ -319,7 +319,7 @@ import Tracing
                         #expect(histogram.dataPoints.first?.min == 41e-6)
                         #expect(histogram.dataPoints.first?.max == 43e-6)
                         #expect(histogram.dataPoints.first?.sum == 42e-6 + 41e-6 + 43e-6)
-                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42e-6, .infinity])
+                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42e-6])
                         #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
                     default: Issue.record("Unexpected metric type: \(timer)")
                     }
@@ -431,7 +431,7 @@ import Tracing
                         #expect(histogram.dataPoints.first?.min == 41)
                         #expect(histogram.dataPoints.first?.max == 43)
                         #expect(histogram.dataPoints.first?.sum == 42.0 + 41.0 + 43.0)
-                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42.0, .infinity])
+                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42.0])
                         #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
                     default: Issue.record("Unexpected metric type: \(recorder)")
                     }
@@ -443,7 +443,7 @@ import Tracing
                         #expect(histogram.dataPoints.first?.min == 41e-6)
                         #expect(histogram.dataPoints.first?.max == 43e-6)
                         #expect(histogram.dataPoints.first?.sum == 42e-6 + 41e-6 + 43e-6)
-                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42e-6, .infinity])
+                        #expect(histogram.dataPoints.first?.explicitBounds == [0, 42e-6])
                         #expect(histogram.dataPoints.first?.bucketCounts == [0, 2, 1])
                     default: Issue.record("Unexpected metric type: \(timer)")
                     }
