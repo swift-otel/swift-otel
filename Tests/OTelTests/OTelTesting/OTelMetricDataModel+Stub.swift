@@ -149,7 +149,8 @@ extension OTelHistogramDataPoint {
         sum: Double? = nil,
         min: Double? = nil,
         max: Double? = nil,
-        buckets: [Bucket] = []
+        bucketCounts: [UInt64] = [],
+        explicitBounds: [Double] = []
     ) -> Self {
         .init(
             attributes: attributes,
@@ -159,7 +160,8 @@ extension OTelHistogramDataPoint {
             sum: sum,
             min: min,
             max: max,
-            buckets: buckets
+            bucketCounts: bucketCounts,
+            explicitBounds: explicitBounds
         )
     }
 }

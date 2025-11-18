@@ -27,6 +27,16 @@ extension Histogram: OTelMetricInstrument {
     /// mapping to an OTel data point we can provide uses cumulative aggregation temporality.
     func measure(instant: some TracerInstant) -> OTelMetricPoint {
         let state = box.withLockedValue { $0 }
+        var bucketCounts = [UInt64]()
+        var explicitBounds = [Double]()
+        explicitBounds.reserveCapacity(state.buckets.count)
+        bucketCounts.reserveCapacity(state.buckets.count + 1)
+        for bucket in state.buckets {
+            bucketCounts.append(UInt64(bucket.count))
+            explicitBounds.append(bucket.bound.bucketRepresentation)
+        }
+        // The count above the highest explicit bound, should be present in bucket counts, but not explicit bounds.
+        bucketCounts.append(UInt64(state.countAboveUpperBound))
         return OTelMetricPoint(
             name: name,
             description: description ?? "",
@@ -40,17 +50,8 @@ extension Histogram: OTelMetricInstrument {
                     sum: state.sum.bucketRepresentation,
                     min: state.min?.bucketRepresentation,
                     max: state.max?.bucketRepresentation,
-                    buckets: state.buckets.map {
-                        .init(
-                            upperBound: $0.bound.bucketRepresentation,
-                            count: UInt64($0.count)
-                        )
-                    } + [
-                        .init(
-                            upperBound: .infinity,
-                            count: UInt64(state.countAboveUpperBound)
-                        ),
-                    ]
+                    bucketCounts: bucketCounts,
+                    explicitBounds: explicitBounds
                 )]
             ))
         )

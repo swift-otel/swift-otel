@@ -135,5 +135,6 @@ struct OTelHistogramDataPoint: Equatable, Sendable {
     var sum: Double?
     var min: Double?
     var max: Double?
-    var buckets: [Bucket]
+    var bucketCounts: [UInt64]
+    var explicitBounds: [Double]
 }

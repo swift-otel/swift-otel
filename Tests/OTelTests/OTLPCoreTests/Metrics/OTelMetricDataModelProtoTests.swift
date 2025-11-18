@@ -177,7 +177,8 @@ final class OTelMetricDataModelProtoTests: XCTestCase {
             sum: 13,
             min: 14,
             max: 15,
-            buckets: [.stub(), .stub()]
+            bucketCounts: [1, 2, 3],
+            explicitBounds: [0.1, 0.2]
         )
         let proto = Opentelemetry_Proto_Metrics_V1_HistogramDataPoint(point)
         XCTAssertEqual(proto.attributes.count, 1)
@@ -187,6 +188,7 @@ final class OTelMetricDataModelProtoTests: XCTestCase {
         XCTAssertEqual(proto.sum, 13)
         XCTAssertEqual(proto.min, 14)
         XCTAssertEqual(proto.max, 15)
-        XCTAssertEqual(proto.bucketCounts.count, 2)
+        XCTAssertEqual(proto.bucketCounts.count, 3)
+        XCTAssertEqual(proto.explicitBounds.count, 2)
     }
 }
