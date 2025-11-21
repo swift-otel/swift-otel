@@ -171,9 +171,11 @@ package enum Opentelemetry_Proto_Logs_V1_SeverityNumber: SwiftProtobuf.Enum, Swi
 
 }
 
-/// LogRecordFlags is defined as a protobuf 'uint32' type and is to be used as
-/// bit-fields. Each non-zero value defined in this enum is a bit-mask.
-/// To extract the bit-field, for example, use an expression like:
+/// LogRecordFlags represents constants used to interpret the
+/// LogRecord.flags field, which is protobuf 'fixed32' type and is to
+/// be used as bit-fields. Each non-zero value defined in this enum is
+/// a bit-mask.  To extract the bit-field, for example, use an
+/// expression like:
 ///
 ///   (logRecord.flags & LOG_RECORD_FLAGS_TRACE_FLAGS_MASK)
 package enum Opentelemetry_Proto_Logs_V1_LogRecordFlags: SwiftProtobuf.Enum, Swift.CaseIterable {
@@ -262,6 +264,10 @@ package struct Opentelemetry_Proto_Logs_V1_ResourceLogs: Sendable {
   /// A list of ScopeLogs that originate from a resource.
   package var scopeLogs: [Opentelemetry_Proto_Logs_V1_ScopeLogs] = []
 
+  /// The Schema URL, if known. This is the identifier of the Schema that the resource data
+  /// is recorded in. Notably, the last part of the URL path is the version number of the
+  /// schema: http[s]://server[:port]/path/<version>. To learn more about Schema URL see
+  /// https://opentelemetry.io/docs/specs/otel/schemas/#schema-url
   /// This schema_url applies to the data in the "resource" field. It does not apply
   /// to the data in the "scope_logs" field which have their own schema_url field.
   package var schemaURL: String = String()
@@ -294,6 +300,10 @@ package struct Opentelemetry_Proto_Logs_V1_ScopeLogs: Sendable {
   /// A list of log records.
   package var logRecords: [Opentelemetry_Proto_Logs_V1_LogRecord] = []
 
+  /// The Schema URL, if known. This is the identifier of the Schema that the log data
+  /// is recorded in. Notably, the last part of the URL path is the version number of the
+  /// schema: http[s]://server[:port]/path/<version>. To learn more about Schema URL see
+  /// https://opentelemetry.io/docs/specs/otel/schemas/#schema-url
   /// This schema_url applies to all logs in the "logs" field.
   package var schemaURL: String = String()
 
@@ -393,6 +403,18 @@ package struct Opentelemetry_Proto_Logs_V1_LogRecord: Sendable {
   ///   - the field is not present,
   ///   - the field contains an invalid value.
   package var spanID: Data = Data()
+
+  /// A unique identifier of event category/type.
+  /// All events with the same event_name are expected to conform to the same
+  /// schema for both their attributes and their body.
+  ///
+  /// Recommended to be fully qualified and short (no longer than 256 characters).
+  ///
+  /// Presence of event_name on the log record identifies this record
+  /// as an event.
+  ///
+  /// [Optional].
+  package var eventName: String = String()
 
   package var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -533,7 +555,7 @@ extension Opentelemetry_Proto_Logs_V1_ScopeLogs: SwiftProtobuf.Message, SwiftPro
 
 extension Opentelemetry_Proto_Logs_V1_LogRecord: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".LogRecord"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}time_unix_nano\0\u{3}severity_number\0\u{3}severity_text\0\u{2}\u{2}body\0\u{1}attributes\0\u{3}dropped_attributes_count\0\u{1}flags\0\u{3}trace_id\0\u{3}span_id\0\u{3}observed_time_unix_nano\0\u{c}\u{4}\u{1}")
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}time_unix_nano\0\u{3}severity_number\0\u{3}severity_text\0\u{2}\u{2}body\0\u{1}attributes\0\u{3}dropped_attributes_count\0\u{1}flags\0\u{3}trace_id\0\u{3}span_id\0\u{3}observed_time_unix_nano\0\u{3}event_name\0\u{c}\u{4}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -551,6 +573,7 @@ extension Opentelemetry_Proto_Logs_V1_LogRecord: SwiftProtobuf.Message, SwiftPro
       case 9: try { try decoder.decodeSingularBytesField(value: &self.traceID) }()
       case 10: try { try decoder.decodeSingularBytesField(value: &self.spanID) }()
       case 11: try { try decoder.decodeSingularFixed64Field(value: &self.observedTimeUnixNano) }()
+      case 12: try { try decoder.decodeSingularStringField(value: &self.eventName) }()
       default: break
       }
     }
@@ -591,6 +614,9 @@ extension Opentelemetry_Proto_Logs_V1_LogRecord: SwiftProtobuf.Message, SwiftPro
     if self.observedTimeUnixNano != 0 {
       try visitor.visitSingularFixed64Field(value: self.observedTimeUnixNano, fieldNumber: 11)
     }
+    if !self.eventName.isEmpty {
+      try visitor.visitSingularStringField(value: self.eventName, fieldNumber: 12)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -605,6 +631,7 @@ extension Opentelemetry_Proto_Logs_V1_LogRecord: SwiftProtobuf.Message, SwiftPro
     if lhs.flags != rhs.flags {return false}
     if lhs.traceID != rhs.traceID {return false}
     if lhs.spanID != rhs.spanID {return false}
+    if lhs.eventName != rhs.eventName {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

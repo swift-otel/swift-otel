@@ -213,6 +213,48 @@ package struct Opentelemetry_Proto_Common_V1_InstrumentationScope: Sendable {
   package init() {}
 }
 
+/// A reference to an Entity.
+/// Entity represents an object of interest associated with produced telemetry: e.g spans, metrics, profiles, or logs.
+///
+/// Status: [Development]
+package struct Opentelemetry_Proto_Common_V1_EntityRef: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// The Schema URL, if known. This is the identifier of the Schema that the entity data
+  /// is recorded in. To learn more about Schema URL see
+  /// https://opentelemetry.io/docs/specs/otel/schemas/#schema-url
+  ///
+  /// This schema_url applies to the data in this message and to the Resource attributes
+  /// referenced by id_keys and description_keys.
+  /// TODO: discuss if we are happy with this somewhat complicated definition of what
+  /// the schema_url applies to.
+  ///
+  /// This field obsoletes the schema_url field in ResourceMetrics/ResourceSpans/ResourceLogs.
+  package var schemaURL: String = String()
+
+  /// Defines the type of the entity. MUST not change during the lifetime of the entity.
+  /// For example: "service" or "host". This field is required and MUST not be empty
+  /// for valid entities.
+  package var type: String = String()
+
+  /// Attribute Keys that identify the entity.
+  /// MUST not change during the lifetime of the entity. The Id must contain at least one attribute.
+  /// These keys MUST exist in the containing {message}.attributes.
+  package var idKeys: [String] = []
+
+  /// Descriptive (non-identifying) attribute keys of the entity.
+  /// MAY change over the lifetime of the entity. MAY be empty.
+  /// These attribute keys are not part of entity's identity.
+  /// These keys MUST exist in the containing {message}.attributes.
+  package var descriptionKeys: [String] = []
+
+  package var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  package init() {}
+}
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "opentelemetry.proto.common.v1"
@@ -483,6 +525,51 @@ extension Opentelemetry_Proto_Common_V1_InstrumentationScope: SwiftProtobuf.Mess
     if lhs.version != rhs.version {return false}
     if lhs.attributes != rhs.attributes {return false}
     if lhs.droppedAttributesCount != rhs.droppedAttributesCount {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Opentelemetry_Proto_Common_V1_EntityRef: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  package static let protoMessageName: String = _protobuf_package + ".EntityRef"
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}schema_url\0\u{1}type\0\u{3}id_keys\0\u{3}description_keys\0")
+
+  package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.schemaURL) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.type) }()
+      case 3: try { try decoder.decodeRepeatedStringField(value: &self.idKeys) }()
+      case 4: try { try decoder.decodeRepeatedStringField(value: &self.descriptionKeys) }()
+      default: break
+      }
+    }
+  }
+
+  package func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.schemaURL.isEmpty {
+      try visitor.visitSingularStringField(value: self.schemaURL, fieldNumber: 1)
+    }
+    if !self.type.isEmpty {
+      try visitor.visitSingularStringField(value: self.type, fieldNumber: 2)
+    }
+    if !self.idKeys.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.idKeys, fieldNumber: 3)
+    }
+    if !self.descriptionKeys.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.descriptionKeys, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  package static func ==(lhs: Opentelemetry_Proto_Common_V1_EntityRef, rhs: Opentelemetry_Proto_Common_V1_EntityRef) -> Bool {
+    if lhs.schemaURL != rhs.schemaURL {return false}
+    if lhs.type != rhs.type {return false}
+    if lhs.idKeys != rhs.idKeys {return false}
+    if lhs.descriptionKeys != rhs.descriptionKeys {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

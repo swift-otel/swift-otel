@@ -136,6 +136,9 @@ extension OTel {
         if configuration.traces.enabled {
             try services.append(bootstrapTraces(resolvedConfiguration: configuration, logger: logger))
         }
+        if configuration.profiles.enabled {
+            try services.append(bootstrapProfiles(resolvedConfiguration: configuration, logger: logger))
+        }
         if services.isEmpty {
             // If we created a service group that doesn't contain any services, it would return immediately, which would
             // then take down the entire service lifecycle of a server because OTel terminates unexpectedly. To fix
@@ -202,6 +205,12 @@ extension OTel {
         LoggingSystem.bootstrap(backend.factory)
         return backend.service
     }
+
+    internal static func bootstrapProfiles(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
+        let backend = try makeProfilingBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
+        logger.info("Bootstrapping continuous profiling with \(resolvedConfiguration.profiles.exporterName) exporter.")
+        return backend
+    }
 }
 
 extension OTel.Configuration.LogsConfiguration {
@@ -236,6 +245,18 @@ extension OTel.Configuration.TracesConfiguration {
         case (.console, _): "console"
         case (.jaeger, _): "jaeger"
         case (.zipkin, _): "zipkin"
+        case (.otlp, .httpProtobuf): "OTLP/HTTP+Protobuf"
+        case (.otlp, .httpJSON): "OTLP/HTTP+json"
+        case (.otlp, .grpc): "OTLP/gRPC"
+        }
+    }
+}
+
+extension OTel.Configuration.ProfilesConfiguration {
+    fileprivate var exporterName: String {
+        switch (exporter.backing, otlpExporter.protocol.backing) {
+        case (.none, _): "none"
+        case (.console, _): "console"
         case (.otlp, .httpProtobuf): "OTLP/HTTP+Protobuf"
         case (.otlp, .httpJSON): "OTLP/HTTP+json"
         case (.otlp, .grpc): "OTLP/gRPC"

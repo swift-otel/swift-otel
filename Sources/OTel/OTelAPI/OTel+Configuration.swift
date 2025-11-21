@@ -128,6 +128,11 @@ extension OTel {
         /// - Default value: `.default` (enabled with default configuration).
         public var logs: LogsConfiguration
 
+        /// Configuration for continuous profiling integration.
+        ///
+        /// - Default value: `.default` (enabled with default configuration).
+        public var profiles: ProfilesConfiguration
+
         /// Default configuration.
         ///
         /// See individual property documentation for specific default values, which respect the OTel specification
@@ -140,7 +145,8 @@ extension OTel {
             propagators: [.traceContext],
             traces: .default,
             metrics: .default,
-            logs: .default
+            logs: .default,
+            profiles: .default
         )
     }
 }
@@ -440,6 +446,30 @@ extension OTel.Configuration {
             otlpExporter: .default
         )
     }
+
+    /// Configuration for continuous profiling integration.
+    ///
+    /// TODO: better docs.
+    public struct ProfilesConfiguration: Sendable {
+        public var enabled: Bool
+
+        public var exportInterval: Duration
+
+        public var exportTimeout: Duration
+
+        public var exporter: ExporterSelection
+
+        public var otlpExporter: OTLPExporterConfiguration
+
+        @_documentation(visibility: internal)
+        public static let `default`: Self = .init(
+            enabled: true,
+            exportInterval: .seconds(60),
+            exportTimeout: .seconds(30),
+            exporter: .otlp,
+            otlpExporter: .default
+        )
+    }
 }
 
 extension OTel.Configuration.TracesConfiguration {
@@ -691,6 +721,27 @@ extension OTel.Configuration.LogsConfiguration {
     }
 }
 
+extension OTel.Configuration.ProfilesConfiguration {
+    public struct ExporterSelection: Sendable {
+        enum Backing: String, CaseIterable, Sendable {
+            case otlp
+            case console
+            case none
+        }
+
+        var backing: Backing
+
+        /// OTLP (OpenTelemetry Protocol) exporter for traces.
+        public static let otlp: Self = .init(backing: .otlp)
+
+        /// No automatically configured exporter for traces.
+        public static let none: Self = .init(backing: .none)
+
+        /// Console exporter for traces (development/debugging).
+        public static let console: Self = .init(backing: .console)
+    }
+}
+
 extension OTel.Configuration {
     /// Configuration for OTLP (OpenTelemetry Protocol) exporters.
     ///
@@ -776,6 +827,14 @@ extension OTel.Configuration {
             case (true, _): endpoint
             case (false, true): "\(endpoint)v1/traces"
             case (false, false): "\(endpoint)/v1/traces"
+            }
+        }
+
+        var profilesHTTPEndpoint: String {
+            switch (endpointHasBeenExplicitlySet, endpoint.hasSuffix("/")) {
+            case (true, _): endpoint
+            case (false, true): "\(endpoint)v1development/profiles"
+            case (false, false): "\(endpoint)/v1development/profiles"
             }
         }
 

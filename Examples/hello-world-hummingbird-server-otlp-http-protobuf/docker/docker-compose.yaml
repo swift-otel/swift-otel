@@ -1,14 +1,17 @@
 version: "3.5"
 services:
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
-    command: ["--config=/etc/otel-collector-config.yaml"]
+    image: otel/opentelemetry-collector-contrib:0.137.0
+    command: ["--config=/etc/otel-collector-config.yaml", "--feature-gates=service.profilesSupport"]
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
       - ./logs:/logs:rw
     ports:
       - "4317:4317"  # OTLP/gRPC receiver
       - "4318:4318"  # OTLP/HTTP receiver
+
+  pyroscope:
+    image: grafana/pyroscope:1.15.0
 
   prometheus:
     image: prom/prometheus:latest
@@ -23,6 +26,11 @@ services:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
     ports:
       - "9090:9090"  # Prometheus web UI
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - "16686:16686"  # Jaeger Web UI
 
   jaeger:
     image: jaegertracing/jaeger:latest
