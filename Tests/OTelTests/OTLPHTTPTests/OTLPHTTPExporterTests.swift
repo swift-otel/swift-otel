@@ -591,6 +591,48 @@ import Tracing
             }
         }
     }
+
+    @Test func testHTTPClientSuccessResponseCodes() async throws {
+
+        // Grafana Cloud incorrectly returns 204 No Content on successful uploading of data
+        // instead of 200 OK, in violation of the OTLP specification.
+        // Other OTel clients have worked around it by accepting 204 as well:
+        // https://github.com/open-telemetry/opentelemetry-go/pull/4365
+        // otel-collector as well: https://github.com/open-telemetry/opentelemetry-collector/blob/ad49dc64648ddeeeb57f61a620cef06630a45b1e/exporter/otlphttpexporter/otlp.go#L205
+
+        let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
+        defer { #expect(throws: Never.self, "Error shutting down HTTP server") { try testServer.stop() } }
+
+        var config = OTel.Configuration.OTLPExporterConfiguration.default
+        config.protocol = .httpProtobuf
+        config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
+        let exporter = try OTLPHTTPLogRecordExporter(configuration: config)
+
+        try await withThrowingTaskGroup { group in
+            group.addTask { // client
+                try await exporter.export([OTelLogRecord.stub(
+                    body: "hello",
+                    level: .info
+                )])
+            }
+
+            // Return 204 No Content.
+            _ = try testServer.receiveHead()
+            _ = try testServer.receiveBody()
+            _ = try testServer.receiveEnd()
+            try testServer.writeOutbound(.head(.init(
+                version: .http1_1,
+                status: .noContent,
+                headers: [
+                    "content-type": "application/x-protobuf"
+                ]
+            )))
+            try testServer.writeOutbound(.body(.byteBuffer(.init())))
+            try testServer.writeOutbound(.end(nil))
+
+            try await group.waitForAll()
+        }
+    }
 }
 
 extension HTTPClient.RetryPolicy.RetryDecision {

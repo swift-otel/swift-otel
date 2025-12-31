@@ -98,7 +98,7 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
             retryPolicy: .otel
         )
 
-        guard response.status == .ok else {
+        guard 200...299 ~= response.status.code else {
             // https://opentelemetry.io/docs/specs/otlp/#failures
             // TODO: Apparently failures include Protobuf-encoded GRPC Status -- we could try and include it here.
             throw OTLPHTTPExporterError.requestFailed(response.status)
