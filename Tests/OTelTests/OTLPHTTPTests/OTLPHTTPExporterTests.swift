@@ -622,10 +622,7 @@ import Tracing
             _ = try testServer.receiveEnd()
             try testServer.writeOutbound(.head(.init(
                 version: .http1_1,
-                status: .noContent,
-                headers: [
-                    "content-type": "application/x-protobuf"
-                ]
+                status: .noContent
             )))
             try testServer.writeOutbound(.body(.byteBuffer(.init())))
             try testServer.writeOutbound(.end(nil))

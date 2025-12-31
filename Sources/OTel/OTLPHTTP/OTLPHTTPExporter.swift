@@ -114,7 +114,11 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         case .some(let content):
             throw OTLPHTTPExporterError.responseHasUnsupportedContentType(content)
         case .none:
-            throw OTLPHTTPExporterError.responseHasMissingContentType
+            if response.status == .noContent {
+                Response()
+            } else {
+                throw OTLPHTTPExporterError.responseHasMissingContentType
+            }
         }
         return responseMessage
     }
