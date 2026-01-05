@@ -593,7 +593,6 @@ import Tracing
     }
 
     @Test func testHTTPClientSuccessResponseCodes() async throws {
-
         // Grafana Cloud incorrectly returns 204 No Content on successful uploading of data
         // instead of 200 OK, in violation of the OTLP specification.
         // Other OTel clients have worked around it by accepting 204 as well:
