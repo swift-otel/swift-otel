@@ -608,24 +608,21 @@ import Tracing
         let exporter = try OTLPHTTPLogRecordExporter(configuration: config)
 
         try await withThrowingTaskGroup { group in
-            group.addTask { // client
-                try await exporter.export([OTelLogRecord.stub(
-                    body: "hello",
-                    level: .info
-                )])
+            group.addTask {
+                // Return 204 No Content.
+                _ = try testServer.receiveHead()
+                _ = try testServer.receiveBody()
+                _ = try testServer.receiveEnd()
+                try testServer.writeOutbound(.head(.init(
+                    version: .http1_1,
+                    status: .noContent
+                )))
             }
 
-            // Return 204 No Content.
-            _ = try testServer.receiveHead()
-            _ = try testServer.receiveBody()
-            _ = try testServer.receiveEnd()
-            try testServer.writeOutbound(.head(.init(
-                version: .http1_1,
-                status: .noContent
-            )))
-            try testServer.writeOutbound(.body(.byteBuffer(.init())))
-            try testServer.writeOutbound(.end(nil))
-
+            try await exporter.export([OTelLogRecord.stub(
+                body: "hello",
+                level: .info
+            )])
             try await group.waitForAll()
         }
     }
