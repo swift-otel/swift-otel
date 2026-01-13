@@ -42,6 +42,71 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
+/// SpanFlags represents constants used to interpret the
+/// Span.flags field, which is protobuf 'fixed32' type and is to
+/// be used as bit-fields. Each non-zero value defined in this enum is
+/// a bit-mask.  To extract the bit-field, for example, use an
+/// expression like:
+///
+///   (span.flags & SPAN_FLAGS_TRACE_FLAGS_MASK)
+///
+/// See https://www.w3.org/TR/trace-context-2/#trace-flags for the flag definitions.
+///
+/// Note that Span flags were introduced in version 1.1 of the
+/// OpenTelemetry protocol.  Older Span producers do not set this
+/// field, consequently consumers should not rely on the absence of a
+/// particular flag bit to indicate the presence of a particular feature.
+package enum Opentelemetry_Proto_Trace_V1_SpanFlags: SwiftProtobuf.Enum, Swift.CaseIterable {
+  package typealias RawValue = Int
+
+  /// The zero value for the enum. Should not be used for comparisons.
+  /// Instead use bitwise "and" with the appropriate mask as shown above.
+  case doNotUse // = 0
+
+  /// Bits 0-7 are used for trace flags.
+  case traceFlagsMask // = 255
+
+  /// Bits 8 and 9 are used to indicate that the parent span or link span is remote.
+  /// Bit 8 (`HAS_IS_REMOTE`) indicates whether the value is known.
+  /// Bit 9 (`IS_REMOTE`) indicates whether the span or link is remote.
+  case contextHasIsRemoteMask // = 256
+  case contextIsRemoteMask // = 512
+  case UNRECOGNIZED(Int)
+
+  package init() {
+    self = .doNotUse
+  }
+
+  package init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .doNotUse
+    case 255: self = .traceFlagsMask
+    case 256: self = .contextHasIsRemoteMask
+    case 512: self = .contextIsRemoteMask
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  package var rawValue: Int {
+    switch self {
+    case .doNotUse: return 0
+    case .traceFlagsMask: return 255
+    case .contextHasIsRemoteMask: return 256
+    case .contextIsRemoteMask: return 512
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  package static let allCases: [Opentelemetry_Proto_Trace_V1_SpanFlags] = [
+    .doNotUse,
+    .traceFlagsMask,
+    .contextHasIsRemoteMask,
+    .contextIsRemoteMask,
+  ]
+
+}
+
 /// TracesData represents the traces data that can be stored in a persistent storage,
 /// OR can be embedded by other protocols that transfer OTLP traces data but do
 /// not implement the OTLP protocol.
@@ -89,6 +154,10 @@ package struct Opentelemetry_Proto_Trace_V1_ResourceSpans: Sendable {
   /// A list of ScopeSpans that originate from a resource.
   package var scopeSpans: [Opentelemetry_Proto_Trace_V1_ScopeSpans] = []
 
+  /// The Schema URL, if known. This is the identifier of the Schema that the resource data
+  /// is recorded in. Notably, the last part of the URL path is the version number of the
+  /// schema: http[s]://server[:port]/path/<version>. To learn more about Schema URL see
+  /// https://opentelemetry.io/docs/specs/otel/schemas/#schema-url
   /// This schema_url applies to the data in the "resource" field. It does not apply
   /// to the data in the "scope_spans" field which have their own schema_url field.
   package var schemaURL: String = String()
@@ -121,6 +190,10 @@ package struct Opentelemetry_Proto_Trace_V1_ScopeSpans: Sendable {
   /// A list of Spans that originate from an instrumentation scope.
   package var spans: [Opentelemetry_Proto_Trace_V1_Span] = []
 
+  /// The Schema URL, if known. This is the identifier of the Schema that the span data
+  /// is recorded in. Notably, the last part of the URL path is the version number of the
+  /// schema: http[s]://server[:port]/path/<version>. To learn more about Schema URL see
+  /// https://opentelemetry.io/docs/specs/otel/schemas/#schema-url
   /// This schema_url applies to all spans and span events in the "spans" field.
   package var schemaURL: String = String()
 
@@ -134,7 +207,7 @@ package struct Opentelemetry_Proto_Trace_V1_ScopeSpans: Sendable {
 /// A Span represents a single operation performed by a single component of the system.
 ///
 /// The next available field id is 17.
-package struct Opentelemetry_Proto_Trace_V1_Span: Sendable {
+package struct Opentelemetry_Proto_Trace_V1_Span: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -145,7 +218,10 @@ package struct Opentelemetry_Proto_Trace_V1_Span: Sendable {
   /// is zero-length and thus is also invalid).
   ///
   /// This field is required.
-  package var traceID: Data = Data()
+  package var traceID: Data {
+    get {return _storage._traceID}
+    set {_uniqueStorage()._traceID = newValue}
+  }
 
   /// A unique identifier for a span within a trace, assigned when the span
   /// is created. The ID is an 8-byte array. An ID with all zeroes OR of length
@@ -153,16 +229,51 @@ package struct Opentelemetry_Proto_Trace_V1_Span: Sendable {
   /// is zero-length and thus is also invalid).
   ///
   /// This field is required.
-  package var spanID: Data = Data()
+  package var spanID: Data {
+    get {return _storage._spanID}
+    set {_uniqueStorage()._spanID = newValue}
+  }
 
   /// trace_state conveys information about request position in multiple distributed tracing graphs.
   /// It is a trace_state in w3c-trace-context format: https://www.w3.org/TR/trace-context/#tracestate-header
   /// See also https://github.com/w3c/distributed-tracing for more details about this field.
-  package var traceState: String = String()
+  package var traceState: String {
+    get {return _storage._traceState}
+    set {_uniqueStorage()._traceState = newValue}
+  }
 
   /// The `span_id` of this span's parent span. If this is a root span, then this
   /// field must be empty. The ID is an 8-byte array.
-  package var parentSpanID: Data = Data()
+  package var parentSpanID: Data {
+    get {return _storage._parentSpanID}
+    set {_uniqueStorage()._parentSpanID = newValue}
+  }
+
+  /// Flags, a bit field.
+  ///
+  /// Bits 0-7 (8 least significant bits) are the trace flags as defined in W3C Trace
+  /// Context specification. To read the 8-bit W3C trace flag, use
+  /// `flags & SPAN_FLAGS_TRACE_FLAGS_MASK`.
+  ///
+  /// See https://www.w3.org/TR/trace-context-2/#trace-flags for the flag definitions.
+  ///
+  /// Bits 8 and 9 represent the 3 states of whether a span's parent
+  /// is remote. The states are (unknown, is not remote, is remote).
+  /// To read whether the value is known, use `(flags & SPAN_FLAGS_CONTEXT_HAS_IS_REMOTE_MASK) != 0`.
+  /// To read whether the span is remote, use `(flags & SPAN_FLAGS_CONTEXT_IS_REMOTE_MASK) != 0`.
+  ///
+  /// When creating span messages, if the message is logically forwarded from another source
+  /// with an equivalent flags fields (i.e., usually another OTLP span message), the field SHOULD
+  /// be copied as-is. If creating from a source that does not have an equivalent flags field
+  /// (such as a runtime representation of an OpenTelemetry span), the high 22 bits MUST
+  /// be set to zero.
+  /// Readers MUST NOT assume that bits 10-31 (22 most significant bits) will be zero.
+  ///
+  /// [Optional].
+  package var flags: UInt32 {
+    get {return _storage._flags}
+    set {_uniqueStorage()._flags = newValue}
+  }
 
   /// A description of the span's operation.
   ///
@@ -175,12 +286,18 @@ package struct Opentelemetry_Proto_Trace_V1_Span: Sendable {
   /// Empty value is equivalent to an unknown span name.
   ///
   /// This field is required.
-  package var name: String = String()
+  package var name: String {
+    get {return _storage._name}
+    set {_uniqueStorage()._name = newValue}
+  }
 
   /// Distinguishes between spans generated in a particular context. For example,
   /// two spans with the same name may be distinguished using `CLIENT` (caller)
   /// and `SERVER` (callee) to identify queueing latency associated with the span.
-  package var kind: Opentelemetry_Proto_Trace_V1_Span.SpanKind = .unspecified
+  package var kind: Opentelemetry_Proto_Trace_V1_Span.SpanKind {
+    get {return _storage._kind}
+    set {_uniqueStorage()._kind = newValue}
+  }
 
   /// start_time_unix_nano is the start time of the span. On the client side, this is the time
   /// kept by the local machine where the span execution starts. On the server side, this
@@ -188,7 +305,10 @@ package struct Opentelemetry_Proto_Trace_V1_Span: Sendable {
   /// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
   ///
   /// This field is semantically required and it is expected that end_time >= start_time.
-  package var startTimeUnixNano: UInt64 = 0
+  package var startTimeUnixNano: UInt64 {
+    get {return _storage._startTimeUnixNano}
+    set {_uniqueStorage()._startTimeUnixNano = newValue}
+  }
 
   /// end_time_unix_nano is the end time of the span. On the client side, this is the time
   /// kept by the local machine where the span execution ends. On the server side, this
@@ -196,7 +316,10 @@ package struct Opentelemetry_Proto_Trace_V1_Span: Sendable {
   /// Value is UNIX Epoch time in nanoseconds since 00:00:00 UTC on 1 January 1970.
   ///
   /// This field is semantically required and it is expected that end_time >= start_time.
-  package var endTimeUnixNano: UInt64 = 0
+  package var endTimeUnixNano: UInt64 {
+    get {return _storage._endTimeUnixNano}
+    set {_uniqueStorage()._endTimeUnixNano = newValue}
+  }
 
   /// attributes is a collection of key/value pairs. Note, global attributes
   /// like server name can be set using the resource API. Examples of attributes:
@@ -206,42 +329,68 @@ package struct Opentelemetry_Proto_Trace_V1_Span: Sendable {
   ///     "example.com/myattribute": true
   ///     "example.com/score": 10.239
   ///
-  /// The OpenTelemetry API specification further restricts the allowed value types:
-  /// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/README.md#attribute
   /// Attribute keys MUST be unique (it is not allowed to have more than one
   /// attribute with the same key).
-  package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
+  ///
+  /// The attribute values SHOULD NOT contain empty values.
+  /// The attribute values SHOULD NOT contain bytes values.
+  /// The attribute values SHOULD NOT contain array values different than array of string values, bool values, int values,
+  /// double values.
+  /// The attribute values SHOULD NOT contain kvlist values.
+  /// The behavior of software that receives attributes containing such values can be unpredictable.
+  /// These restrictions can change in a minor release.
+  /// The restrictions take origin from the OpenTelemetry specification:
+  /// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.47.0/specification/common/README.md#attribute.
+  package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] {
+    get {return _storage._attributes}
+    set {_uniqueStorage()._attributes = newValue}
+  }
 
   /// dropped_attributes_count is the number of attributes that were discarded. Attributes
   /// can be discarded because their keys are too long or because there are too many
   /// attributes. If this value is 0, then no attributes were dropped.
-  package var droppedAttributesCount: UInt32 = 0
+  package var droppedAttributesCount: UInt32 {
+    get {return _storage._droppedAttributesCount}
+    set {_uniqueStorage()._droppedAttributesCount = newValue}
+  }
 
   /// events is a collection of Event items.
-  package var events: [Opentelemetry_Proto_Trace_V1_Span.Event] = []
+  package var events: [Opentelemetry_Proto_Trace_V1_Span.Event] {
+    get {return _storage._events}
+    set {_uniqueStorage()._events = newValue}
+  }
 
   /// dropped_events_count is the number of dropped events. If the value is 0, then no
   /// events were dropped.
-  package var droppedEventsCount: UInt32 = 0
+  package var droppedEventsCount: UInt32 {
+    get {return _storage._droppedEventsCount}
+    set {_uniqueStorage()._droppedEventsCount = newValue}
+  }
 
   /// links is a collection of Links, which are references from this span to a span
   /// in the same or different trace.
-  package var links: [Opentelemetry_Proto_Trace_V1_Span.Link] = []
+  package var links: [Opentelemetry_Proto_Trace_V1_Span.Link] {
+    get {return _storage._links}
+    set {_uniqueStorage()._links = newValue}
+  }
 
   /// dropped_links_count is the number of dropped links after the maximum size was
   /// enforced. If this value is 0, then no links were dropped.
-  package var droppedLinksCount: UInt32 = 0
+  package var droppedLinksCount: UInt32 {
+    get {return _storage._droppedLinksCount}
+    set {_uniqueStorage()._droppedLinksCount = newValue}
+  }
 
   /// An optional final status for this span. Semantically when Status isn't set, it means
   /// span's status code is unset, i.e. assume STATUS_CODE_UNSET (code = 0).
   package var status: Opentelemetry_Proto_Trace_V1_Status {
-    get {return _status ?? Opentelemetry_Proto_Trace_V1_Status()}
-    set {_status = newValue}
+    get {return _storage._status ?? Opentelemetry_Proto_Trace_V1_Status()}
+    set {_uniqueStorage()._status = newValue}
   }
   /// Returns true if `status` has been explicitly set.
-  package var hasStatus: Bool {return self._status != nil}
+  package var hasStatus: Bool {return _storage._status != nil}
   /// Clears the value of `status`. Subsequent reads from it will return its default value.
-  package mutating func clearStatus() {self._status = nil}
+  package mutating func clearStatus() {_uniqueStorage()._status = nil}
 
   package var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -334,6 +483,16 @@ package struct Opentelemetry_Proto_Trace_V1_Span: Sendable {
     /// attributes is a collection of attribute key/value pairs on the event.
     /// Attribute keys MUST be unique (it is not allowed to have more than one
     /// attribute with the same key).
+    ///
+    /// The attribute values SHOULD NOT contain empty values.
+    /// The attribute values SHOULD NOT contain bytes values.
+    /// The attribute values SHOULD NOT contain array values different than array of string values, bool values, int values,
+    /// double values.
+    /// The attribute values SHOULD NOT contain kvlist values.
+    /// The behavior of software that receives attributes containing such values can be unpredictable.
+    /// These restrictions can change in a minor release.
+    /// The restrictions take origin from the OpenTelemetry specification:
+    /// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.47.0/specification/common/README.md#attribute.
     package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
 
     /// dropped_attributes_count is the number of dropped attributes. If the value is 0,
@@ -367,11 +526,40 @@ package struct Opentelemetry_Proto_Trace_V1_Span: Sendable {
     /// attributes is a collection of attribute key/value pairs on the link.
     /// Attribute keys MUST be unique (it is not allowed to have more than one
     /// attribute with the same key).
+    ///
+    /// The attribute values SHOULD NOT contain empty values.
+    /// The attribute values SHOULD NOT contain bytes values.
+    /// The attribute values SHOULD NOT contain array values different than array of string values, bool values, int values,
+    /// double values.
+    /// The attribute values SHOULD NOT contain kvlist values.
+    /// The behavior of software that receives attributes containing such values can be unpredictable.
+    /// These restrictions can change in a minor release.
+    /// The restrictions take origin from the OpenTelemetry specification:
+    /// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.47.0/specification/common/README.md#attribute.
     package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
 
     /// dropped_attributes_count is the number of dropped attributes. If the value is 0,
     /// then no attributes were dropped.
     package var droppedAttributesCount: UInt32 = 0
+
+    /// Flags, a bit field.
+    ///
+    /// Bits 0-7 (8 least significant bits) are the trace flags as defined in W3C Trace
+    /// Context specification. To read the 8-bit W3C trace flag, use
+    /// `flags & SPAN_FLAGS_TRACE_FLAGS_MASK`.
+    ///
+    /// See https://www.w3.org/TR/trace-context-2/#trace-flags for the flag definitions.
+    ///
+    /// Bits 8 and 9 represent the 3 states of whether the link is remote.
+    /// The states are (unknown, is not remote, is remote).
+    /// To read whether the value is known, use `(flags & SPAN_FLAGS_CONTEXT_HAS_IS_REMOTE_MASK) != 0`.
+    /// To read whether the link is remote, use `(flags & SPAN_FLAGS_CONTEXT_IS_REMOTE_MASK) != 0`.
+    ///
+    /// Readers MUST NOT assume that bits 10-31 (22 most significant bits) will be zero.
+    /// When creating new spans, bits 10-31 (most-significant 22-bits) MUST be zero.
+    ///
+    /// [Optional].
+    package var flags: UInt32 = 0
 
     package var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -380,7 +568,7 @@ package struct Opentelemetry_Proto_Trace_V1_Span: Sendable {
 
   package init() {}
 
-  fileprivate var _status: Opentelemetry_Proto_Trace_V1_Status? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 /// The Status type defines a logical error model that is suitable for different
@@ -451,6 +639,10 @@ package struct Opentelemetry_Proto_Trace_V1_Status: Sendable {
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "opentelemetry.proto.trace.v1"
+
+extension Opentelemetry_Proto_Trace_V1_SpanFlags: SwiftProtobuf._ProtoNameProviding {
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0SPAN_FLAGS_DO_NOT_USE\0\u{2}\u{7f}\u{3}SPAN_FLAGS_TRACE_FLAGS_MASK\0\u{1}SPAN_FLAGS_CONTEXT_HAS_IS_REMOTE_MASK\0\u{2}@\u{4}SPAN_FLAGS_CONTEXT_IS_REMOTE_MASK\0")
+}
 
 extension Opentelemetry_Proto_Trace_V1_TracesData: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".TracesData"
@@ -572,103 +764,174 @@ extension Opentelemetry_Proto_Trace_V1_ScopeSpans: SwiftProtobuf.Message, SwiftP
 
 extension Opentelemetry_Proto_Trace_V1_Span: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Span"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}trace_id\0\u{3}span_id\0\u{3}trace_state\0\u{3}parent_span_id\0\u{1}name\0\u{1}kind\0\u{3}start_time_unix_nano\0\u{3}end_time_unix_nano\0\u{1}attributes\0\u{3}dropped_attributes_count\0\u{1}events\0\u{3}dropped_events_count\0\u{1}links\0\u{3}dropped_links_count\0\u{1}status\0")
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}trace_id\0\u{3}span_id\0\u{3}trace_state\0\u{3}parent_span_id\0\u{1}name\0\u{1}kind\0\u{3}start_time_unix_nano\0\u{3}end_time_unix_nano\0\u{1}attributes\0\u{3}dropped_attributes_count\0\u{1}events\0\u{3}dropped_events_count\0\u{1}links\0\u{3}dropped_links_count\0\u{1}status\0\u{1}flags\0")
+
+  fileprivate class _StorageClass {
+    var _traceID: Data = Data()
+    var _spanID: Data = Data()
+    var _traceState: String = String()
+    var _parentSpanID: Data = Data()
+    var _flags: UInt32 = 0
+    var _name: String = String()
+    var _kind: Opentelemetry_Proto_Trace_V1_Span.SpanKind = .unspecified
+    var _startTimeUnixNano: UInt64 = 0
+    var _endTimeUnixNano: UInt64 = 0
+    var _attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
+    var _droppedAttributesCount: UInt32 = 0
+    var _events: [Opentelemetry_Proto_Trace_V1_Span.Event] = []
+    var _droppedEventsCount: UInt32 = 0
+    var _links: [Opentelemetry_Proto_Trace_V1_Span.Link] = []
+    var _droppedLinksCount: UInt32 = 0
+    var _status: Opentelemetry_Proto_Trace_V1_Status? = nil
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _traceID = source._traceID
+      _spanID = source._spanID
+      _traceState = source._traceState
+      _parentSpanID = source._parentSpanID
+      _flags = source._flags
+      _name = source._name
+      _kind = source._kind
+      _startTimeUnixNano = source._startTimeUnixNano
+      _endTimeUnixNano = source._endTimeUnixNano
+      _attributes = source._attributes
+      _droppedAttributesCount = source._droppedAttributesCount
+      _events = source._events
+      _droppedEventsCount = source._droppedEventsCount
+      _links = source._links
+      _droppedLinksCount = source._droppedLinksCount
+      _status = source._status
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularBytesField(value: &self.traceID) }()
-      case 2: try { try decoder.decodeSingularBytesField(value: &self.spanID) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.traceState) }()
-      case 4: try { try decoder.decodeSingularBytesField(value: &self.parentSpanID) }()
-      case 5: try { try decoder.decodeSingularStringField(value: &self.name) }()
-      case 6: try { try decoder.decodeSingularEnumField(value: &self.kind) }()
-      case 7: try { try decoder.decodeSingularFixed64Field(value: &self.startTimeUnixNano) }()
-      case 8: try { try decoder.decodeSingularFixed64Field(value: &self.endTimeUnixNano) }()
-      case 9: try { try decoder.decodeRepeatedMessageField(value: &self.attributes) }()
-      case 10: try { try decoder.decodeSingularUInt32Field(value: &self.droppedAttributesCount) }()
-      case 11: try { try decoder.decodeRepeatedMessageField(value: &self.events) }()
-      case 12: try { try decoder.decodeSingularUInt32Field(value: &self.droppedEventsCount) }()
-      case 13: try { try decoder.decodeRepeatedMessageField(value: &self.links) }()
-      case 14: try { try decoder.decodeSingularUInt32Field(value: &self.droppedLinksCount) }()
-      case 15: try { try decoder.decodeSingularMessageField(value: &self._status) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularBytesField(value: &_storage._traceID) }()
+        case 2: try { try decoder.decodeSingularBytesField(value: &_storage._spanID) }()
+        case 3: try { try decoder.decodeSingularStringField(value: &_storage._traceState) }()
+        case 4: try { try decoder.decodeSingularBytesField(value: &_storage._parentSpanID) }()
+        case 5: try { try decoder.decodeSingularStringField(value: &_storage._name) }()
+        case 6: try { try decoder.decodeSingularEnumField(value: &_storage._kind) }()
+        case 7: try { try decoder.decodeSingularFixed64Field(value: &_storage._startTimeUnixNano) }()
+        case 8: try { try decoder.decodeSingularFixed64Field(value: &_storage._endTimeUnixNano) }()
+        case 9: try { try decoder.decodeRepeatedMessageField(value: &_storage._attributes) }()
+        case 10: try { try decoder.decodeSingularUInt32Field(value: &_storage._droppedAttributesCount) }()
+        case 11: try { try decoder.decodeRepeatedMessageField(value: &_storage._events) }()
+        case 12: try { try decoder.decodeSingularUInt32Field(value: &_storage._droppedEventsCount) }()
+        case 13: try { try decoder.decodeRepeatedMessageField(value: &_storage._links) }()
+        case 14: try { try decoder.decodeSingularUInt32Field(value: &_storage._droppedLinksCount) }()
+        case 15: try { try decoder.decodeSingularMessageField(value: &_storage._status) }()
+        case 16: try { try decoder.decodeSingularFixed32Field(value: &_storage._flags) }()
+        default: break
+        }
       }
     }
   }
 
   package func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.traceID.isEmpty {
-      try visitor.visitSingularBytesField(value: self.traceID, fieldNumber: 1)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if !_storage._traceID.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._traceID, fieldNumber: 1)
+      }
+      if !_storage._spanID.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._spanID, fieldNumber: 2)
+      }
+      if !_storage._traceState.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._traceState, fieldNumber: 3)
+      }
+      if !_storage._parentSpanID.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._parentSpanID, fieldNumber: 4)
+      }
+      if !_storage._name.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._name, fieldNumber: 5)
+      }
+      if _storage._kind != .unspecified {
+        try visitor.visitSingularEnumField(value: _storage._kind, fieldNumber: 6)
+      }
+      if _storage._startTimeUnixNano != 0 {
+        try visitor.visitSingularFixed64Field(value: _storage._startTimeUnixNano, fieldNumber: 7)
+      }
+      if _storage._endTimeUnixNano != 0 {
+        try visitor.visitSingularFixed64Field(value: _storage._endTimeUnixNano, fieldNumber: 8)
+      }
+      if !_storage._attributes.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._attributes, fieldNumber: 9)
+      }
+      if _storage._droppedAttributesCount != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._droppedAttributesCount, fieldNumber: 10)
+      }
+      if !_storage._events.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._events, fieldNumber: 11)
+      }
+      if _storage._droppedEventsCount != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._droppedEventsCount, fieldNumber: 12)
+      }
+      if !_storage._links.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._links, fieldNumber: 13)
+      }
+      if _storage._droppedLinksCount != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._droppedLinksCount, fieldNumber: 14)
+      }
+      try { if let v = _storage._status {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
+      } }()
+      if _storage._flags != 0 {
+        try visitor.visitSingularFixed32Field(value: _storage._flags, fieldNumber: 16)
+      }
     }
-    if !self.spanID.isEmpty {
-      try visitor.visitSingularBytesField(value: self.spanID, fieldNumber: 2)
-    }
-    if !self.traceState.isEmpty {
-      try visitor.visitSingularStringField(value: self.traceState, fieldNumber: 3)
-    }
-    if !self.parentSpanID.isEmpty {
-      try visitor.visitSingularBytesField(value: self.parentSpanID, fieldNumber: 4)
-    }
-    if !self.name.isEmpty {
-      try visitor.visitSingularStringField(value: self.name, fieldNumber: 5)
-    }
-    if self.kind != .unspecified {
-      try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 6)
-    }
-    if self.startTimeUnixNano != 0 {
-      try visitor.visitSingularFixed64Field(value: self.startTimeUnixNano, fieldNumber: 7)
-    }
-    if self.endTimeUnixNano != 0 {
-      try visitor.visitSingularFixed64Field(value: self.endTimeUnixNano, fieldNumber: 8)
-    }
-    if !self.attributes.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.attributes, fieldNumber: 9)
-    }
-    if self.droppedAttributesCount != 0 {
-      try visitor.visitSingularUInt32Field(value: self.droppedAttributesCount, fieldNumber: 10)
-    }
-    if !self.events.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.events, fieldNumber: 11)
-    }
-    if self.droppedEventsCount != 0 {
-      try visitor.visitSingularUInt32Field(value: self.droppedEventsCount, fieldNumber: 12)
-    }
-    if !self.links.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.links, fieldNumber: 13)
-    }
-    if self.droppedLinksCount != 0 {
-      try visitor.visitSingularUInt32Field(value: self.droppedLinksCount, fieldNumber: 14)
-    }
-    try { if let v = self._status {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   package static func ==(lhs: Opentelemetry_Proto_Trace_V1_Span, rhs: Opentelemetry_Proto_Trace_V1_Span) -> Bool {
-    if lhs.traceID != rhs.traceID {return false}
-    if lhs.spanID != rhs.spanID {return false}
-    if lhs.traceState != rhs.traceState {return false}
-    if lhs.parentSpanID != rhs.parentSpanID {return false}
-    if lhs.name != rhs.name {return false}
-    if lhs.kind != rhs.kind {return false}
-    if lhs.startTimeUnixNano != rhs.startTimeUnixNano {return false}
-    if lhs.endTimeUnixNano != rhs.endTimeUnixNano {return false}
-    if lhs.attributes != rhs.attributes {return false}
-    if lhs.droppedAttributesCount != rhs.droppedAttributesCount {return false}
-    if lhs.events != rhs.events {return false}
-    if lhs.droppedEventsCount != rhs.droppedEventsCount {return false}
-    if lhs.links != rhs.links {return false}
-    if lhs.droppedLinksCount != rhs.droppedLinksCount {return false}
-    if lhs._status != rhs._status {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._traceID != rhs_storage._traceID {return false}
+        if _storage._spanID != rhs_storage._spanID {return false}
+        if _storage._traceState != rhs_storage._traceState {return false}
+        if _storage._parentSpanID != rhs_storage._parentSpanID {return false}
+        if _storage._flags != rhs_storage._flags {return false}
+        if _storage._name != rhs_storage._name {return false}
+        if _storage._kind != rhs_storage._kind {return false}
+        if _storage._startTimeUnixNano != rhs_storage._startTimeUnixNano {return false}
+        if _storage._endTimeUnixNano != rhs_storage._endTimeUnixNano {return false}
+        if _storage._attributes != rhs_storage._attributes {return false}
+        if _storage._droppedAttributesCount != rhs_storage._droppedAttributesCount {return false}
+        if _storage._events != rhs_storage._events {return false}
+        if _storage._droppedEventsCount != rhs_storage._droppedEventsCount {return false}
+        if _storage._links != rhs_storage._links {return false}
+        if _storage._droppedLinksCount != rhs_storage._droppedLinksCount {return false}
+        if _storage._status != rhs_storage._status {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -725,7 +988,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Event: SwiftProtobuf.Message, SwiftP
 
 extension Opentelemetry_Proto_Trace_V1_Span.Link: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = Opentelemetry_Proto_Trace_V1_Span.protoMessageName + ".Link"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}trace_id\0\u{3}span_id\0\u{3}trace_state\0\u{1}attributes\0\u{3}dropped_attributes_count\0")
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}trace_id\0\u{3}span_id\0\u{3}trace_state\0\u{1}attributes\0\u{3}dropped_attributes_count\0\u{1}flags\0")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -738,6 +1001,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Link: SwiftProtobuf.Message, SwiftPr
       case 3: try { try decoder.decodeSingularStringField(value: &self.traceState) }()
       case 4: try { try decoder.decodeRepeatedMessageField(value: &self.attributes) }()
       case 5: try { try decoder.decodeSingularUInt32Field(value: &self.droppedAttributesCount) }()
+      case 6: try { try decoder.decodeSingularFixed32Field(value: &self.flags) }()
       default: break
       }
     }
@@ -759,6 +1023,9 @@ extension Opentelemetry_Proto_Trace_V1_Span.Link: SwiftProtobuf.Message, SwiftPr
     if self.droppedAttributesCount != 0 {
       try visitor.visitSingularUInt32Field(value: self.droppedAttributesCount, fieldNumber: 5)
     }
+    if self.flags != 0 {
+      try visitor.visitSingularFixed32Field(value: self.flags, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -768,6 +1035,7 @@ extension Opentelemetry_Proto_Trace_V1_Span.Link: SwiftProtobuf.Message, SwiftPr
     if lhs.traceState != rhs.traceState {return false}
     if lhs.attributes != rhs.attributes {return false}
     if lhs.droppedAttributesCount != rhs.droppedAttributesCount {return false}
+    if lhs.flags != rhs.flags {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

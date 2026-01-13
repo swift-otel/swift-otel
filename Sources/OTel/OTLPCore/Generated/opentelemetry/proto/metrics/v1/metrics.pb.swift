@@ -197,6 +197,24 @@ package enum Opentelemetry_Proto_Metrics_V1_DataPointFlags: SwiftProtobuf.Enum, 
 /// storage, OR can be embedded by other protocols that transfer OTLP metrics
 /// data but do not implement the OTLP protocol.
 ///
+/// MetricsData
+/// └─── ResourceMetrics
+///   ├── Resource
+///   ├── SchemaURL
+///   └── ScopeMetrics
+///      ├── Scope
+///      ├── SchemaURL
+///      └── Metric
+///         ├── Name
+///         ├── Description
+///         ├── Unit
+///         └── data
+///            ├── Gauge
+///            ├── Sum
+///            ├── Histogram
+///            ├── ExponentialHistogram
+///            └── Summary
+///
 /// The main difference between this message and collector protocol is that
 /// in this message there will not be any "control" or "metadata" specific to
 /// OTLP protocol.
@@ -240,6 +258,10 @@ package struct Opentelemetry_Proto_Metrics_V1_ResourceMetrics: Sendable {
   /// A list of metrics that originate from a resource.
   package var scopeMetrics: [Opentelemetry_Proto_Metrics_V1_ScopeMetrics] = []
 
+  /// The Schema URL, if known. This is the identifier of the Schema that the resource data
+  /// is recorded in. Notably, the last part of the URL path is the version number of the
+  /// schema: http[s]://server[:port]/path/<version>. To learn more about Schema URL see
+  /// https://opentelemetry.io/docs/specs/otel/schemas/#schema-url
   /// This schema_url applies to the data in the "resource" field. It does not apply
   /// to the data in the "scope_metrics" field which have their own schema_url field.
   package var schemaURL: String = String()
@@ -272,6 +294,10 @@ package struct Opentelemetry_Proto_Metrics_V1_ScopeMetrics: Sendable {
   /// A list of metrics that originate from an instrumentation library.
   package var metrics: [Opentelemetry_Proto_Metrics_V1_Metric] = []
 
+  /// The Schema URL, if known. This is the identifier of the Schema that the metric data
+  /// is recorded in. Notably, the last part of the URL path is the version number of the
+  /// schema: http[s]://server[:port]/path/<version>. To learn more about Schema URL see
+  /// https://opentelemetry.io/docs/specs/otel/schemas/#schema-url
   /// This schema_url applies to all metrics in the "metrics" field.
   package var schemaURL: String = String()
 
@@ -287,7 +313,6 @@ package struct Opentelemetry_Proto_Metrics_V1_ScopeMetrics: Sendable {
 ///
 ///   https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/data-model.md
 ///
-///
 /// The data model and relation between entities is shown in the
 /// diagram below. Here, "DataPoint" is the term used to refer to any
 /// one of the specific data point value types, and "points" is the term used
@@ -299,7 +324,7 @@ package struct Opentelemetry_Proto_Metrics_V1_ScopeMetrics: Sendable {
 /// - DataPoint contains timestamps, attributes, and one of the possible value type
 ///   fields.
 ///
-///     Metric
+///    Metric
 ///  +------------+
 ///  |name        |
 ///  |description |
@@ -372,14 +397,14 @@ package struct Opentelemetry_Proto_Metrics_V1_Metric: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// name of the metric, including its DNS name prefix. It must be unique.
+  /// name of the metric.
   package var name: String = String()
 
   /// description of the metric, which can be used in documentation.
   package var description_p: String = String()
 
   /// unit in which the metric value is reported. Follows the format
-  /// described by http://unitsofmeasure.org/ucum.html.
+  /// described by https://unitsofmeasure.org/ucum.html.
   package var unit: String = String()
 
   /// Data determines the aggregation type (if any) of the metric, what is the
@@ -426,6 +451,15 @@ package struct Opentelemetry_Proto_Metrics_V1_Metric: Sendable {
     }
     set {data = .summary(newValue)}
   }
+
+  /// Additional metadata attributes that describe the metric. [Optional].
+  /// Attributes are non-identifying.
+  /// Consumers SHOULD NOT need to be aware of these attributes.
+  /// These attributes MAY be used to encode information allowing
+  /// for lossless roundtrip translation to / from another data model.
+  /// Attribute keys MUST be unique (it is not allowed to have more than one
+  /// attribute with the same key).
+  package var metadata: [Opentelemetry_Proto_Common_V1_KeyValue] = []
 
   package var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -524,10 +558,13 @@ package struct Opentelemetry_Proto_Metrics_V1_ExponentialHistogram: Sendable {
 
 /// Summary metric data are used to convey quantile summaries,
 /// a Prometheus (see: https://prometheus.io/docs/concepts/metric_types/#summary)
-/// and OpenMetrics (see: https://github.com/OpenObservability/OpenMetrics/blob/4dbf6075567ab43296eed941037c12951faafb92/protos/prometheus.proto#L45)
+/// and OpenMetrics (see: https://github.com/prometheus/OpenMetrics/blob/4dbf6075567ab43296eed941037c12951faafb92/protos/prometheus.proto#L45)
 /// data type. These data points cannot always be merged in a meaningful way.
 /// While they can be useful in some applications, histogram data points are
 /// recommended for new applications.
+/// Summary metrics do not have an aggregation temporality field. This is
+/// because the count and sum fields of a SummaryDataPoint are assumed to be
+/// cumulative values.
 package struct Opentelemetry_Proto_Metrics_V1_Summary: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -551,6 +588,16 @@ package struct Opentelemetry_Proto_Metrics_V1_NumberDataPoint: Sendable {
   /// where this point belongs. The list may be empty (may contain 0 elements).
   /// Attribute keys MUST be unique (it is not allowed to have more than one
   /// attribute with the same key).
+  ///
+  /// The attribute values SHOULD NOT contain empty values.
+  /// The attribute values SHOULD NOT contain bytes values.
+  /// The attribute values SHOULD NOT contain array values different than array of string values, bool values, int values,
+  /// double values.
+  /// The attribute values SHOULD NOT contain kvlist values.
+  /// The behavior of software that receives attributes containing such values can be unpredictable.
+  /// These restrictions can change in a minor release.
+  /// The restrictions take origin from the OpenTelemetry specification:
+  /// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.47.0/specification/common/README.md#attribute.
   package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
 
   /// StartTimeUnixNano is optional but strongly encouraged, see the
@@ -626,6 +673,16 @@ package struct Opentelemetry_Proto_Metrics_V1_HistogramDataPoint: Sendable {
   /// where this point belongs. The list may be empty (may contain 0 elements).
   /// Attribute keys MUST be unique (it is not allowed to have more than one
   /// attribute with the same key).
+  ///
+  /// The attribute values SHOULD NOT contain empty values.
+  /// The attribute values SHOULD NOT contain bytes values.
+  /// The attribute values SHOULD NOT contain array values different than array of string values, bool values, int values,
+  /// double values.
+  /// The attribute values SHOULD NOT contain kvlist values.
+  /// The behavior of software that receives attributes containing such values can be unpredictable.
+  /// These restrictions can change in a minor release.
+  /// The restrictions take origin from the OpenTelemetry specification:
+  /// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.47.0/specification/common/README.md#attribute.
   package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
 
   /// StartTimeUnixNano is optional but strongly encouraged, see the
@@ -653,7 +710,7 @@ package struct Opentelemetry_Proto_Metrics_V1_HistogramDataPoint: Sendable {
   /// events, and is assumed to be monotonic over the values of these events.
   /// Negative events *can* be recorded, but sum should not be filled out when
   /// doing so.  This is specifically to enforce compatibility w/ OpenMetrics,
-  /// see: https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#histogram
+  /// see: https://github.com/prometheus/OpenMetrics/blob/v1.0.0/specification/OpenMetrics.md#histogram
   package var sum: Double {
     get {return _sum ?? 0}
     set {_sum = newValue}
@@ -669,7 +726,9 @@ package struct Opentelemetry_Proto_Metrics_V1_HistogramDataPoint: Sendable {
   /// The sum of the bucket_counts must equal the value in the count field.
   ///
   /// The number of elements in bucket_counts array must be by one greater than
-  /// the number of elements in explicit_bounds array.
+  /// the number of elements in explicit_bounds array. The exception to this rule
+  /// is when the length of bucket_counts is 0, then the length of explicit_bounds
+  /// must also be 0.
   package var bucketCounts: [UInt64] = []
 
   /// explicit_bounds specifies buckets with explicitly defined bounds for values.
@@ -685,6 +744,9 @@ package struct Opentelemetry_Proto_Metrics_V1_HistogramDataPoint: Sendable {
   /// Histogram buckets are inclusive of their upper boundary, except the last
   /// bucket where the boundary is at infinity. This format is intentionally
   /// compatible with the OpenMetrics histogram definition.
+  ///
+  /// If bucket_counts length is 0 then explicit_bounds length must also be 0,
+  /// otherwise the data point is invalid.
   package var explicitBounds: [Double] = []
 
   /// (Optional) List of exemplars collected from
@@ -737,6 +799,16 @@ package struct Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint: Sen
   /// where this point belongs. The list may be empty (may contain 0 elements).
   /// Attribute keys MUST be unique (it is not allowed to have more than one
   /// attribute with the same key).
+  ///
+  /// The attribute values SHOULD NOT contain empty values.
+  /// The attribute values SHOULD NOT contain bytes values.
+  /// The attribute values SHOULD NOT contain array values different than array of string values, bool values, int values,
+  /// double values.
+  /// The attribute values SHOULD NOT contain kvlist values.
+  /// The behavior of software that receives attributes containing such values can be unpredictable.
+  /// These restrictions can change in a minor release.
+  /// The restrictions take origin from the OpenTelemetry specification:
+  /// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.47.0/specification/common/README.md#attribute.
   package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
 
   /// StartTimeUnixNano is optional but strongly encouraged, see the
@@ -764,7 +836,7 @@ package struct Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint: Sen
   /// events, and is assumed to be monotonic over the values of these events.
   /// Negative events *can* be recorded, but sum should not be filled out when
   /// doing so.  This is specifically to enforce compatibility w/ OpenMetrics,
-  /// see: https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#histogram
+  /// see: https://github.com/prometheus/OpenMetrics/blob/v1.0.0/specification/OpenMetrics.md#histogram
   package var sum: Double {
     get {return _sum ?? 0}
     set {_sum = newValue}
@@ -867,7 +939,7 @@ package struct Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint: Sen
     // methods supported on all messages.
 
     /// Offset is the bucket index of the first entry in the bucket_counts array.
-    /// 
+    ///
     /// Note: This uses a varint encoding as a simple form of compression.
     package var offset: Int32 = 0
 
@@ -897,7 +969,8 @@ package struct Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint: Sen
 }
 
 /// SummaryDataPoint is a single data point in a timeseries that describes the
-/// time-varying values of a Summary metric.
+/// time-varying values of a Summary metric. The count and sum fields represent
+/// cumulative values.
 package struct Opentelemetry_Proto_Metrics_V1_SummaryDataPoint: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -907,6 +980,16 @@ package struct Opentelemetry_Proto_Metrics_V1_SummaryDataPoint: Sendable {
   /// where this point belongs. The list may be empty (may contain 0 elements).
   /// Attribute keys MUST be unique (it is not allowed to have more than one
   /// attribute with the same key).
+  ///
+  /// The attribute values SHOULD NOT contain empty values.
+  /// The attribute values SHOULD NOT contain bytes values.
+  /// The attribute values SHOULD NOT contain array values different than array of string values, bool values, int values,
+  /// double values.
+  /// The attribute values SHOULD NOT contain kvlist values.
+  /// The behavior of software that receives attributes containing such values can be unpredictable.
+  /// These restrictions can change in a minor release.
+  /// The restrictions take origin from the OpenTelemetry specification:
+  /// https://github.com/open-telemetry/opentelemetry-specification/blob/v1.47.0/specification/common/README.md#attribute.
   package var attributes: [Opentelemetry_Proto_Common_V1_KeyValue] = []
 
   /// StartTimeUnixNano is optional but strongly encouraged, see the
@@ -932,7 +1015,7 @@ package struct Opentelemetry_Proto_Metrics_V1_SummaryDataPoint: Sendable {
   /// events, and is assumed to be monotonic over the values of these events.
   /// Negative events *can* be recorded, but sum should not be filled out when
   /// doing so.  This is specifically to enforce compatibility w/ OpenMetrics,
-  /// see: https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#summary
+  /// see: https://github.com/prometheus/OpenMetrics/blob/v1.0.0/specification/OpenMetrics.md#summary
   package var sum: Double = 0
 
   /// (Optional) list of values at different quantiles of the distribution calculated
@@ -1172,7 +1255,7 @@ extension Opentelemetry_Proto_Metrics_V1_ScopeMetrics: SwiftProtobuf.Message, Sw
 
 extension Opentelemetry_Proto_Metrics_V1_Metric: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   package static let protoMessageName: String = _protobuf_package + ".Metric"
-  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}description\0\u{1}unit\0\u{2}\u{2}gauge\0\u{2}\u{2}sum\0\u{2}\u{2}histogram\0\u{3}exponential_histogram\0\u{1}summary\0\u{c}\u{4}\u{1}\u{c}\u{6}\u{1}\u{c}\u{8}\u{1}")
+  package static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}description\0\u{1}unit\0\u{2}\u{2}gauge\0\u{2}\u{2}sum\0\u{2}\u{2}histogram\0\u{3}exponential_histogram\0\u{1}summary\0\u{1}metadata\0\u{c}\u{4}\u{1}\u{c}\u{6}\u{1}\u{c}\u{8}\u{1}")
 
   package mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1248,6 +1331,7 @@ extension Opentelemetry_Proto_Metrics_V1_Metric: SwiftProtobuf.Message, SwiftPro
           self.data = .summary(v)
         }
       }()
+      case 12: try { try decoder.decodeRepeatedMessageField(value: &self.metadata) }()
       default: break
       }
     }
@@ -1290,6 +1374,9 @@ extension Opentelemetry_Proto_Metrics_V1_Metric: SwiftProtobuf.Message, SwiftPro
     }()
     case nil: break
     }
+    if !self.metadata.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.metadata, fieldNumber: 12)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1298,6 +1385,7 @@ extension Opentelemetry_Proto_Metrics_V1_Metric: SwiftProtobuf.Message, SwiftPro
     if lhs.description_p != rhs.description_p {return false}
     if lhs.unit != rhs.unit {return false}
     if lhs.data != rhs.data {return false}
+    if lhs.metadata != rhs.metadata {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

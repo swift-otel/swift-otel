@@ -8,7 +8,8 @@ receivers:
 
 exporters:
   debug:  # Data sources: traces, metrics, logs
-    verbosity: basic
+    # verbosity: basic
+    verbosity: detailed
 
   file:
     path: /logs/logs.json
@@ -21,16 +22,25 @@ exporters:
     tls:
       insecure: true
 
+  otlp/profiles:
+    endpoint: http://pyroscope:4040
+    tls:
+      insecure: true
+
 service:
   pipelines:
-    logs:
+    # logs:
+      # receivers: [otlp]
+      # exporters: [file, debug]
+    # metrics:
+      # receivers: [otlp]
+      # exporters: [prometheus, debug]
+    # traces:
+      # receivers: [otlp]
+      # exporters: [otlp/jaeger, debug]
+    profiles:
       receivers: [otlp]
-      exporters: [file, debug]
-    metrics:
-      receivers: [otlp]
-      exporters: [prometheus, debug]
-    traces:
-      receivers: [otlp]
-      exporters: [otlp/jaeger, debug]
+      exporters: [otlp/profiles, debug]
+
 
 # yaml-language-server: $schema=https://raw.githubusercontent.com/srikanthccv/otelcol-jsonschema/main/schema.json

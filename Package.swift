@@ -29,6 +29,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.2"),
         .package(url: "https://github.com/apple/swift-metrics.git", from: "2.4.1"),
         .package(url: "https://github.com/swift-otel/swift-w3c-trace-context.git", exact: "1.0.0-beta.3"),
+        .package(url: "https://github.com/apple/swift-profile-recorder.git", .upToNextMinor(from: "0.3.0")),
 
         // MARK: - OTLPCore
 
@@ -72,6 +73,8 @@ let package = Package(
                 .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf", condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
                 .product(name: "GRPCCore", package: "grpc-swift-2", condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
                 .product(name: "GRPCNIOTransportHTTP2", package: "grpc-swift-nio-transport", condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
+                // TODO: think about how to put this behind a trait
+                .product(name: "ProfileRecorderServer", package: "swift-profile-recorder"),
             ],
             swiftSettings: sharedSwiftSettings
         ),
@@ -94,8 +97,10 @@ extension TargetDependencyCondition {
             // NOTE: Once 6.2.1 has been out for some reasonable time, we could potentially remove this workaround.
             // See: https://github.com/swiftlang/swift-package-manager/pull/9141
             #if compiler(>=6.2.0) && compiler(<6.2.1)
+            print("WORKAROUND ENABLED")
             return nil
             #else
+            print("WORKAROUND DISABLED")
             return .when(traits: traits)
             #endif
         } else {

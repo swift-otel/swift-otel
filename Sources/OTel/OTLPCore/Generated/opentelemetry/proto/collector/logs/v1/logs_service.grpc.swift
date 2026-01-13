@@ -85,11 +85,6 @@ extension Opentelemetry_Proto_Collector_Logs_V1_LogsService {
     package protocol StreamingServiceProtocol: GRPCCore.RegistrableRPCService {
         /// Handle the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A streaming request of `Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -119,11 +114,6 @@ extension Opentelemetry_Proto_Collector_Logs_V1_LogsService {
     package protocol ServiceProtocol: Opentelemetry_Proto_Collector_Logs_V1_LogsService.StreamingServiceProtocol {
         /// Handle the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -150,11 +140,6 @@ extension Opentelemetry_Proto_Collector_Logs_V1_LogsService {
     /// > case logs are sent/received to/from multiple Applications).
     package protocol SimpleServiceProtocol: Opentelemetry_Proto_Collector_Logs_V1_LogsService.ServiceProtocol {
         /// Handle the "Export" method.
-        ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
         ///
         /// - Parameters:
         ///   - request: A `Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest` message.
@@ -237,11 +222,6 @@ extension Opentelemetry_Proto_Collector_Logs_V1_LogsService {
     package protocol ClientProtocol: Sendable {
         /// Call the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest` message.
         ///   - serializer: A serializer for `Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest` messages.
@@ -284,11 +264,6 @@ extension Opentelemetry_Proto_Collector_Logs_V1_LogsService {
 
         /// Call the "Export" method.
         ///
-        /// > Source IDL Documentation:
-        /// >
-        /// > For performance reasons, it is recommended to keep this RPC
-        /// > alive for the entire life of the application.
-        ///
         /// - Parameters:
         ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest` message.
         ///   - serializer: A serializer for `Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest` messages.
@@ -324,11 +299,6 @@ extension Opentelemetry_Proto_Collector_Logs_V1_LogsService {
 extension Opentelemetry_Proto_Collector_Logs_V1_LogsService.ClientProtocol {
     /// Call the "Export" method.
     ///
-    /// > Source IDL Documentation:
-    /// >
-    /// > For performance reasons, it is recommended to keep this RPC
-    /// > alive for the entire life of the application.
-    ///
     /// - Parameters:
     ///   - request: A request containing a single `Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -357,11 +327,6 @@ extension Opentelemetry_Proto_Collector_Logs_V1_LogsService.ClientProtocol {
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
 extension Opentelemetry_Proto_Collector_Logs_V1_LogsService.ClientProtocol {
     /// Call the "Export" method.
-    ///
-    /// > Source IDL Documentation:
-    /// >
-    /// > For performance reasons, it is recommended to keep this RPC
-    /// > alive for the entire life of the application.
     ///
     /// - Parameters:
     ///   - message: request message to send.

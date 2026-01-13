@@ -387,4 +387,37 @@ extension OTel {
         let serviceGroup = ServiceGroup(configuration: .init(services: serviceConfigs, logger: logger))
         return (tracer, serviceGroup)
     }
+
+    public static func makeProfilingBackend(configuration: OTel.Configuration = .default) throws -> some Service {
+        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeProfilingBackend")
+        var configuration = configuration
+        configuration.applyEnvironmentOverrides(environment: ProcessInfo.processInfo.environment, logger: logger)
+        return try makeProfilingBackend(resolvedConfiguration: configuration, logger: logger)
+    }
+
+    internal static func makeProfilingBackend(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
+        guard resolvedConfiguration.profiles.enabled else {
+            throw OTel.Configuration.Error.invalidConfiguration("makeProfilingBackend called but config has profiles disabled")
+        }
+        let resource = OTelResource(configuration: resolvedConfiguration)
+        let exporter = try WrappedProfileExporter(configuration: resolvedConfiguration, logger: logger)
+        let sampler = OTelPeriodicProfileSampler(
+            resource: resource,
+            exporter: exporter,
+            configuration: resolvedConfiguration.profiles,
+            logger: logger,
+            clock: .continuous
+        )
+        // Return a nested service group, which will handle the ordered shutdown.
+        var serviceConfigs: [ServiceGroupConfiguration.ServiceConfiguration] = []
+        for service in [exporter, sampler] as [Service] {
+            serviceConfigs.append(.init(
+                service: service,
+                successTerminationBehavior: .gracefullyShutdownGroup,
+                failureTerminationBehavior: .gracefullyShutdownGroup
+            ))
+        }
+        let serviceGroup = ServiceGroup(configuration: .init(services: serviceConfigs, logger: logger))
+        return serviceGroup
+    }
 }
