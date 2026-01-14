@@ -98,8 +98,7 @@ try await app.runService()
 > This, and other examples, can be be found in the [Examples][examples] directory.
 
 [otlp]: https://opentelemetry.io/docs/specs/otel/protocol
-<!-- TODO: Remove /main/ from following URL once 1.0.0 ships -->
-[docs]: https://swiftpackageindex.com/swift-otel/swift-otel/main/documentation
+[docs]: https://swiftpackageindex.com/swift-otel/swift-otel/documentation
 [examples]: https://github.com/swift-otel/swift-otel/tree/main/Examples/
 [license]: https://github.com/swift-otel/swift-otel/tree/main/LICENSE.txt
 [swift-log]: https://github.com/apple/swift-log
