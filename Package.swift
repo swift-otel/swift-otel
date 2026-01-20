@@ -162,7 +162,7 @@ if ["true", "y", "yes", "on", "1"].contains(Context.environment["OTEL_ENABLE_BEN
             path: "Benchmarks/OTelBenchmarks",
             swiftSettings: sharedSwiftSettings,
             plugins: [
-                .plugin(name: "BenchmarkPlugin", package: "package-benchmark")
+                .plugin(name: "BenchmarkPlugin", package: "package-benchmark"),
             ]
         )
     )
