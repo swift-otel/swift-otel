@@ -107,9 +107,9 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         // https://opentelemetry.io/docs/specs/otlp/#full-success-1
         let body = try await response.body.collect(upTo: 2 * 1024 * 1024)
         let responseMessage = switch response.headers.first(name: "Content-Type") {
-        case "application/x-protobuf":
+        case "application/x-protobuf", "application/x-protobuf; charset=UTF-8", "application/x-protobuf; charset=utf-8":
             try Response(serializedBytes: ByteBufferWrapper(backing: body))
-        case "application/json":
+        case "application/json", "application/json; charset=UTF-8", "application/json; charset=utf-8":
             try Response(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
         case .some(let content):
             throw OTLPHTTPExporterError.responseHasUnsupportedContentType(content)
