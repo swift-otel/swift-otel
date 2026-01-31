@@ -27,26 +27,26 @@ To use the OTLP/gRPC exporter, enable the `OTLPGRPC` trait or remove the `traits
 The example uses [Docker Compose](https://docs.docker.com/compose) to run a set of containers to collect and
 visualize the telemetry from the server, which is running on your local machine.
 
-```none
-┌──────────────────────────────────────────────────────────────────────┐
-│                                                                  Host│
-│                       ┌────────────────────────────────────────────┐ │
-│                       │                              Docker Compose│ │
-│                       │ ┌───────────┐                              │ │
-│                       │ │           │   Logs        ┌────────────┐ │ │
-│                       │ │           ├──────────────▶│    File    │ │ │
-│                       │ │           │               └────────────┘ │ │
-│                       │ │           │   Traces      ┌────────────┐ │ │
-│ ┌────────┐            │ │   OTel    ├──────────────▶│   Jaeger   │ │ │
-│ │        │            │ │ Collector │               └────────────┘ │ │
-│ │  HTTP  │            │ │           │   Metrics     ┌────────────┐ │ │
-│ │ Server │────────────┼▶│           │◀──────────────│ Prometheus │ │ │
-│ │        │            │ │           │               └────────────┘ │ │
-│ └────────┘            │ │           │   Debug       ┌────────────┐ │ │
-│      ▲      ┌──────┐  │ │           ├──────────────▶│   stderr   │ │ │
-│      └──────│ curl │  │ └───────────┘               └────────────┘ │ │
-│  GET /hello └──────┘  └────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Host
+        subgraph DockerCompose["Docker Compose"]
+            OTel["OTel Collector"]
+            File
+            Jaeger
+            Prometheus
+            stderr
+        end
+        HTTPServer["HTTP Server"]
+        curl
+    end
+    
+    curl -->|"GET /hello"| HTTPServer
+    HTTPServer -->|"OTLP/HTTP+Protobuf"| OTel
+    OTel -->|"Logs"| File
+    OTel -->|"Traces"| Jaeger
+    OTel -->|"Debug"| stderr
+    Prometheus -->|"Metrics"| OTel
 ```
 
 The server sends requests to OTel Collector, which is configured with an OTLP receiver for logs, metrics, and traces;
