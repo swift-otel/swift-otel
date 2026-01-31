@@ -20,7 +20,7 @@ jobs:
   benchmark:
     name: Check benchmark regressions (Swift ${{ matrix.swift.version }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     continue-on-error: true
     permissions:
       issues: write
@@ -57,18 +57,18 @@ jobs:
           [ -d Benchmarks ] && echo "hasBenchmark=1" >> $GITHUB_ENV
           echo "/opt/homebrew/bin:/usr/local/bin" >> $GITHUB_PATH
       - name: Run benchmarks for PR branch
-        if: ${{ env.hasBenchmark == '1' }}
+        if: env.hasBenchmark == '1'
         run: |
           swift package --allow-writing-to-directory .benchmarkBaselines/ benchmark baseline update pull_request
       - name: Checkout main
         run: |
           git checkout main
       - name: Run benchmarks for branch 'main'
-        if: ${{ env.hasBenchmark == '1' }}
+        if: env.hasBenchmark == '1'
         run: |
           swift package --allow-writing-to-directory .benchmarkBaselines/ benchmark baseline update main
       - name: Compare PR and main
-        if: ${{ env.hasBenchmark == '1' }}
+        if: env.hasBenchmark == '1'
         id: benchmark
         run: |
           set +e
@@ -118,7 +118,7 @@ jobs:
           set -e
 
       - name: Comment PR (if from non-fork)
-        if: ${{ env.hasBenchmark == '1' && github.event.pull_request.head.repo.fork == false }}
+        if: env.hasBenchmark == '1' && github.event.pull_request.head.repo.fork == false
         uses: thollander/actions-comment-pull-request@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
