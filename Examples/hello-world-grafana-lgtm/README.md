@@ -38,32 +38,26 @@ config.traces.otlpExporter.protocol = .grpc
 The example uses [Docker Compose](https://docs.docker.com/compose) to run a single container to collect and
 visualize the telemetry from the server, which is running on your local machine.
 
-```none
-┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                       Host  │
-│                              ┌──────────────────────────────────────────────────────────┐   │
-│                              │                                          Docker Compose  │   │
-│                              │   ┌──────────────────────────────────────────────────┐   │   │
-│                              │   │                                    Grafana LGTM  │   │   │
-│                              │   │                                                  │   │   │
-│                              │   │  ┌─────────────┐                                 │   │   │
-│                              │   │  │             │                                 │   │   │
-│                              │   │  │             │   Logs        ┌─────────────┐   │   │   │
-│ ┌────────────┐               │   │  │             ├──────────────▶│    Loki     │   │   │   │
-│ │            │               │   │  │             │               └─────────────┘   │   │   │
-│ │            │               │   │  │             │   Metrics     ┌─────────────┐   │   │   │
-│ │    HTTP    │               │   │  │    OTel     ├──────────────▶│  Prometheus │   │   │   │
-│ │   Server   │───────────────┼───┼─▶│  Collector  │               └─────────────┘   │   │   │
-│ │            │               │   │  │             │   Traces      ┌─────────────┐   │   │   │
-│ │            │               │   │  │             ├──────────────▶│    Tempo    │   │   │   │
-│ └────────────┘               │   │  │             │               └─────────────┘   │   │   │
-│        ▲                     │   │  │             │                                 │   │   │
-│        │                     │   │  │             │                                 │   │   │
-│        │                     │   │  └─────────────┘                                 │   │   │
-│        │        ┌──────┐     │   └──────────────────────────────────────────────────┘   │   │
-│        └────────│ curl │     │                                                          │   │
-│    GET /hello   └──────┘     └──────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Host["Host"]
+        subgraph DockerCompose["Docker Compose"]
+            subgraph GrafanaLGTM["Grafana LGTM"]
+                OTel["OTel Collector"]
+                Loki
+                Prometheus
+                Tempo
+            end
+        end
+        HTTPServer["HTTP Server"]
+        curl
+    end
+    
+    curl -->|"GET /hello"| HTTPServer
+    HTTPServer -->|"OTLP/gRPC"| OTel
+    OTel -->|"Logs"| Loki
+    OTel -->|"Metrics"| Prometheus
+    OTel -->|"Traces"| Tempo
 ```
 
 The server sends requests to Grafana LGTM, which internally runs OTel Collector, which in turn is configured with an OTLP receiver for logs, metrics, and traces; and exporters for Loki, Prometheus, and Tempo for logs, metrics, and traces, respectively.

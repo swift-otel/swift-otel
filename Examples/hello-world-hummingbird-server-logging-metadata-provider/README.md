@@ -33,26 +33,24 @@ LoggingSystem.bootstrap(
 The example uses [Docker Compose](https://docs.docker.com/compose) to run a set of containers to collect and
 visualize the telemetry from the server, which is running on your local machine.
 
-```none
-┌──────────────────────────────────────────────────────────────────────┐
-│                                                                  Host│
-│                       ┌────────────────────────────────────────────┐ │
-│                       │                              Docker Compose│ │
-│        ┌────────────┐ │ ┌───────────┐                              │ │
-│     ┌─▶│   stderr   │ │ │           │                              │ │
-│     │  └────────────┘ │ │           │                              │ │
-│ Logs│                 │ │           │                              │ │
-│     │                 │ │           │   Traces      ┌────────────┐ │ │
-│ ┌───┴────┐            │ │   OTel    ├──────────────▶│   Jaeger   │ │ │
-│ │        │            │ │ Collector │               └────────────┘ │ │
-│ │  HTTP  │            │ │           │                              │ │
-│ │ Server │────────────┼▶│           │                              │ │
-│ │        │            │ │           │                              │ │
-│ └────────┘            │ │           │   Debug       ┌────────────┐ │ │
-│      ▲      ┌──────┐  │ │           ├──────────────▶│   stderr   │ │ │
-│      └──────│ curl │  │ └───────────┘               └────────────┘ │ │
-│  GET /hello └──────┘  └────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Host
+        subgraph DockerCompose["Docker Compose"]
+            OTel["OTel Collector"]
+            Jaeger
+            CollectorStderr["stderr"]
+        end
+        HTTPServer["HTTP Server"]
+        curl
+        ServerStderr["stderr"]
+    end
+    
+    curl -->|"GET /hello"| HTTPServer
+    HTTPServer -->|"Logs"| ServerStderr
+    HTTPServer -->|"OTLP/HTTP"| OTel
+    OTel -->|"Traces"| Jaeger
+    OTel -->|"Debug"| CollectorStderr
 ```
 
 The server sends requests to OTel Collector, which is configured with an OTLP receiver for traces;

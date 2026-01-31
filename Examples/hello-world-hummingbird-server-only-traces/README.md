@@ -26,26 +26,22 @@ config.metrics.enabled = false
 The example uses [Docker Compose](https://docs.docker.com/compose) to run a set of containers to collect and
 visualize the telemetry from the server, which is running on your local machine.
 
-```none
-┌──────────────────────────────────────────────────────────────────────┐
-│                                                                  Host│
-│                       ┌────────────────────────────────────────────┐ │
-│                       │                              Docker Compose│ │
-│                       │ ┌───────────┐                              │ │
-│                       │ │           │                              │ │
-│                       │ │           │                              │ │
-│                       │ │           │                              │ │
-│                       │ │           │   Traces      ┌────────────┐ │ │
-│ ┌────────┐            │ │   OTel    ├──────────────▶│   Jaeger   │ │ │
-│ │        │            │ │ Collector │               └────────────┘ │ │
-│ │  HTTP  │            │ │           │                              │ │
-│ │ Server │────────────┼▶│           │                              │ │
-│ │        │            │ │           │                              │ │
-│ └────────┘            │ │           │   Debug       ┌────────────┐ │ │
-│      ▲      ┌──────┐  │ │           ├──────────────▶│   stderr   │ │ │
-│      └──────│ curl │  │ └───────────┘               └────────────┘ │ │
-│  GET /hello └──────┘  └────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Host
+        subgraph DockerCompose["Docker Compose"]
+            OTel["OTel Collector"]
+            Jaeger
+            stderr
+        end
+        HTTPServer["HTTP Server"]
+        curl
+    end
+    
+    curl -->|"GET /hello"| HTTPServer
+    HTTPServer -->|"OTLP/HTTP"| OTel
+    OTel -->|"Traces"| Jaeger
+    OTel -->|"Debug"| stderr
 ```
 
 The server sends requests to OTel Collector, which is configured with an OTLP receiver for traces;
