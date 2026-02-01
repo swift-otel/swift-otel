@@ -24,7 +24,11 @@ extension OTelEnvironmentVariableRepresentable {
 }
 
 extension OTelEnvironmentVariableRepresentable {
-    fileprivate mutating func override(using key: OTel.Configuration.Key, from environment: [String: String], logger: Logger? = nil) {
+    fileprivate mutating func override(
+        using key: OTel.Configuration.Key,
+        from environment: [String: String],
+        logger: Logger? = nil
+    ) {
         guard let proposedValue = environment.getStringValue(key) else { return }
 
         let result: OTelEnvironmentOverrideResult
@@ -46,11 +50,20 @@ extension OTelEnvironmentVariableRepresentable {
         )
     }
 
-    internal mutating func override(using key: OTel.Configuration.Key.GeneralKey, from environment: [String: String], logger: Logger? = nil) {
+    internal mutating func override(
+        using key: OTel.Configuration.Key.GeneralKey,
+        from environment: [String: String],
+        logger: Logger? = nil
+    ) {
         override(using: .single(key), from: environment, logger: logger)
     }
 
-    internal mutating func override(using key: OTel.Configuration.Key.SignalSpecificKey, for signal: OTel.Configuration.Key.Signal, from environment: [String: String], logger: Logger? = nil) {
+    internal mutating func override(
+        using key: OTel.Configuration.Key.SignalSpecificKey,
+        for signal: OTel.Configuration.Key.Signal,
+        from environment: [String: String],
+        logger: Logger? = nil
+    ) {
         override(using: .signalSpecific(key, signal), from: environment, logger: logger)
     }
 }
@@ -151,7 +164,8 @@ extension CaseIterable where AllCases.Element: RawRepresentable, AllCases.Elemen
     static var supportedEnvironmentVariableValues: [String] { Self.allCases.map(\.rawValue) }
 }
 
-protocol OTelEnum<Backing>: OTelEnvironmentVariableRepresentable where Backing: RawRepresentable<String> & CaseIterable {
+protocol OTelEnum<Backing>: OTelEnvironmentVariableRepresentable
+where Backing: RawRepresentable<String> & CaseIterable {
     associatedtype Backing
     var backing: Backing { get }
     init(backing: Backing)
@@ -228,7 +242,12 @@ extension OTel.Configuration.OTLPExporterConfiguration.`Protocol`: OTelEnum {}
 extension OTel.Configuration.TracesConfiguration.SamplerConfiguration.Backing: OTelEnvironmentVariableRepresentable {}
 
 extension OTel.Configuration.TracesConfiguration.SamplerConfiguration.ArgumentBacking? {
-    internal mutating func override(for sampler: OTel.Configuration.TracesConfiguration.SamplerConfiguration.Backing, using key: OTel.Configuration.Key.GeneralKey, from environment: [String: String], logger: Logger? = nil) {
+    internal mutating func override(
+        for sampler: OTel.Configuration.TracesConfiguration.SamplerConfiguration.Backing,
+        using key: OTel.Configuration.Key.GeneralKey,
+        from environment: [String: String],
+        logger: Logger? = nil
+    ) {
         if let proposedValue = environment.getStringValue(key) {
             let result: OTelEnvironmentOverrideResult
             let previousValue = self
@@ -236,14 +255,18 @@ extension OTel.Configuration.TracesConfiguration.SamplerConfiguration.ArgumentBa
             switch sampler {
             case .traceIDRatio, .parentBasedTraceIDRatio:
                 guard let value = Double(proposedValue), value >= 0.0, value <= 1.0 else {
-                    result = .failure(hint: "Value must be a sampling probability: a number in the [0..1] range, e.g. `0.25`")
+                    result = .failure(
+                        hint: "Value must be a sampling probability: a number in the [0..1] range, e.g. `0.25`"
+                    )
                     break
                 }
                 self = .traceIDRatio(samplingProbability: value)
                 result = .success
             case .jaegerRemote, .parentBasedJaegerRemote:
                 // Example: endpoint=http://localhost:14250,pollingIntervalMs=5000,initialSamplingRate=0.25
-                let parameters = proposedValue.split(separator: ",", maxSplits: 3).map { $0.split(separator: "=", maxSplits: 2) }
+                let parameters = proposedValue.split(separator: ",", maxSplits: 3).map {
+                    $0.split(separator: "=", maxSplits: 2)
+                }
                 guard
                     parameters.count == 3, parameters.allSatisfy({ $0.count == 2 }),
                     parameters[0][0] == "endpoint",
@@ -253,7 +276,10 @@ extension OTel.Configuration.TracesConfiguration.SamplerConfiguration.ArgumentBa
                     parameters[2][0] == "initialSamplingRate",
                     let initialSamplingRate = Double(parameters[2][1])
                 else {
-                    result = .failure(hint: "Value must be a comma-separated list of key-value pairs in a specific order. Example: `endpoint=http://localhost:14250,pollingIntervalMs=5000,initialSamplingRate=0.25`")
+                    result = .failure(
+                        hint:
+                            "Value must be a comma-separated list of key-value pairs in a specific order. Example: `endpoint=http://localhost:14250,pollingIntervalMs=5000,initialSamplingRate=0.25`"
+                    )
                     break
                 }
                 self = .jaegerRemote(
@@ -298,10 +324,12 @@ extension OTelHeaders: OTelEnvironmentVariableRepresentable {
         for header in environmentVariableValue.utf8.split(separator: .init(ascii: ",")) {
             let pair = header.split(separator: .init(ascii: "="), maxSplits: 1, omittingEmptySubsequences: true)
             guard let key = pair.first, let value = pair.dropFirst().first else { return nil }
-            backing.append((
-                String(decoding: key, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines),
-                String(decoding: value, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
-            ))
+            backing.append(
+                (
+                    String(decoding: key, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines),
+                    String(decoding: value, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+                )
+            )
         }
         self.backing = backing
     }
@@ -328,7 +356,11 @@ extension OTelResourceAttributes: OTelEnvironmentVariableRepresentable {
         backing.map { key, value in "\(key)=\(value)" }.joined(separator: ",")
     }
 
-    internal mutating func merge(using key: OTel.Configuration.Key.GeneralKey, from environment: [String: String], logger: Logger? = nil) {
+    internal mutating func merge(
+        using key: OTel.Configuration.Key.GeneralKey,
+        from environment: [String: String],
+        logger: Logger? = nil
+    ) {
         guard let proposedValue = environment[key.key] else { return }
         let previousValue = self
         let result: OTelEnvironmentOverrideResult
@@ -351,7 +383,12 @@ extension OTelResourceAttributes: OTelEnvironmentVariableRepresentable {
 }
 
 extension [(String, String)] {
-    internal mutating func override(using key: OTel.Configuration.Key.SignalSpecificKey, for signal: OTel.Configuration.Key.Signal, from environment: [String: String], logger: Logger? = nil) {
+    internal mutating func override(
+        using key: OTel.Configuration.Key.SignalSpecificKey,
+        for signal: OTel.Configuration.Key.Signal,
+        from environment: [String: String],
+        logger: Logger? = nil
+    ) {
         var headers = OTelHeaders(backing: self)
         headers.override(using: .otlpExporterHeaders, for: signal, from: environment, logger: logger)
         self = headers.backing
@@ -359,7 +396,11 @@ extension [(String, String)] {
 }
 
 extension [String: String] {
-    internal mutating func merge(using key: OTel.Configuration.Key.GeneralKey, from environment: [String: String], logger: Logger? = nil) {
+    internal mutating func merge(
+        using key: OTel.Configuration.Key.GeneralKey,
+        from environment: [String: String],
+        logger: Logger? = nil
+    ) {
         var resourceAttributes = OTelResourceAttributes(backing: self)
         resourceAttributes.merge(using: key, from: environment, logger: logger)
         self = resourceAttributes.backing

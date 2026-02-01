@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Tracing
 import W3CTraceContext
+
+@testable import OTel
 
 extension OTelFinishedSpan {
     /// A finished span stub.
@@ -53,22 +54,25 @@ extension OTelFinishedSpan {
         events: [SpanEvent] = [],
         links: [SpanLink] = []
     ) -> OTelFinishedSpan {
-        let spanContext: OTelSpanContext = if isRemote {
-            .remote(traceContext: TraceContext(
-                traceID: traceID,
-                spanID: spanID,
-                flags: traceFlags,
-                state: traceState
-            ))
-        } else {
-            .local(
-                traceID: traceID,
-                spanID: spanID,
-                parentSpanID: parentSpanID,
-                traceFlags: traceFlags,
-                traceState: traceState
-            )
-        }
+        let spanContext: OTelSpanContext =
+            if isRemote {
+                .remote(
+                    traceContext: TraceContext(
+                        traceID: traceID,
+                        spanID: spanID,
+                        flags: traceFlags,
+                        state: traceState
+                    )
+                )
+            } else {
+                .local(
+                    traceID: traceID,
+                    spanID: spanID,
+                    parentSpanID: parentSpanID,
+                    traceFlags: traceFlags,
+                    traceState: traceState
+                )
+            }
         return OTelFinishedSpan(
             spanContext: spanContext,
             operationName: operationName,

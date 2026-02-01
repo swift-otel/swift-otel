@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Tracing
 import XCTest
+
+@testable import OTel
 
 final class OTelConstantSamplerTests: XCTestCase {
     func test_init_isOn_decidesToRecordAndSample() {

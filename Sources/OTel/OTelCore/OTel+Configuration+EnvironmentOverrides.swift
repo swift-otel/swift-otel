@@ -40,8 +40,16 @@ extension OTel.Configuration.MetricsConfiguration {
     internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
         exportInterval.override(using: .metricExportInterval, from: environment, logger: logger)
         exportTimeout.override(using: .metricExportTimeout, from: environment, logger: logger)
-        defaultValueHistogramBuckets.override(using: .metricDefaultValueHistogramBuckets, from: environment, logger: logger)
-        defaultDurationHistogramBuckets.override(using: .metricDefaultDurationHistogramBuckets, from: environment, logger: logger)
+        defaultValueHistogramBuckets.override(
+            using: .metricDefaultValueHistogramBuckets,
+            from: environment,
+            logger: logger
+        )
+        defaultDurationHistogramBuckets.override(
+            using: .metricDefaultDurationHistogramBuckets,
+            from: environment,
+            logger: logger
+        )
         exporter.override(using: .metricsExporter, from: environment, logger: logger)
         otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .metrics, logger: logger)
     }
@@ -82,16 +90,21 @@ extension OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfigurat
 }
 
 extension OTel.Configuration.OTLPExporterConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String], signal: OTel.Configuration.Key.Signal, logger: Logger) {
+    internal mutating func applyEnvironmentOverrides(
+        environment: [String: String],
+        signal: OTel.Configuration.Key.Signal,
+        logger: Logger
+    ) {
         let previousValue = self
         self.protocol.override(using: .otlpExporterProtocol, for: signal, from: environment, logger: logger)
         endpoint.override(using: .otlpExporterEndpoint, for: signal, from: environment, logger: logger)
         let key = OTel.Configuration.Key.SignalSpecificKey.otlpExporterEndpoint
-        let signalSpecificKey = switch signal {
-        case .traces: key.traces
-        case .metrics: key.metrics
-        case .logs: key.logs
-        }
+        let signalSpecificKey =
+            switch signal {
+            case .traces: key.traces
+            case .metrics: key.metrics
+            case .logs: key.logs
+            }
         switch (self.protocol.backing, environment[key.shared], environment[signalSpecificKey]) {
         case (_, .none, .none): endpointHasBeenExplicitlySet = previousValue.endpointHasBeenExplicitlySet
         case (.grpc, .some, _), (.grpc, _, .some): endpointHasBeenExplicitlySet = true
@@ -100,7 +113,12 @@ extension OTel.Configuration.OTLPExporterConfiguration {
         }
         certificateFilePath.override(using: .otlpExporterCertificate, for: signal, from: environment, logger: logger)
         clientKeyFilePath.override(using: .otlpExporterClientKey, for: signal, from: environment, logger: logger)
-        clientCertificateFilePath.override(using: .otlpExporterClientCertificate, for: signal, from: environment, logger: logger)
+        clientCertificateFilePath.override(
+            using: .otlpExporterClientCertificate,
+            for: signal,
+            from: environment,
+            logger: logger
+        )
         headers.override(using: .otlpExporterHeaders, for: signal, from: environment, logger: logger)
         compression.override(using: .otlpExporterCompression, for: signal, from: environment, logger: logger)
         timeout.override(using: .otlpExporterTimeout, for: signal, from: environment, logger: logger)

@@ -1,0 +1,12 @@
+.editorconfig
+Package.swift
+**/Package.swift
+Makefile
+.gitmodules
+.swiftformatignore
+.unacceptablelanguageignore
+**/*.key
+**/*.crt
+**/*.docc/*
+Sources/OTel/OTLPCore/Generated/*
+opentelemetry-proto

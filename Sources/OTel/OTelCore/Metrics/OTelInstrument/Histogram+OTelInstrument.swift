@@ -41,19 +41,23 @@ extension Histogram: OTelMetricInstrument {
             name: name,
             description: description ?? "",
             unit: unit ?? "",
-            data: .histogram(OTelHistogram(
-                aggregationTemporality: .cumulative,
-                points: [.init(
-                    attributes: attributes.map { OTelAttribute(key: $0.key, value: $0.value) },
-                    timeNanosecondsSinceEpoch: instant.nanosecondsSinceEpoch,
-                    count: UInt64(state.count),
-                    sum: state.sum.bucketRepresentation,
-                    min: state.min?.bucketRepresentation,
-                    max: state.max?.bucketRepresentation,
-                    bucketCounts: bucketCounts,
-                    explicitBounds: explicitBounds
-                )]
-            ))
+            data: .histogram(
+                OTelHistogram(
+                    aggregationTemporality: .cumulative,
+                    points: [
+                        .init(
+                            attributes: attributes.map { OTelAttribute(key: $0.key, value: $0.value) },
+                            timeNanosecondsSinceEpoch: instant.nanosecondsSinceEpoch,
+                            count: UInt64(state.count),
+                            sum: state.sum.bucketRepresentation,
+                            min: state.min?.bucketRepresentation,
+                            max: state.max?.bucketRepresentation,
+                            bucketCounts: bucketCounts,
+                            explicitBounds: explicitBounds
+                        )
+                    ]
+                )
+            )
         )
     }
 }

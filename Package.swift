@@ -11,7 +11,7 @@ let package = Package(
     name: "swift-otel",
     platforms: PlatformRequirements.clockAPI.supportedPlatforms,
     products: [
-        .library(name: "OTel", targets: ["OTel"]),
+        .library(name: "OTel", targets: ["OTel"])
     ],
     traits: [
         .trait(name: "OTLPHTTP", description: "OTLP/HTTP exporter support"),
@@ -64,14 +64,38 @@ let package = Package(
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "W3CTraceContext", package: "swift-w3c-trace-context"),
                 // OTLP exporter -- only when OTLPHTTP and/or OTLPGRPC traits are enabled.
-                .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPHTTP", "OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
+                .product(
+                    name: "SwiftProtobuf",
+                    package: "swift-protobuf",
+                    condition: .when(traits: ["OTLPHTTP", "OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)
+                ),
                 // OTLP/HTTP exporter -- only when OTLPHTTP trait is enabled.
-                .product(name: "AsyncHTTPClient", package: "async-http-client", condition: .when(traits: ["OTLPHTTP"], alwaysIncludeOnKnownBrokenToolchains: true)),
-                .product(name: "NIOSSL", package: "swift-nio-ssl", condition: .when(traits: ["OTLPHTTP"], alwaysIncludeOnKnownBrokenToolchains: true)),
+                .product(
+                    name: "AsyncHTTPClient",
+                    package: "async-http-client",
+                    condition: .when(traits: ["OTLPHTTP"], alwaysIncludeOnKnownBrokenToolchains: true)
+                ),
+                .product(
+                    name: "NIOSSL",
+                    package: "swift-nio-ssl",
+                    condition: .when(traits: ["OTLPHTTP"], alwaysIncludeOnKnownBrokenToolchains: true)
+                ),
                 // OTLP/GRPC exporter -- only when OTLPGRPC trait is enabled.
-                .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf", condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
-                .product(name: "GRPCCore", package: "grpc-swift-2", condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
-                .product(name: "GRPCNIOTransportHTTP2", package: "grpc-swift-nio-transport", condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
+                .product(
+                    name: "GRPCProtobuf",
+                    package: "grpc-swift-protobuf",
+                    condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)
+                ),
+                .product(
+                    name: "GRPCCore",
+                    package: "grpc-swift-2",
+                    condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)
+                ),
+                .product(
+                    name: "GRPCNIOTransportHTTP2",
+                    package: "grpc-swift-nio-transport",
+                    condition: .when(traits: ["OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)
+                ),
             ],
             swiftSettings: sharedSwiftSettings
         ),
@@ -141,7 +165,9 @@ struct PlatformRequirements {
     /// func newAPIMethod() { ... }
     /// ```
     var availabilityMacro: SwiftSetting {
-        .enableExperimentalFeature("AvailabilityMacro=\(name) : macOS \(macOS), iOS \(iOS), tvOS \(tvOS), watchOS \(watchOS), visionOS \(visionOS)")
+        .enableExperimentalFeature(
+            "AvailabilityMacro=\(name) : macOS \(macOS), iOS \(iOS), tvOS \(tvOS), watchOS \(watchOS), visionOS \(visionOS)"
+        )
     }
 
     static let clockAPI = Self(name: "ClockAPI", macOS: "13", iOS: "16", tvOS: "16", watchOS: "9", visionOS: "1")
@@ -162,7 +188,7 @@ if ["true", "y", "yes", "on", "1"].contains(Context.environment["OTEL_ENABLE_BEN
             path: "Benchmarks/OTelBenchmarks",
             swiftSettings: sharedSwiftSettings,
             plugins: [
-                .plugin(name: "BenchmarkPlugin", package: "package-benchmark"),
+                .plugin(name: "BenchmarkPlugin", package: "package-benchmark")
             ]
         )
     )

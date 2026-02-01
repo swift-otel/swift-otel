@@ -31,15 +31,19 @@ extension Counter: OTelMetricInstrument {
             name: name,
             description: description ?? "",
             unit: unit ?? "",
-            data: .sum(OTelSum(
-                points: [.init(
-                    attributes: attributes.map { OTelAttribute(key: $0.key, value: $0.value) },
-                    timeNanosecondsSinceEpoch: instant.nanosecondsSinceEpoch,
-                    value: .int64(value)
-                )],
-                aggregationTemporality: .cumulative,
-                monotonic: true
-            ))
+            data: .sum(
+                OTelSum(
+                    points: [
+                        .init(
+                            attributes: attributes.map { OTelAttribute(key: $0.key, value: $0.value) },
+                            timeNanosecondsSinceEpoch: instant.nanosecondsSinceEpoch,
+                            value: .int64(value)
+                        )
+                    ],
+                    aggregationTemporality: .cumulative,
+                    monotonic: true
+                )
+            )
         )
     }
 }

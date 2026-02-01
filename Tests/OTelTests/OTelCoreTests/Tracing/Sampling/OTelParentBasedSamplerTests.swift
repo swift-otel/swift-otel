@@ -12,10 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-@testable import OTel
 import Tracing
 import W3CTraceContext
 import XCTest
+
+@testable import OTel
 
 final class OTelParentBasedSamplerTests: XCTestCase {
     private var rootSampler: RecordingSampler!

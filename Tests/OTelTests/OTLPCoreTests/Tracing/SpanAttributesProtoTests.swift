@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Tracing
 import XCTest
+
+@testable import OTel
 
 final class SpanAttributesProtoTests: XCTestCase {
     // MARK: - Key Value
@@ -26,16 +27,19 @@ final class SpanAttributesProtoTests: XCTestCase {
 
         let keyValuePairs: [Opentelemetry_Proto_Common_V1_KeyValue] = .init(attributes)
 
-        XCTAssertEqual(keyValuePairs.sorted(by: { $0.key < $1.key }), [
-            .with {
-                $0.key = "key1"
-                $0.value = .with { $0.intValue = 42 }
-            },
-            .with {
-                $0.key = "key2"
-                $0.value = .with { $0.stringValue = "test" }
-            },
-        ])
+        XCTAssertEqual(
+            keyValuePairs.sorted(by: { $0.key < $1.key }),
+            [
+                .with {
+                    $0.key = "key1"
+                    $0.value = .with { $0.intValue = 42 }
+                },
+                .with {
+                    $0.key = "key2"
+                    $0.value = .with { $0.stringValue = "test" }
+                },
+            ]
+        )
     }
 
     func test_initKeyValuePairs_withAttributes_discardsInvalidAttributes() {
@@ -46,12 +50,15 @@ final class SpanAttributesProtoTests: XCTestCase {
 
         let keyValuePairs: [Opentelemetry_Proto_Common_V1_KeyValue] = .init(attributes)
 
-        XCTAssertEqual(keyValuePairs, [
-            .with {
-                $0.key = "valid"
-                $0.value = .with { $0.intValue = 42 }
-            },
-        ])
+        XCTAssertEqual(
+            keyValuePairs,
+            [
+                .with {
+                    $0.key = "valid"
+                    $0.value = .with { $0.intValue = 42 }
+                }
+            ]
+        )
     }
 
     // MARK: - Any Value

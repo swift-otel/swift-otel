@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Tracing
 import XCTest
+
+@testable import OTel
 
 final class OTelSpanTests: XCTestCase {
     // MARK: - context
@@ -203,17 +204,20 @@ final class OTelSpanTests: XCTestCase {
             at: .constant(42)
         )
 
-        XCTAssertEqual(span.events, [
-            SpanEvent(
-                name: "exception",
-                at: .constant(42),
-                attributes: [
-                    "adhoc": 42,
-                    "exception.type": "TestError",
-                    "exception.message": "test(value: 42)",
-                ]
-            ),
-        ])
+        XCTAssertEqual(
+            span.events,
+            [
+                SpanEvent(
+                    name: "exception",
+                    at: .constant(42),
+                    attributes: [
+                        "adhoc": 42,
+                        "exception.type": "TestError",
+                        "exception.message": "test(value: 42)",
+                    ]
+                )
+            ]
+        )
     }
 
     func test_recordError_whenSampled_whenEnded_doesNotAddEvent() {

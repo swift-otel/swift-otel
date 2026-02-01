@@ -13,10 +13,11 @@
 
 import CoreMetrics
 import OTel
+import XCTest
+
 @testable import class OTel.Counter
 @testable import class OTel.FloatingPointCounter
 @testable import class OTel.Gauge
-import XCTest
 
 final class OTLPMetricsFactoryTests: XCTestCase {
     func test_makeCounter_returnsOTelCounter() throws {
@@ -32,7 +33,9 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let registry = OTelMetricRegistry()
         let factory = OTLPMetricsFactory(registry: registry)
 
-        let counter = try XCTUnwrap(factory.makeFloatingPointCounter(label: "c", dimensions: [("x", "1")]) as? FloatingPointCounter)
+        let counter = try XCTUnwrap(
+            factory.makeFloatingPointCounter(label: "c", dimensions: [("x", "1")]) as? FloatingPointCounter
+        )
         XCTAssertEqual(counter.name, "c")
         XCTAssertEqual(counter.attributes, Set([("x", "1")]))
     }
@@ -97,19 +100,29 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         do {
             let timer = factory.makeTimer(label: "default", dimensions: [])
             let histogram = try XCTUnwrap(timer as? DurationHistogram)
-            histogram.assertStateEquals(count: 0, sum: .zero, buckets: [
-                (bound: .milliseconds(100), count: 0),
-                (bound: .milliseconds(200), count: 0),
-            ], countAboveUpperBound: 0)
+            histogram.assertStateEquals(
+                count: 0,
+                sum: .zero,
+                buckets: [
+                    (bound: .milliseconds(100), count: 0),
+                    (bound: .milliseconds(200), count: 0),
+                ],
+                countAboveUpperBound: 0
+            )
         }
 
         do {
             let timer = factory.makeTimer(label: "custom", dimensions: [])
             let histogram = try XCTUnwrap(timer as? DurationHistogram)
-            histogram.assertStateEquals(count: 0, sum: .zero, buckets: [
-                (bound: .milliseconds(300), count: 0),
-                (bound: .milliseconds(400), count: 0),
-            ], countAboveUpperBound: 0)
+            histogram.assertStateEquals(
+                count: 0,
+                sum: .zero,
+                buckets: [
+                    (bound: .milliseconds(300), count: 0),
+                    (bound: .milliseconds(400), count: 0),
+                ],
+                countAboveUpperBound: 0
+            )
         }
     }
 
@@ -123,19 +136,29 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         do {
             let recorder = factory.makeRecorder(label: "default", dimensions: [], aggregate: true)
             let histogram = try XCTUnwrap(recorder as? ValueHistogram)
-            histogram.assertStateEquals(count: 0, sum: 0, buckets: [
-                (bound: 0.1, count: 0),
-                (bound: 0.2, count: 0),
-            ], countAboveUpperBound: 0)
+            histogram.assertStateEquals(
+                count: 0,
+                sum: 0,
+                buckets: [
+                    (bound: 0.1, count: 0),
+                    (bound: 0.2, count: 0),
+                ],
+                countAboveUpperBound: 0
+            )
         }
 
         do {
             let recorder = factory.makeRecorder(label: "custom", dimensions: [], aggregate: true)
             let histogram = try XCTUnwrap(recorder as? ValueHistogram)
-            histogram.assertStateEquals(count: 0, sum: 0, buckets: [
-                (bound: 0.3, count: 0),
-                (bound: 0.4, count: 0),
-            ], countAboveUpperBound: 0)
+            histogram.assertStateEquals(
+                count: 0,
+                sum: 0,
+                buckets: [
+                    (bound: 0.3, count: 0),
+                    (bound: 0.4, count: 0),
+                ],
+                countAboveUpperBound: 0
+            )
         }
     }
 
@@ -203,60 +226,95 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let factory = OTLPMetricsFactory(registry: registry, configuration: configuration)
         let recorder = factory.makeRecorder(label: "r", dimensions: [("x", "1")], aggregate: true)
 
-        (recorder as? ValueHistogram)?.assertStateEquals(count: 0, sum: 0, buckets: [
-            (bound: 0.10, count: 0),
-            (bound: 0.25, count: 0),
-            (bound: 0.50, count: 0),
-            (bound: 1.00, count: 0),
-        ], countAboveUpperBound: 0)
+        (recorder as? ValueHistogram)?.assertStateEquals(
+            count: 0,
+            sum: 0,
+            buckets: [
+                (bound: 0.10, count: 0),
+                (bound: 0.25, count: 0),
+                (bound: 0.50, count: 0),
+                (bound: 1.00, count: 0),
+            ],
+            countAboveUpperBound: 0
+        )
 
         recorder.record(0.4)
-        (recorder as? ValueHistogram)?.assertStateEquals(count: 1, sum: 0.4, buckets: [
-            (bound: 0.10, count: 0),
-            (bound: 0.25, count: 0),
-            (bound: 0.50, count: 1),
-            (bound: 1.00, count: 0),
-        ], countAboveUpperBound: 0)
+        (recorder as? ValueHistogram)?.assertStateEquals(
+            count: 1,
+            sum: 0.4,
+            buckets: [
+                (bound: 0.10, count: 0),
+                (bound: 0.25, count: 0),
+                (bound: 0.50, count: 1),
+                (bound: 1.00, count: 0),
+            ],
+            countAboveUpperBound: 0
+        )
 
         recorder.record(0.6)
-        (recorder as? ValueHistogram)?.assertStateEquals(count: 2, sum: 1.0, buckets: [
-            (bound: 0.10, count: 0),
-            (bound: 0.25, count: 0),
-            (bound: 0.50, count: 1),
-            (bound: 1.00, count: 1),
-        ], countAboveUpperBound: 0)
+        (recorder as? ValueHistogram)?.assertStateEquals(
+            count: 2,
+            sum: 1.0,
+            buckets: [
+                (bound: 0.10, count: 0),
+                (bound: 0.25, count: 0),
+                (bound: 0.50, count: 1),
+                (bound: 1.00, count: 1),
+            ],
+            countAboveUpperBound: 0
+        )
 
         recorder.record(1.2)
-        (recorder as? ValueHistogram)?.assertStateEquals(count: 3, sum: 2.2, buckets: [
-            (bound: 0.10, count: 0),
-            (bound: 0.25, count: 0),
-            (bound: 0.50, count: 1),
-            (bound: 1.00, count: 1),
-        ], countAboveUpperBound: 1)
+        (recorder as? ValueHistogram)?.assertStateEquals(
+            count: 3,
+            sum: 2.2,
+            buckets: [
+                (bound: 0.10, count: 0),
+                (bound: 0.25, count: 0),
+                (bound: 0.50, count: 1),
+                (bound: 1.00, count: 1),
+            ],
+            countAboveUpperBound: 1
+        )
 
         recorder.record(0.01)
-        (recorder as? ValueHistogram)?.assertStateEquals(count: 4, sum: 2.21, buckets: [
-            (bound: 0.10, count: 1),
-            (bound: 0.25, count: 0),
-            (bound: 0.50, count: 1),
-            (bound: 1.00, count: 1),
-        ], countAboveUpperBound: 1)
+        (recorder as? ValueHistogram)?.assertStateEquals(
+            count: 4,
+            sum: 2.21,
+            buckets: [
+                (bound: 0.10, count: 1),
+                (bound: 0.25, count: 0),
+                (bound: 0.50, count: 1),
+                (bound: 1.00, count: 1),
+            ],
+            countAboveUpperBound: 1
+        )
 
         recorder.record(Int64(1))
-        (recorder as? ValueHistogram)?.assertStateEquals(count: 5, sum: 3.21, buckets: [
-            (bound: 0.10, count: 1),
-            (bound: 0.25, count: 0),
-            (bound: 0.50, count: 1),
-            (bound: 1.00, count: 2),
-        ], countAboveUpperBound: 1)
+        (recorder as? ValueHistogram)?.assertStateEquals(
+            count: 5,
+            sum: 3.21,
+            buckets: [
+                (bound: 0.10, count: 1),
+                (bound: 0.25, count: 0),
+                (bound: 0.50, count: 1),
+                (bound: 1.00, count: 2),
+            ],
+            countAboveUpperBound: 1
+        )
 
         recorder.record(Int64(2))
-        (recorder as? ValueHistogram)?.assertStateEquals(count: 6, sum: 5.21, buckets: [
-            (bound: 0.10, count: 1),
-            (bound: 0.25, count: 0),
-            (bound: 0.50, count: 1),
-            (bound: 1.00, count: 2),
-        ], countAboveUpperBound: 2)
+        (recorder as? ValueHistogram)?.assertStateEquals(
+            count: 6,
+            sum: 5.21,
+            buckets: [
+                (bound: 0.10, count: 1),
+                (bound: 0.25, count: 0),
+                (bound: 0.50, count: 1),
+                (bound: 1.00, count: 2),
+            ],
+            countAboveUpperBound: 2
+        )
     }
 
     func test_Timer_methods() throws {
@@ -271,44 +329,69 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let factory = OTLPMetricsFactory(registry: registry, configuration: configuration)
         let timer = factory.makeTimer(label: "t", dimensions: [("x", "1")])
 
-        (timer as? DurationHistogram)?.assertStateEquals(count: 0, sum: .zero, buckets: [
-            (bound: .nanoseconds(100), count: 0),
-            (bound: .nanoseconds(250), count: 0),
-            (bound: .nanoseconds(500), count: 0),
-            (bound: .microseconds(1), count: 0),
-        ], countAboveUpperBound: 0)
+        (timer as? DurationHistogram)?.assertStateEquals(
+            count: 0,
+            sum: .zero,
+            buckets: [
+                (bound: .nanoseconds(100), count: 0),
+                (bound: .nanoseconds(250), count: 0),
+                (bound: .nanoseconds(500), count: 0),
+                (bound: .microseconds(1), count: 0),
+            ],
+            countAboveUpperBound: 0
+        )
 
         timer.recordNanoseconds(400)
-        (timer as? DurationHistogram)?.assertStateEquals(count: 1, sum: .nanoseconds(400), buckets: [
-            (bound: .nanoseconds(100), count: 0),
-            (bound: .nanoseconds(250), count: 0),
-            (bound: .nanoseconds(500), count: 1),
-            (bound: .microseconds(1), count: 0),
-        ], countAboveUpperBound: 0)
+        (timer as? DurationHistogram)?.assertStateEquals(
+            count: 1,
+            sum: .nanoseconds(400),
+            buckets: [
+                (bound: .nanoseconds(100), count: 0),
+                (bound: .nanoseconds(250), count: 0),
+                (bound: .nanoseconds(500), count: 1),
+                (bound: .microseconds(1), count: 0),
+            ],
+            countAboveUpperBound: 0
+        )
 
         timer.recordNanoseconds(600)
-        (timer as? DurationHistogram)?.assertStateEquals(count: 2, sum: .nanoseconds(1000), buckets: [
-            (bound: .nanoseconds(100), count: 0),
-            (bound: .nanoseconds(250), count: 0),
-            (bound: .nanoseconds(500), count: 1),
-            (bound: .microseconds(1), count: 1),
-        ], countAboveUpperBound: 0)
+        (timer as? DurationHistogram)?.assertStateEquals(
+            count: 2,
+            sum: .nanoseconds(1000),
+            buckets: [
+                (bound: .nanoseconds(100), count: 0),
+                (bound: .nanoseconds(250), count: 0),
+                (bound: .nanoseconds(500), count: 1),
+                (bound: .microseconds(1), count: 1),
+            ],
+            countAboveUpperBound: 0
+        )
 
         timer.recordNanoseconds(1200)
-        (timer as? DurationHistogram)?.assertStateEquals(count: 3, sum: .nanoseconds(2200), buckets: [
-            (bound: .nanoseconds(100), count: 0),
-            (bound: .nanoseconds(250), count: 0),
-            (bound: .nanoseconds(500), count: 1),
-            (bound: .microseconds(1), count: 1),
-        ], countAboveUpperBound: 1)
+        (timer as? DurationHistogram)?.assertStateEquals(
+            count: 3,
+            sum: .nanoseconds(2200),
+            buckets: [
+                (bound: .nanoseconds(100), count: 0),
+                (bound: .nanoseconds(250), count: 0),
+                (bound: .nanoseconds(500), count: 1),
+                (bound: .microseconds(1), count: 1),
+            ],
+            countAboveUpperBound: 1
+        )
 
         timer.recordNanoseconds(80)
-        (timer as? DurationHistogram)?.assertStateEquals(count: 4, sum: .nanoseconds(2280), buckets: [
-            (bound: .nanoseconds(100), count: 1),
-            (bound: .nanoseconds(250), count: 0),
-            (bound: .nanoseconds(500), count: 1),
-            (bound: .microseconds(1), count: 1),
-        ], countAboveUpperBound: 1)
+        (timer as? DurationHistogram)?.assertStateEquals(
+            count: 4,
+            sum: .nanoseconds(2280),
+            buckets: [
+                (bound: .nanoseconds(100), count: 1),
+                (bound: .nanoseconds(250), count: 0),
+                (bound: .nanoseconds(500), count: 1),
+                (bound: .microseconds(1), count: 1),
+            ],
+            countAboveUpperBound: 1
+        )
     }
 
     func test_reregister_withoutDimensions() {
@@ -413,7 +496,9 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let registry = OTelMetricRegistry()
         let factory = OTLPMetricsFactory(registry: registry)
 
-        final class NonOTelMetricsHandler: CounterHandler, FloatingPointCounterHandler, MeterHandler, RecorderHandler, TimerHandler {
+        final class NonOTelMetricsHandler: CounterHandler, FloatingPointCounterHandler, MeterHandler, RecorderHandler,
+            TimerHandler
+        {
             func decrement(by: Double) {}
             func increment(by: Int64) {}
             func increment(by: Double) {}
@@ -437,7 +522,10 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let defaultBucketsFromOTelSpec = [0.0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000]
         let factory = OTLPMetricsFactory()
         XCTAssertEqual(factory.configuration.defaultValueHistogramBuckets, defaultBucketsFromOTelSpec)
-        XCTAssertEqual(factory.configuration.defaultDurationHistogramBuckets, defaultBucketsFromOTelSpec.map { .milliseconds($0) })
+        XCTAssertEqual(
+            factory.configuration.defaultDurationHistogramBuckets,
+            defaultBucketsFromOTelSpec.map { .milliseconds($0) }
+        )
     }
 
     func test_factoryMethods_extractUnitAndDescriptionFromDimensions() throws {
@@ -457,11 +545,19 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         XCTAssertEqual((m as? IdentifiableInstrument)?.instrumentIdentifier.unit, "s")
         XCTAssertEqual((m as? IdentifiableInstrument)?.instrumentIdentifier.description, "mumble")
 
-        let r = factory.makeRecorder(label: "r", dimensions: [("unit", "s"), ("description", "mumble")], aggregate: true)
+        let r = factory.makeRecorder(
+            label: "r",
+            dimensions: [("unit", "s"), ("description", "mumble")],
+            aggregate: true
+        )
         XCTAssertEqual((r as? IdentifiableInstrument)?.instrumentIdentifier.unit, "s")
         XCTAssertEqual((r as? IdentifiableInstrument)?.instrumentIdentifier.description, "mumble")
 
-        let r_ = factory.makeRecorder(label: "g", dimensions: [("unit", "s"), ("description", "mumble")], aggregate: false)
+        let r_ = factory.makeRecorder(
+            label: "g",
+            dimensions: [("unit", "s"), ("description", "mumble")],
+            aggregate: false
+        )
         XCTAssertEqual((r_ as? IdentifiableInstrument)?.instrumentIdentifier.unit, "s")
         XCTAssertEqual((r_ as? IdentifiableInstrument)?.instrumentIdentifier.description, "mumble")
 

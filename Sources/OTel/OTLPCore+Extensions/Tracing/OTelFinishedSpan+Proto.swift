@@ -65,10 +65,12 @@ extension Opentelemetry_Proto_Trace_V1_ResourceSpans {
             self.resource = .init(resource)
         }
 
-        self.scopeSpans = [Opentelemetry_Proto_Trace_V1_ScopeSpans.with {
-            $0.scope = .swiftOTelScope
-            $0.spans = finishedSpans.map(Opentelemetry_Proto_Trace_V1_Span.init)
-        }]
+        self.scopeSpans = [
+            Opentelemetry_Proto_Trace_V1_ScopeSpans.with {
+                $0.scope = .swiftOTelScope
+                $0.spans = finishedSpans.map(Opentelemetry_Proto_Trace_V1_Span.init)
+            }
+        ]
     }
 }
 

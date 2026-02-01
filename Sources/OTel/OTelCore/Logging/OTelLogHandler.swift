@@ -75,7 +75,8 @@ struct OTelLogHandler: Sendable, LogHandler {
 
         let effectiveMetadata: Logger.Metadata
         if let metadata {
-            effectiveMetadata = codeMetadata
+            effectiveMetadata =
+                codeMetadata
                 .merging(self.metadata, uniquingKeysWith: { $1 })
                 .merging(metadata, uniquingKeysWith: { $1 })
         } else if !self.metadata.isEmpty {

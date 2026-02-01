@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Tracing
 import XCTest
+
+@testable import OTel
 
 final class SpanKindProtoTests: XCTestCase {
     func test_init_withSpanKind_server() {

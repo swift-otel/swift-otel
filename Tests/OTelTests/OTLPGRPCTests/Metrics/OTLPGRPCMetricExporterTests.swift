@@ -11,10 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import Logging
 import NIO
-@testable import OTel
 import XCTest
+
+@testable import Logging
+@testable import OTel
 
 @available(gRPCSwift, *)
 final class OTLPGRPCMetricExporterTests: XCTestCase {
@@ -98,16 +99,18 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
                             name: "mock_metric",
                             description: "mock description",
                             unit: "ms",
-                            data: .gauge(.init(points: [
-                                .init(
-                                    attributes: [.init(key: "point_attr_key", value: "point_attr_val")],
-                                    timeNanosecondsSinceEpoch: 42,
-                                    value: .double(84.6)
-                                ),
-                            ]))
-                        ),
+                            data: .gauge(
+                                .init(points: [
+                                    .init(
+                                        attributes: [.init(key: "point_attr_key", value: "point_attr_val")],
+                                        timeNanosecondsSinceEpoch: 42,
+                                        value: .double(84.6)
+                                    )
+                                ])
+                            )
+                        )
                     ]
-                ),
+                )
             ]
         )
 
@@ -128,21 +131,27 @@ final class OTLPGRPCMetricExporterTests: XCTestCase {
 
             XCTAssertEqual(request.message.resourceMetrics.count, 1)
             let resourceMetrics = try XCTUnwrap(request.message.resourceMetrics.first)
-            XCTAssertEqual(resourceMetrics.resource, .with {
-                $0.attributes = .init(["service.name": "mock_service"])
-            })
+            XCTAssertEqual(
+                resourceMetrics.resource,
+                .with {
+                    $0.attributes = .init(["service.name": "mock_service"])
+                }
+            )
             XCTAssertEqual(resourceMetrics.scopeMetrics.count, 1)
             let scopeMetrics = try XCTUnwrap(resourceMetrics.scopeMetrics.first)
-            XCTAssertEqual(scopeMetrics.scope, .with {
-                $0.name = "scope_name"
-                $0.version = "scope_version"
-                $0.attributes = [
-                    .with {
-                        $0.key = "scope_attr_key"
-                        $0.value = .init("scope_attr_val")
-                    },
-                ]
-            })
+            XCTAssertEqual(
+                scopeMetrics.scope,
+                .with {
+                    $0.name = "scope_name"
+                    $0.version = "scope_version"
+                    $0.attributes = [
+                        .with {
+                            $0.key = "scope_attr_key"
+                            $0.value = .init("scope_attr_val")
+                        }
+                    ]
+                }
+            )
             XCTAssertEqual(scopeMetrics.metrics, .init(resourceMetricsToExport.scopeMetrics.first!.metrics))
 
             XCTAssertEqual(request.metadata.first(where: { $0.key == "key1" })?.value, "42")

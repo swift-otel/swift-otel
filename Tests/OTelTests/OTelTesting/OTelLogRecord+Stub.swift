@@ -11,13 +11,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Logging
+
+@testable import OTel
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-import Logging
-@testable import OTel
 
 extension OTelLogRecord {
     static func stub(

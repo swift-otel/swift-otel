@@ -11,10 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import Logging
-@testable import OTel
 import ServiceContextModule
 import XCTest
+
+@testable import Logging
+@testable import OTel
 
 final class MetadataProviderTests: XCTestCase {
     func test_providesMetadataFromSpanContext_withDefaultLabels() throws {

@@ -11,11 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import Logging
 import NIOConcurrencyHelpers
-@testable import OTel
 import ServiceLifecycle
 import XCTest
+
+@testable import Logging
+@testable import OTel
 
 final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
     func test_normalBehavior_periodicallyExports() async throws {
@@ -135,7 +136,8 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             clock: clock
         )
         var sleepCalls = clock.sleepCalls.makeAsyncIterator()
-        var warningLogs = recordingLogHandler.recordedLogMessageStream.filter { $0.level == .warning }.makeAsyncIterator()
+        var warningLogs = recordingLogHandler.recordedLogMessageStream.filter { $0.level == .warning }
+            .makeAsyncIterator()
         await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask {
                 try await reader.run()
@@ -197,7 +199,8 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             clock: clock
         )
         var sleepCalls = clock.sleepCalls.makeAsyncIterator()
-        var warningLogs = recordingLogHandler.recordedLogMessageStream.filter { $0.level == .warning }.makeAsyncIterator()
+        var warningLogs = recordingLogHandler.recordedLogMessageStream.filter { $0.level == .warning }
+            .makeAsyncIterator()
         await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask {
                 try await reader.run()

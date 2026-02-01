@@ -11,10 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Tracing
 import W3CTraceContext
 import XCTest
+
+@testable import OTel
 
 final class OTelFinishedSpanProtoTests: XCTestCase {
     func test_initProtoSpan_withFinishedSpan_castsTraceID() {
@@ -108,10 +109,13 @@ final class OTelFinishedSpanProtoTests: XCTestCase {
 
         let protoSpan = Opentelemetry_Proto_Trace_V1_Span(span)
 
-        XCTAssertEqual(protoSpan.status, .with {
-            $0.code = .error
-            $0.message = "test"
-        })
+        XCTAssertEqual(
+            protoSpan.status,
+            .with {
+                $0.code = .error
+                $0.message = "test"
+            }
+        )
     }
 
     func test_initProtoSpan_withFinishedSpan_withoutStatus_doesNotSetSpanStatus() {
@@ -119,10 +123,13 @@ final class OTelFinishedSpanProtoTests: XCTestCase {
 
         let protoSpan = Opentelemetry_Proto_Trace_V1_Span(span)
 
-        XCTAssertEqual(protoSpan.status, .with {
-            $0.code = .unset
-            $0.message = ""
-        })
+        XCTAssertEqual(
+            protoSpan.status,
+            .with {
+                $0.code = .unset
+                $0.message = ""
+            }
+        )
     }
 
     func test_initProtoSpan_withFinishedSpan_withAttributes_castsAttributes() throws {
@@ -131,10 +138,15 @@ final class OTelFinishedSpanProtoTests: XCTestCase {
 
         let protoSpan = Opentelemetry_Proto_Trace_V1_Span(span)
 
-        XCTAssertEqual(protoSpan.attributes, [.with {
-            $0.key = "test"
-            $0.value = .with { $0.intValue = 42 }
-        }])
+        XCTAssertEqual(
+            protoSpan.attributes,
+            [
+                .with {
+                    $0.key = "test"
+                    $0.value = .with { $0.intValue = 42 }
+                }
+            ]
+        )
     }
 
     func test_initProtoSpan_withFinishedSpan_withoutAttributes_doesNotSetAttributes() {
@@ -147,19 +159,26 @@ final class OTelFinishedSpanProtoTests: XCTestCase {
 
     func test_initProtoSpan_withFinishedSpan_withEvents_castsEvents() throws {
         let span = OTelFinishedSpan.stub(events: [
-            SpanEvent(name: "test", at: .constant(42), attributes: ["test": 42]),
+            SpanEvent(name: "test", at: .constant(42), attributes: ["test": 42])
         ])
 
         let protoSpan = Opentelemetry_Proto_Trace_V1_Span(span)
 
-        XCTAssertEqual(protoSpan.events, [.with {
-            $0.name = "test"
-            $0.timeUnixNano = 42
-            $0.attributes = [.with {
-                $0.key = "test"
-                $0.value = .with { $0.intValue = 42 }
-            }]
-        }])
+        XCTAssertEqual(
+            protoSpan.events,
+            [
+                .with {
+                    $0.name = "test"
+                    $0.timeUnixNano = 42
+                    $0.attributes = [
+                        .with {
+                            $0.key = "test"
+                            $0.value = .with { $0.intValue = 42 }
+                        }
+                    ]
+                }
+            ]
+        )
     }
 
     func test_initProtoSpan_withFinishedSpan_withoutEvents_doesNotSetEvents() {
@@ -178,20 +197,27 @@ final class OTelFinishedSpanProtoTests: XCTestCase {
             traceState: TraceState([(.simple("test"), "42")])
         )
         let span = OTelFinishedSpan.stub(links: [
-            SpanLink(context: context, attributes: ["test": 42]),
+            SpanLink(context: context, attributes: ["test": 42])
         ])
 
         let protoSpan = Opentelemetry_Proto_Trace_V1_Span(span)
 
-        XCTAssertEqual(protoSpan.links, [.with {
-            $0.traceID = Data([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
-            $0.spanID = Data([1, 2, 3, 4, 5, 6, 7, 8])
-            $0.traceState = "test=42"
-            $0.attributes = [.with {
-                $0.key = "test"
-                $0.value = .with { $0.intValue = 42 }
-            }]
-        }])
+        XCTAssertEqual(
+            protoSpan.links,
+            [
+                .with {
+                    $0.traceID = Data([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+                    $0.spanID = Data([1, 2, 3, 4, 5, 6, 7, 8])
+                    $0.traceState = "test=42"
+                    $0.attributes = [
+                        .with {
+                            $0.key = "test"
+                            $0.value = .with { $0.intValue = 42 }
+                        }
+                    ]
+                }
+            ]
+        )
     }
 
     func test_initProtoSpan_withFinishedSpan_withoutLinks_doesNotSetLinks() {
