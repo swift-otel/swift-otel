@@ -204,9 +204,9 @@ extension OTel {
     /// let otelBackend = try OTel.makeMetricsBackend()
     ///
     /// // Manually bootstrap the metrics subsystem with a multiplex handler.
-    /// MetricsSystem.bootstrap({ label in
-    ///     MultiplexMetricsHandler([
-    ///        otelBackend.factory(label),
+    /// MetricsSystem.bootstrap(
+    ///     MultiplexMetricsHandler(factories: [
+    ///        otelBackend.factory,
     ///        NOOPMetricsHandler.instance
     ///     ])
     /// })
