@@ -13,6 +13,7 @@
 
 import Instrumentation
 import NIOConcurrencyHelpers
+
 @testable import OTel
 
 final class OTelInMemoryPropagator: OTelPropagator, Sendable {

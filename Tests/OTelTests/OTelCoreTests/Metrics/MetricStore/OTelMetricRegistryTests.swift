@@ -11,10 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import Logging
-import struct NIOConcurrencyHelpers.NIOLockedValueBox
-@testable import OTel
 import XCTest
+
+import struct NIOConcurrencyHelpers.NIOLockedValueBox
+
+@testable import Logging
+@testable import OTel
 
 final class OTelMetricRegistryTests: XCTestCase {
     func test_identity_SameName_Identical() {
@@ -230,9 +232,19 @@ final class OTelMetricRegistryTests: XCTestCase {
         XCTAssertEqual(handler.invocations.withLockedValue { $0.count }, 1)
 
         // OTel spec also states that description is also an identifying field.
-        _ = registry.makeCounter(name: "name", unit: "new_unit", description: "new description", attributes: Set([("x", "1")]))
+        _ = registry.makeCounter(
+            name: "name",
+            unit: "new_unit",
+            description: "new description",
+            attributes: Set([("x", "1")])
+        )
         XCTAssertEqual(handler.invocations.withLockedValue { $0.count }, 2)
-        _ = registry.makeCounter(name: "name", unit: "new_unit", description: "new description", attributes: Set([("x", "1")]))
+        _ = registry.makeCounter(
+            name: "name",
+            unit: "new_unit",
+            description: "new description",
+            attributes: Set([("x", "1")])
+        )
         XCTAssertEqual(handler.invocations.withLockedValue { $0.count }, 2)
 
         // The kind of instrument is, of course, also an identifying field.
@@ -281,17 +293,29 @@ final class OTelMetricRegistryTests: XCTestCase {
         registry.unregisterCounter(registry.makeCounter(name: "name", attributes: Set([("a", "1")])))
         registry.unregisterCounter(registry.makeCounter(name: "name", attributes: Set([("b", "1")])))
 
-        registry.unregisterFloatingPointCounter(registry.makeFloatingPointCounter(name: "name", attributes: Set([("a", "1")])))
-        registry.unregisterFloatingPointCounter(registry.makeFloatingPointCounter(name: "name", attributes: Set([("b", "1")])))
+        registry.unregisterFloatingPointCounter(
+            registry.makeFloatingPointCounter(name: "name", attributes: Set([("a", "1")]))
+        )
+        registry.unregisterFloatingPointCounter(
+            registry.makeFloatingPointCounter(name: "name", attributes: Set([("b", "1")]))
+        )
 
         registry.unregisterGauge(registry.makeGauge(name: "name", attributes: Set([("a", "1")])))
         registry.unregisterGauge(registry.makeGauge(name: "name", attributes: Set([("b", "1")])))
 
-        registry.unregisterDurationHistogram(registry.makeDurationHistogram(name: "name", attributes: Set([("a", "1")]), buckets: []))
-        registry.unregisterDurationHistogram(registry.makeDurationHistogram(name: "name", attributes: Set([("b", "1")]), buckets: []))
+        registry.unregisterDurationHistogram(
+            registry.makeDurationHistogram(name: "name", attributes: Set([("a", "1")]), buckets: [])
+        )
+        registry.unregisterDurationHistogram(
+            registry.makeDurationHistogram(name: "name", attributes: Set([("b", "1")]), buckets: [])
+        )
 
-        registry.unregisterValueHistogram(registry.makeValueHistogram(name: "name", attributes: Set([("a", "1")]), buckets: []))
-        registry.unregisterValueHistogram(registry.makeValueHistogram(name: "name", attributes: Set([("b", "1")]), buckets: []))
+        registry.unregisterValueHistogram(
+            registry.makeValueHistogram(name: "name", attributes: Set([("a", "1")]), buckets: [])
+        )
+        registry.unregisterValueHistogram(
+            registry.makeValueHistogram(name: "name", attributes: Set([("b", "1")]), buckets: [])
+        )
 
         _ = registry.makeCounter(name: "name", attributes: Set([("a", "1")]))
 
@@ -435,12 +459,21 @@ final class DuplicateRegistrationHandlerTests: XCTestCase {
     }
 
     func test_DuplicateRegistrationHandler_selection() {
-        XCTAssert(OTelMetricRegistry(onDuplicateRegistration: .warn).storage.withLockedValue { $0 }.duplicateRegistrationHandler is WarningDuplicateRegistrationHandler)
-        XCTAssert(OTelMetricRegistry(onDuplicateRegistration: .crash).storage.withLockedValue { $0 }.duplicateRegistrationHandler is FatalErrorDuplicateRegistrationHandler)
+        XCTAssert(
+            OTelMetricRegistry(onDuplicateRegistration: .warn).storage.withLockedValue { $0 }
+                .duplicateRegistrationHandler is WarningDuplicateRegistrationHandler
+        )
+        XCTAssert(
+            OTelMetricRegistry(onDuplicateRegistration: .crash).storage.withLockedValue { $0 }
+                .duplicateRegistrationHandler is FatalErrorDuplicateRegistrationHandler
+        )
     }
 
     func test_DuplicateRegistrationHandler_default() {
-        XCTAssert(OTelMetricRegistry().storage.withLockedValue { $0 }.duplicateRegistrationHandler is WarningDuplicateRegistrationHandler)
+        XCTAssert(
+            OTelMetricRegistry().storage.withLockedValue { $0 }.duplicateRegistrationHandler
+                is WarningDuplicateRegistrationHandler
+        )
     }
 }
 

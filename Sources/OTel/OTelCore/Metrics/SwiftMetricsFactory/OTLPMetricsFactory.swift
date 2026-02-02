@@ -29,7 +29,9 @@ import Logging
 
 /// A Swift Metrics `MetricsFactory` implementation backed by ``OTelMetricRegistry``.
 struct OTLPMetricsFactory: Sendable {
-    private static let _defaultRegistry = OTelMetricRegistry(logger: Logger(label: "OTelMetricRegistry", factory: StreamLogHandler.standardError(label:)))
+    private static let _defaultRegistry = OTelMetricRegistry(
+        logger: Logger(label: "OTelMetricRegistry", factory: StreamLogHandler.standardError(label:))
+    )
 
     /// The shared, default registry.
     static var defaultRegistry: OTelMetricRegistry {
@@ -77,7 +79,8 @@ extension OTLPMetricsFactory {
         ///
         /// The closure will be called for each registration with the `label` and `dimensions` provided to the Swift Metrics
         /// API and should return the label and dimensions to actually use, or `nil` if this metric should be dropped.
-        var registrationPreprocessor: @Sendable (_ label: String, _ dimensions: [(String, String)]) -> (String, [(String, String)])?
+        var registrationPreprocessor:
+            @Sendable (_ label: String, _ dimensions: [(String, String)]) -> (String, [(String, String)])?
 
         /// The default bucket upper bounds for histograms defined by the [OTel specification].
         ///
@@ -166,12 +169,20 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
         return registry.makeCounter(name: label, unit: unit, description: description, attributes: attributes)
     }
 
-    func makeFloatingPointCounter(label: String, dimensions: [(String, String)]) -> CoreMetrics.FloatingPointCounterHandler {
+    func makeFloatingPointCounter(
+        label: String,
+        dimensions: [(String, String)]
+    ) -> CoreMetrics.FloatingPointCounterHandler {
         guard let (label, dimensions) = configuration.registrationPreprocessor(label, dimensions) else {
             return NOOPMetricsHandler.instance.makeFloatingPointCounter(label: label, dimensions: dimensions)
         }
         let (unit, description, attributes) = extractIdentifyingFieldsAndAttributes(from: dimensions)
-        return registry.makeFloatingPointCounter(name: label, unit: unit, description: description, attributes: attributes)
+        return registry.makeFloatingPointCounter(
+            name: label,
+            unit: unit,
+            description: description,
+            attributes: attributes
+        )
     }
 
     func makeRecorder(
@@ -187,7 +198,13 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
             return registry.makeGauge(name: label, unit: unit, description: description, attributes: attributes)
         }
         let buckets = configuration.valueHistogramBuckets[label] ?? configuration.defaultValueHistogramBuckets
-        return registry.makeValueHistogram(name: label, unit: unit, description: description, attributes: attributes, buckets: buckets)
+        return registry.makeValueHistogram(
+            name: label,
+            unit: unit,
+            description: description,
+            attributes: attributes,
+            buckets: buckets
+        )
     }
 
     func makeMeter(label: String, dimensions: [(String, String)]) -> CoreMetrics.MeterHandler {
@@ -204,7 +221,13 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
         }
         let (unit, description, attributes) = extractIdentifyingFieldsAndAttributes(from: dimensions)
         let buckets = configuration.durationHistogramBuckets[label] ?? configuration.defaultDurationHistogramBuckets
-        return registry.makeDurationHistogram(name: label, unit: unit, description: description, attributes: attributes, buckets: buckets)
+        return registry.makeDurationHistogram(
+            name: label,
+            unit: unit,
+            description: description,
+            attributes: attributes,
+            buckets: buckets
+        )
     }
 
     func destroyCounter(_ handler: CoreMetrics.CounterHandler) {
@@ -251,7 +274,9 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
 
 extension OTLPMetricsFactory {
     /// Returns the values for keys `unit` and `description`, if they are present in the array.
-    private func extractIdentifyingFieldsAndAttributes(from dimensions: [(String, String)]) -> (unit: String?, description: String?, Set<Attribute>) {
+    private func extractIdentifyingFieldsAndAttributes(
+        from dimensions: [(String, String)]
+    ) -> (unit: String?, description: String?, Set<Attribute>) {
         var unit: String?
         var description: String?
         var attributes = Set<Attribute>()

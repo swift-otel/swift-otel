@@ -12,14 +12,15 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
-@testable import Instrumentation
-@testable import Logging
 import NIO
-import OTel
 import OTLPGRPC
+import OTel
 import ServiceLifecycle
 import W3CTraceContext
 import XCTest
+
+@testable import Instrumentation
+@testable import Logging
 
 final class OTLPGRPCIntegrationTests: XCTestCase, @unchecked Sendable {
     func test_example() async throws {
@@ -82,7 +83,9 @@ struct TestService: Service {
         try await Task.sleep(for: .seconds(2))
 
         let jsonDecoder = JSONDecoder()
-        let outputFileContents = try String(contentsOf: outputFileURL, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+        let outputFileContents = try String(contentsOf: outputFileURL, encoding: .utf8).trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
         let lines = outputFileContents.components(separatedBy: .newlines)
         let exportLine = try XCTUnwrap(lines.last)
         let decodedExportLine = try jsonDecoder.decode(ExportLine.self, from: Data(exportLine.utf8))

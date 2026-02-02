@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Testing
+
+@testable import OTel
 
 @Suite struct OTelBackendTests {
     @Test func testAutomaticLogRecordProcessorSelectionForOTLPHTTPExporter() async throws {
@@ -22,7 +23,9 @@ import Testing
             logger: ._otelDisabled
         )
         guard case .batch = processor else {
-            Issue.record("OTLP/HTTP exporter should be automatically paired with the batch processor, but paired with: \(processor)")
+            Issue.record(
+                "OTLP/HTTP exporter should be automatically paired with the batch processor, but paired with: \(processor)"
+            )
             return
         }
     }
@@ -37,7 +40,9 @@ import Testing
             logger: ._otelDisabled
         )
         guard case .batch = processor else {
-            Issue.record("OTLP/gRPC exporter should be automatically paired with the batch processor, but paired with: \(processor)")
+            Issue.record(
+                "OTLP/gRPC exporter should be automatically paired with the batch processor, but paired with: \(processor)"
+            )
             return
         }
     }
@@ -49,7 +54,9 @@ import Testing
             logger: ._otelDisabled
         )
         guard case .simple = processor else {
-            Issue.record("Console exporter should be automatically paired with the batch processor, but paired with: \(processor)")
+            Issue.record(
+                "Console exporter should be automatically paired with the batch processor, but paired with: \(processor)"
+            )
             return
         }
     }
@@ -61,7 +68,9 @@ import Testing
             logger: ._otelDisabled
         )
         guard case .simple = processor else {
-            Issue.record("None exporter should be automatically paired with the simple processor, but paired with: \(processor)")
+            Issue.record(
+                "None exporter should be automatically paired with the simple processor, but paired with: \(processor)"
+            )
             return
         }
     }

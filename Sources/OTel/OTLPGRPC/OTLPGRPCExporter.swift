@@ -49,7 +49,8 @@ extension Opentelemetry_Proto_Collector_Metrics_V1_MetricsService.Client: OTLPGR
 extension Opentelemetry_Proto_Collector_Trace_V1_TraceService.Client: OTLPGRPCClient {}
 
 @available(gRPCSwift, *)
-final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sendable, Client.Transport == HTTP2ClientTransport.Posix {
+final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable
+where Client: Sendable, Client.Transport == HTTP2ClientTransport.Posix {
     private let logger: Logger
     private let underlyingClient: GRPCClient<Client.Transport>
     private let client: Client
@@ -109,10 +110,11 @@ extension CallOptions {
     init(_ configuration: OTel.Configuration.OTLPExporterConfiguration) {
         self = .defaults
         self.timeout = configuration.timeout
-        self.compression = switch configuration.compression.backing {
-        case .gzip: .gzip
-        case .none: CompressionAlgorithm.none
-        }
+        self.compression =
+            switch configuration.compression.backing {
+            case .gzip: .gzip
+            case .none: CompressionAlgorithm.none
+            }
         self.executionPolicy = .retry(.otel)
     }
 }
@@ -149,11 +151,12 @@ extension HTTP2ClientTransport.Posix {
             throw OTLPGRPCExporterError.invalidEndpoint(configuration.grpcEndpoint)
         }
 
-        let insecure = switch endpointComponents.scheme {
-        case "https": false
-        case "http": true
-        default: throw OTLPGRPCExporterError.invalidEndpoint(configuration.grpcEndpoint)
-        }
+        let insecure =
+            switch endpointComponents.scheme {
+            case "https": false
+            case "http": true
+            default: throw OTLPGRPCExporterError.invalidEndpoint(configuration.grpcEndpoint)
+            }
 
         let security: HTTP2ClientTransport.Posix.TransportSecurity
         if insecure {

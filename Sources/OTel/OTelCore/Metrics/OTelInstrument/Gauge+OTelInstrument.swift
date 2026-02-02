@@ -30,13 +30,17 @@ extension Gauge: OTelMetricInstrument {
             name: name,
             description: description ?? "",
             unit: unit ?? "",
-            data: .gauge(OTelGauge(
-                points: [.init(
-                    attributes: attributes.map { OTelAttribute(key: $0.key, value: $0.value) },
-                    timeNanosecondsSinceEpoch: instant.nanosecondsSinceEpoch,
-                    value: .double(value)
-                )]
-            ))
+            data: .gauge(
+                OTelGauge(
+                    points: [
+                        .init(
+                            attributes: attributes.map { OTelAttribute(key: $0.key, value: $0.value) },
+                            timeNanosecondsSinceEpoch: instant.nanosecondsSinceEpoch,
+                            value: .double(value)
+                        )
+                    ]
+                )
+            )
         )
     }
 }

@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import ServiceLifecycle
+
+@testable import OTel
 
 /// A log record exporter streaming exported batches via an async sequence.
 final actor OTelStreamingLogRecordExporter: OTelLogRecordExporter {

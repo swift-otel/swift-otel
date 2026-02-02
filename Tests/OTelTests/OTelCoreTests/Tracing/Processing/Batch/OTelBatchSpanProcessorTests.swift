@@ -11,10 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import Logging
-@testable import OTel
 import ServiceLifecycle
 import XCTest
+
+@testable import Logging
+@testable import OTel
 
 final class OTelBatchSpanProcessorTests: XCTestCase {
     func test_onEnd_whenTicking_exportsNextBatch() async throws {
@@ -240,7 +241,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
             clock: clock
         )
 
-        for i in 1 ... 3 {
+        for i in 1...3 {
             let span = OTelFinishedSpan.stub(traceFlags: .sampled, operationName: "\(i)")
             processor.onEnd(span)
         }
@@ -283,7 +284,7 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
             clock: clock
         )
 
-        for _ in 1 ... 100 {
+        for _ in 1...100 {
             let span = OTelFinishedSpan.stub(traceFlags: .sampled)
             processor.onEnd(span)
         }
@@ -407,7 +408,11 @@ final class OTelBatchSpanProcessorTests: XCTestCase {
 
 extension OTelBatchSpanProcessor {
     // Overload with logging disabled.
-    init(exporter: Exporter, configuration: OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration, clock: Clock) {
+    init(
+        exporter: Exporter,
+        configuration: OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration,
+        clock: Clock
+    ) {
         self.init(exporter: exporter, configuration: configuration, logger: ._otelDisabled, clock: clock)
     }
 }
@@ -420,7 +425,12 @@ extension OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration
         maxQueueSize: Int = Self.default.maxQueueSize,
         maxExportBatchSize: Int = Self.default.maxExportBatchSize
     ) -> Self {
-        Self(scheduleDelay: scheduleDelay, exportTimeout: exportTimeout, maxQueueSize: maxQueueSize, maxExportBatchSize: maxExportBatchSize)
+        Self(
+            scheduleDelay: scheduleDelay,
+            exportTimeout: exportTimeout,
+            maxQueueSize: maxQueueSize,
+            maxExportBatchSize: maxExportBatchSize
+        )
     }
 }
 

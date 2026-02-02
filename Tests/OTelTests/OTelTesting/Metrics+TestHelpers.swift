@@ -48,9 +48,16 @@ extension Histogram {
             state.buckets.map { EquatableBucket(bound: $0.bound, count: $0.count) },
             buckets.map { EquatableBucket(bound: $0.bound, count: $0.count) },
             "Unexpected buckets",
-            file: file, line: line
+            file: file,
+            line: line
         )
-        XCTAssertEqual(state.countAboveUpperBound, countAboveUpperBound, "Unexpected countAboveUpperBound", file: file, line: line)
+        XCTAssertEqual(
+            state.countAboveUpperBound,
+            countAboveUpperBound,
+            "Unexpected countAboveUpperBound",
+            file: file,
+            line: line
+        )
     }
 }
 
@@ -70,7 +77,11 @@ extension OTelMetricPoint.OTelMetricData {
         return histogram
     }
 
-    func assertIsCumulativeSumWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
+    func assertIsCumulativeSumWithOneValue(
+        _ value: OTelNumberDataPoint.Value,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
         guard
             case .sum(let sum) = data,
             sum.monotonic,
@@ -84,7 +95,11 @@ extension OTelMetricPoint.OTelMetricData {
         XCTAssertEqual(point.value, value, file: file, line: line)
     }
 
-    func assertIsGaugeWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
+    func assertIsGaugeWithOneValue(
+        _ value: OTelNumberDataPoint.Value,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
         guard
             case .gauge(let gauge) = data,
             gauge.points.count == 1,
@@ -96,7 +111,14 @@ extension OTelMetricPoint.OTelMetricData {
         XCTAssertEqual(point.value, value, file: file, line: line)
     }
 
-    func assertIsCumulativeHistogramWith(count: Int, sum: Double, bucketCounts: [UInt64], explicitBounds: [Double], file: StaticString = #filePath, line: UInt = #line) {
+    func assertIsCumulativeHistogramWith(
+        count: Int,
+        sum: Double,
+        bucketCounts: [UInt64],
+        explicitBounds: [Double],
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
         guard
             case .histogram(let histogram) = data,
             histogram.aggregationTemporality == .cumulative,

@@ -12,8 +12,9 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-@testable import OTel
 import ServiceLifecycle
+
+@testable import OTel
 
 actor OTelInMemoryLogRecordExporter: OTelLogRecordExporter {
     private(set) var exportedBatches = [[OTelLogRecord]]()

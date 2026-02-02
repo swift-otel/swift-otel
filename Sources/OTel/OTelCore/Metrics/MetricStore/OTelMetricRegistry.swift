@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
+
 import struct NIOConcurrencyHelpers.NIOLockedValueBox
 
 /// A registry for metric instruments.
@@ -33,7 +34,10 @@ final class OTelMetricRegistry: Sendable {
 
         mutating func register(_ identifier: InstrumentIdentifier, forName name: String) {
             if var existingRegistrations = registrations[name] {
-                duplicateRegistrationHandler?.handle(newRegistration: identifier, existingRegistrations: existingRegistrations)
+                duplicateRegistrationHandler?.handle(
+                    newRegistration: identifier,
+                    existingRegistrations: existingRegistrations
+                )
                 existingRegistrations.insert(identifier)
                 registrations[name] = existingRegistrations
             } else {
@@ -90,7 +94,12 @@ final class OTelMetricRegistry: Sendable {
         }
     }
 
-    func makeCounter(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = []) -> Counter {
+    func makeCounter(
+        name: String,
+        unit: String? = nil,
+        description: String? = nil,
+        attributes: Set<Attribute> = []
+    ) -> Counter {
         storage.withLockedValue { storage in
             let identifier = InstrumentIdentifier.counter(name: name, unit: unit, description: description)
             if var existingInstruments = storage.counters[identifier] {
@@ -109,26 +118,46 @@ final class OTelMetricRegistry: Sendable {
         }
     }
 
-    func makeFloatingPointCounter(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = []) -> FloatingPointCounter {
+    func makeFloatingPointCounter(
+        name: String,
+        unit: String? = nil,
+        description: String? = nil,
+        attributes: Set<Attribute> = []
+    ) -> FloatingPointCounter {
         storage.withLockedValue { storage in
             let identifier = InstrumentIdentifier.floatingPointCounter(name: name, unit: unit, description: description)
             if var existingInstruments = storage.floatingPointCounters[identifier] {
                 if let existingInstrument = existingInstruments[attributes] {
                     return existingInstrument
                 }
-                let newInstrument = FloatingPointCounter(name: name, unit: unit, description: description, attributes: attributes)
+                let newInstrument = FloatingPointCounter(
+                    name: name,
+                    unit: unit,
+                    description: description,
+                    attributes: attributes
+                )
                 existingInstruments[attributes] = newInstrument
                 storage.floatingPointCounters[identifier] = existingInstruments
                 return newInstrument
             }
             storage.register(identifier, forName: name)
-            let newInstrument = FloatingPointCounter(name: name, unit: unit, description: description, attributes: attributes)
+            let newInstrument = FloatingPointCounter(
+                name: name,
+                unit: unit,
+                description: description,
+                attributes: attributes
+            )
             storage.floatingPointCounters[identifier] = [attributes: newInstrument]
             return newInstrument
         }
     }
 
-    func makeGauge(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = []) -> Gauge {
+    func makeGauge(
+        name: String,
+        unit: String? = nil,
+        description: String? = nil,
+        attributes: Set<Attribute> = []
+    ) -> Gauge {
         storage.withLockedValue { storage in
             let identifier = InstrumentIdentifier.gauge(name: name, unit: unit, description: description)
             if var existingInstruments = storage.gauges[identifier] {
@@ -147,39 +176,75 @@ final class OTelMetricRegistry: Sendable {
         }
     }
 
-    func makeDurationHistogram(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = [], buckets: [Duration]) -> DurationHistogram {
+    func makeDurationHistogram(
+        name: String,
+        unit: String? = nil,
+        description: String? = nil,
+        attributes: Set<Attribute> = [],
+        buckets: [Duration]
+    ) -> DurationHistogram {
         storage.withLockedValue { storage in
             let identifier = InstrumentIdentifier.histogram(name: name, unit: unit, description: description)
             if var existingInstruments = storage.durationHistograms[identifier] {
                 if let existingInstrument = existingInstruments[attributes] {
                     return existingInstrument
                 }
-                let newInstrument = DurationHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets)
+                let newInstrument = DurationHistogram(
+                    name: name,
+                    unit: unit,
+                    description: description,
+                    attributes: attributes,
+                    buckets: buckets
+                )
                 existingInstruments[attributes] = newInstrument
                 storage.durationHistograms[identifier] = existingInstruments
                 return newInstrument
             }
             storage.register(identifier, forName: name)
-            let newInstrument = DurationHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets)
+            let newInstrument = DurationHistogram(
+                name: name,
+                unit: unit,
+                description: description,
+                attributes: attributes,
+                buckets: buckets
+            )
             storage.durationHistograms[identifier] = [attributes: newInstrument]
             return newInstrument
         }
     }
 
-    func makeValueHistogram(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = [], buckets: [Double]) -> ValueHistogram {
+    func makeValueHistogram(
+        name: String,
+        unit: String? = nil,
+        description: String? = nil,
+        attributes: Set<Attribute> = [],
+        buckets: [Double]
+    ) -> ValueHistogram {
         storage.withLockedValue { storage in
             let identifier = InstrumentIdentifier.histogram(name: name, unit: unit, description: description)
             if var existingInstruments = storage.valueHistograms[identifier] {
                 if let existingInstrument = existingInstruments[attributes] {
                     return existingInstrument
                 }
-                let newInstrument = ValueHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets)
+                let newInstrument = ValueHistogram(
+                    name: name,
+                    unit: unit,
+                    description: description,
+                    attributes: attributes,
+                    buckets: buckets
+                )
                 existingInstruments[attributes] = newInstrument
                 storage.valueHistograms[identifier] = existingInstruments
                 return newInstrument
             }
             storage.register(identifier, forName: name)
-            let newInstrument = ValueHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets)
+            let newInstrument = ValueHistogram(
+                name: name,
+                unit: unit,
+                description: description,
+                attributes: attributes,
+                buckets: buckets
+            )
             storage.valueHistograms[identifier] = [attributes: newInstrument]
             return newInstrument
         }
@@ -301,7 +366,9 @@ extension Counter: IdentifiableInstrument {
 }
 
 extension FloatingPointCounter: IdentifiableInstrument {
-    var instrumentIdentifier: InstrumentIdentifier { .floatingPointCounter(name: name, unit: unit, description: description) }
+    var instrumentIdentifier: InstrumentIdentifier {
+        .floatingPointCounter(name: name, unit: unit, description: description)
+    }
 }
 
 extension Gauge: IdentifiableInstrument {
@@ -318,11 +385,13 @@ protocol DuplicateRegistrationHandler: Sendable {
 
 struct FatalErrorDuplicateRegistrationHandler: DuplicateRegistrationHandler {
     func handle(newRegistration: InstrumentIdentifier, existingRegistrations: Set<InstrumentIdentifier>) {
-        fatalError("""
-        Duplicate instrument registration for name: \(newRegistration.name)
-        ---
-        Instrument \(newRegistration) conflicts with existing instruments: \(existingRegistrations).
-        """)
+        fatalError(
+            """
+            Duplicate instrument registration for name: \(newRegistration.name)
+            ---
+            Instrument \(newRegistration) conflicts with existing instruments: \(existingRegistrations).
+            """
+        )
     }
 }
 
@@ -330,9 +399,12 @@ struct WarningDuplicateRegistrationHandler: DuplicateRegistrationHandler {
     let logger: Logger
 
     func handle(newRegistration: InstrumentIdentifier, existingRegistrations: Set<InstrumentIdentifier>) {
-        self.logger.warning("Duplicate instrument registration", metadata: [
-            "newRegistration": "\(newRegistration)",
-            "existingRegistrations": .array(existingRegistrations.map { "\($0)" }),
-        ])
+        self.logger.warning(
+            "Duplicate instrument registration",
+            metadata: [
+                "newRegistration": "\(newRegistration)",
+                "existingRegistrations": .array(existingRegistrations.map { "\($0)" }),
+            ]
+        )
     }
 }

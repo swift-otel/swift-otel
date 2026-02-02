@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import XCTest
+
+@testable import OTel
 
 final class FloatingPointCounterMeasurementTests: XCTestCase {
     func test_measure_returnsCumulativeSum() {
@@ -41,7 +42,7 @@ final class FloatingPointCounterMeasurementTests: XCTestCase {
     func test_measure_followingConcurrentIncrement_returnsCumulativeSum() async {
         let counter = FloatingPointCounter(name: "my_floating_point_counter", attributes: [])
         await withTaskGroup(of: Void.self) { group in
-            for _ in 0 ..< 100_000 {
+            for _ in 0..<100_000 {
                 group.addTask {
                     counter.increment(by: 0.5)
                 }
@@ -51,7 +52,12 @@ final class FloatingPointCounterMeasurementTests: XCTestCase {
     }
 
     func test_measure_measurementIncludesIdentifyingFields() {
-        let counter = FloatingPointCounter(name: "my_floating_point_counter", unit: "bytes", description: "some description", attributes: [])
+        let counter = FloatingPointCounter(
+            name: "my_floating_point_counter",
+            unit: "bytes",
+            description: "some description",
+            attributes: []
+        )
         XCTAssertEqual(counter.measure().name, "my_floating_point_counter")
         XCTAssertEqual(counter.measure().unit, "bytes")
         XCTAssertEqual(counter.measure().description, "some description")

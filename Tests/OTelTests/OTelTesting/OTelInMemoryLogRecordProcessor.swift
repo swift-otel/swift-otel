@@ -12,8 +12,9 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
-@testable import OTel
 import ServiceLifecycle
+
+@testable import OTel
 
 /// An in-memory log record processor, collecting emitted log records into ``onEmit(_:)``.
 final class OTelInMemoryLogRecordProcessor: OTelLogRecordProcessor {

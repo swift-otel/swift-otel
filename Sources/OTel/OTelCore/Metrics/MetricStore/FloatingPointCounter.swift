@@ -48,7 +48,8 @@ final class FloatingPointCounter: Sendable {
         self.attributes = attributes
     }
 
-    convenience init(name: String, unit: String? = nil, description: String? = nil, attributes: [(String, String)] = []) {
+    convenience init(name: String, unit: String? = nil, description: String? = nil, attributes: [(String, String)] = [])
+    {
         self.init(name: name, unit: unit, description: description, attributes: Set(attributes))
     }
 

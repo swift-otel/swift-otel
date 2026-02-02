@@ -119,18 +119,24 @@ internal enum WrappedLogRecordExporter: OTelLogRecordExporter {
             switch configuration.logs.otlpExporter.protocol.backing {
             case .grpc:
                 #if OTLPGRPC
-                if #available(gRPCSwift, *) {
-                    let exporter = try OTLPGRPCLogRecordExporter(configuration: configuration.logs.otlpExporter, logger: logger)
+                if #available(gRPCSwift , *) {
+                    let exporter = try OTLPGRPCLogRecordExporter(
+                        configuration: configuration.logs.otlpExporter,
+                        logger: logger
+                    )
                     self = .grpc(exporter)
                 } else {
                     fatalError("Using the OTLP/gRPC exporter is not supported on this platform.")
                 }
-                #else // OTLPGRPC
+                #else  // OTLPGRPC
                 fatalError("Using the OTLP/gRPC exporter requires the `OTLPGRPC` trait enabled.")
                 #endif
             case .httpProtobuf, .httpJSON:
                 #if OTLPHTTP
-                let exporter = try OTLPHTTPLogRecordExporter(configuration: configuration.logs.otlpExporter, logger: logger)
+                let exporter = try OTLPHTTPLogRecordExporter(
+                    configuration: configuration.logs.otlpExporter,
+                    logger: logger
+                )
                 self = .http(exporter)
                 #else
                 fatalError("Using the OTLP/HTTP exporter requires the `OTLPHTTP` trait enabled.")
@@ -205,18 +211,24 @@ internal enum WrappedMetricExporter: OTelMetricExporter {
             switch configuration.metrics.otlpExporter.protocol.backing {
             case .grpc:
                 #if OTLPGRPC
-                if #available(gRPCSwift, *) {
-                    let exporter = try OTLPGRPCMetricExporter(configuration: configuration.metrics.otlpExporter, logger: logger)
+                if #available(gRPCSwift , *) {
+                    let exporter = try OTLPGRPCMetricExporter(
+                        configuration: configuration.metrics.otlpExporter,
+                        logger: logger
+                    )
                     self = .grpc(exporter)
                 } else {
                     fatalError("Using the OTLP/gRPC exporter is not supported on this platform.")
                 }
-                #else // OTLPGRPC
+                #else  // OTLPGRPC
                 fatalError("Using the OTLP/gRPC exporter requires the `OTLPGRPC` trait enabled.")
                 #endif
             case .httpProtobuf, .httpJSON:
                 #if OTLPHTTP
-                let exporter = try OTLPHTTPMetricExporter(configuration: configuration.metrics.otlpExporter, logger: logger)
+                let exporter = try OTLPHTTPMetricExporter(
+                    configuration: configuration.metrics.otlpExporter,
+                    logger: logger
+                )
                 self = .http(exporter)
                 #else
                 fatalError("Using the OTLP/HTTP exporter requires the `OTLPHTTP` trait enabled.")
@@ -292,18 +304,24 @@ internal enum WrappedSpanExporter: OTelSpanExporter {
             switch configuration.traces.otlpExporter.protocol.backing {
             case .grpc:
                 #if OTLPGRPC
-                if #available(gRPCSwift, *) {
-                    let exporter = try OTLPGRPCSpanExporter(configuration: configuration.traces.otlpExporter, logger: logger)
+                if #available(gRPCSwift , *) {
+                    let exporter = try OTLPGRPCSpanExporter(
+                        configuration: configuration.traces.otlpExporter,
+                        logger: logger
+                    )
                     self = .grpc(exporter)
                 } else {
                     fatalError("Using the OTLP/gRPC exporter is not supported on this platform.")
                 }
-                #else // OTLPGRPC
+                #else  // OTLPGRPC
                 fatalError("Using the OTLP/gRPC exporter requires the `OTLPGRPC` trait enabled.")
                 #endif
             case .httpProtobuf, .httpJSON:
                 #if OTLPHTTP
-                let exporter = try OTLPHTTPSpanExporter(configuration: configuration.traces.otlpExporter, logger: logger)
+                let exporter = try OTLPHTTPSpanExporter(
+                    configuration: configuration.traces.otlpExporter,
+                    logger: logger
+                )
                 self = .http(exporter)
                 #else
                 fatalError("Using the OTLP/HTTP exporter requires the `OTLPHTTP` trait enabled.")
@@ -322,16 +340,51 @@ internal enum WrappedSampler: OTelSampler {
     case parentBased(OTelParentBasedSampler)
     case other(any OTelSampler)
 
-    func samplingResult(operationName: String, kind: SpanKind, traceID: TraceID, attributes: SpanAttributes, links: [SpanLink], parentContext: ServiceContext) -> OTelSamplingResult {
+    func samplingResult(
+        operationName: String,
+        kind: SpanKind,
+        traceID: TraceID,
+        attributes: SpanAttributes,
+        links: [SpanLink],
+        parentContext: ServiceContext
+    ) -> OTelSamplingResult {
         switch self {
         case .constant(let wrapped):
-            wrapped.samplingResult(operationName: operationName, kind: kind, traceID: traceID, attributes: attributes, links: links, parentContext: parentContext)
+            wrapped.samplingResult(
+                operationName: operationName,
+                kind: kind,
+                traceID: traceID,
+                attributes: attributes,
+                links: links,
+                parentContext: parentContext
+            )
         case .traceIDRatio(let wrapped):
-            wrapped.samplingResult(operationName: operationName, kind: kind, traceID: traceID, attributes: attributes, links: links, parentContext: parentContext)
+            wrapped.samplingResult(
+                operationName: operationName,
+                kind: kind,
+                traceID: traceID,
+                attributes: attributes,
+                links: links,
+                parentContext: parentContext
+            )
         case .parentBased(let wrapped):
-            wrapped.samplingResult(operationName: operationName, kind: kind, traceID: traceID, attributes: attributes, links: links, parentContext: parentContext)
+            wrapped.samplingResult(
+                operationName: operationName,
+                kind: kind,
+                traceID: traceID,
+                attributes: attributes,
+                links: links,
+                parentContext: parentContext
+            )
         case .other(let wrapped):
-            wrapped.samplingResult(operationName: operationName, kind: kind, traceID: traceID, attributes: attributes, links: links, parentContext: parentContext)
+            wrapped.samplingResult(
+                operationName: operationName,
+                kind: kind,
+                traceID: traceID,
+                attributes: attributes,
+                links: links,
+                parentContext: parentContext
+            )
         }
     }
 
@@ -346,12 +399,16 @@ internal enum WrappedSampler: OTelSampler {
             default:
                 self = .traceIDRatio(OTelTraceIDRatioBasedSampler(ratio: 1.0))
             }
-        case .parentBasedAlwaysOn: self = .parentBased(OTelParentBasedSampler(rootSampler: OTelConstantSampler(isOn: true)))
-        case .parentBasedAlwaysOff: self = .parentBased(OTelParentBasedSampler(rootSampler: OTelConstantSampler(isOn: false)))
+        case .parentBasedAlwaysOn:
+            self = .parentBased(OTelParentBasedSampler(rootSampler: OTelConstantSampler(isOn: true)))
+        case .parentBasedAlwaysOff:
+            self = .parentBased(OTelParentBasedSampler(rootSampler: OTelConstantSampler(isOn: false)))
         case .parentBasedTraceIDRatio:
             switch configuration.traces.sampler.argument {
             case .traceIDRatio(let samplingProbability):
-                self = .parentBased(OTelParentBasedSampler(rootSampler: OTelTraceIDRatioBasedSampler(ratio: samplingProbability)))
+                self = .parentBased(
+                    OTelParentBasedSampler(rootSampler: OTelTraceIDRatioBasedSampler(ratio: samplingProbability))
+                )
             default:
                 self = .parentBased(OTelParentBasedSampler(rootSampler: OTelTraceIDRatioBasedSampler(ratio: 1.0)))
             }
@@ -397,19 +454,23 @@ internal enum WrappedLogRecordProcessor: OTelLogRecordProcessor {
         switch exporter {
         #if OTLPGRPC
         case .grpc:
-            self = .batch(OTelBatchLogRecordProcessor(
-                exporter: exporter,
-                configuration: configuration.logs.batchLogRecordProcessor,
-                logger: logger
-            ))
+            self = .batch(
+                OTelBatchLogRecordProcessor(
+                    exporter: exporter,
+                    configuration: configuration.logs.batchLogRecordProcessor,
+                    logger: logger
+                )
+            )
         #endif
         #if OTLPHTTP
         case .http:
-            self = .batch(OTelBatchLogRecordProcessor(
-                exporter: exporter,
-                configuration: configuration.logs.batchLogRecordProcessor,
-                logger: logger
-            ))
+            self = .batch(
+                OTelBatchLogRecordProcessor(
+                    exporter: exporter,
+                    configuration: configuration.logs.batchLogRecordProcessor,
+                    logger: logger
+                )
+            )
         #endif
         case .console, .none:
             self = .simple(OTelSimpleLogRecordProcessor(exporter: exporter, logger: logger))
@@ -424,7 +485,7 @@ extension OTelMultiplexPropagator {
             switch propagatorConfigValue.backing {
             case .none:
                 propagators.removeAll()
-                break loop // If none is in the config, we'll assume that was deliberate and short-circuit here.
+                break loop  // If none is in the config, we'll assume that was deliberate and short-circuit here.
             case .traceContext: propagators.append(OTelW3CPropagator())
             case .baggage: fatalError("Swift OTel does not support the W3C Baggage propagator")
             case .b3: fatalError("Swift OTel does not support the B3 Single propagator")

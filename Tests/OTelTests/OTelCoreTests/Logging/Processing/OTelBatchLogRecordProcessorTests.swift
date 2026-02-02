@@ -11,10 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import Logging
-@testable import OTel
 import ServiceLifecycle
 import XCTest
+
+@testable import Logging
+@testable import OTel
 
 final class OTelBatchLogRecordProcessorTests: XCTestCase {
     override func setUp() {
@@ -36,7 +37,7 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
         try await withThrowingTaskGroup(of: Void.self) { group in
             group.addTask(operation: serviceGroup.run)
 
-            let messages: [Logger.Message] = (1 ... 3).map { "\($0)" }
+            let messages: [Logger.Message] = (1...3).map { "\($0)" }
             for message in messages {
                 var record = OTelLogRecord.stub(body: message)
                 processor.onEmit(&record)
@@ -224,10 +225,8 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
             await serviceGroup.triggerGracefulShutdown()
 
             var batches = exporter.batches.makeAsyncIterator()
-            /*
-             Forced flush exports occur concurrently, so we check that all messages got exported,
-             without checking the specific order they were exported in.
-             */
+            // Forced flush exports occur concurrently, so we check that all messages got exported,
+            // without checking the specific order they were exported in.
             var exportedMessages = Set<String>()
             for _ in messages {
                 let batch = await batches.next()
@@ -372,7 +371,11 @@ final class OTelBatchLogRecordProcessorTests: XCTestCase {
 
 extension OTelBatchLogRecordProcessor {
     // Overload with logging disabled.
-    init(exporter: Exporter, configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration, clock: Clock = .continuous) {
+    init(
+        exporter: Exporter,
+        configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration,
+        clock: Clock = .continuous
+    ) {
         self.init(exporter: exporter, configuration: configuration, logger: ._otelDisabled, clock: clock)
     }
 }
@@ -385,6 +388,11 @@ extension OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfigurat
         maxQueueSize: Int = Self.default.maxQueueSize,
         maxExportBatchSize: Int = Self.default.maxExportBatchSize
     ) -> Self {
-        Self(scheduleDelay: scheduleDelay, exportTimeout: exportTimeout, maxQueueSize: maxQueueSize, maxExportBatchSize: maxExportBatchSize)
+        Self(
+            scheduleDelay: scheduleDelay,
+            exportTimeout: exportTimeout,
+            maxQueueSize: maxQueueSize,
+            maxExportBatchSize: maxExportBatchSize
+        )
     }
 }

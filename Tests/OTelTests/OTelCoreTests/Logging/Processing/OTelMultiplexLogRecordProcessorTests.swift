@@ -11,10 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import Logging
-@testable import OTel
 import ServiceLifecycle
 import XCTest
+
+@testable import Logging
+@testable import OTel
 
 final class OTelMultiplexLogRecordProcessorTests: XCTestCase {
     func test_emit_emitsToAllProcessors() async throws {

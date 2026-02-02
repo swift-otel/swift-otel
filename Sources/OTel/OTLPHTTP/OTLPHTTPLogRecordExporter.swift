@@ -65,10 +65,14 @@ final class OTLPHTTPLogRecordExporter: OTelLogRecordExporter {
             } else {
                 logLevel = .warning
             }
-            logger.log(level: logLevel, "Partial success", metadata: [
-                "message": "\(response.partialSuccess.errorMessage)",
-                "rejected_log_records": "\(response.partialSuccess.rejectedLogRecords)",
-            ])
+            logger.log(
+                level: logLevel,
+                "Partial success",
+                metadata: [
+                    "message": "\(response.partialSuccess.errorMessage)",
+                    "rejected_log_records": "\(response.partialSuccess.rejectedLogRecords)",
+                ]
+            )
         }
     }
 

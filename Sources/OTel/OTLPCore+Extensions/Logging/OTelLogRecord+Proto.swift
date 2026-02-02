@@ -104,10 +104,12 @@ extension Opentelemetry_Proto_Logs_V1_ResourceLogs {
             self.resource = .init(resource)
         }
 
-        scopeLogs = [Opentelemetry_Proto_Logs_V1_ScopeLogs.with {
-            $0.scope = .swiftOTelScope
-            $0.logRecords = logRecords.map(Opentelemetry_Proto_Logs_V1_LogRecord.init)
-        }]
+        scopeLogs = [
+            Opentelemetry_Proto_Logs_V1_ScopeLogs.with {
+                $0.scope = .swiftOTelScope
+                $0.logRecords = logRecords.map(Opentelemetry_Proto_Logs_V1_LogRecord.init)
+            }
+        ]
     }
 }
 
