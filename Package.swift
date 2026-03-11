@@ -144,8 +144,8 @@ struct PlatformRequirements {
         .enableExperimentalFeature("AvailabilityMacro=\(name) : macOS \(macOS), iOS \(iOS), tvOS \(tvOS), watchOS \(watchOS), visionOS \(visionOS)")
     }
 
-    static let clockAPI = Self(name: "ClockAPI", macOS: "13", iOS: "16", tvOS: "16", watchOS: "9", visionOS: "1")
-    static let gRPCSwift = Self(name: "gRPCSwift", macOS: "15", iOS: "18", tvOS: "18", watchOS: "11", visionOS: "2")
+    static let clockAPI = Self(name: "ClockAPI", macOS: "13.0", iOS: "16.0", tvOS: "16.0", watchOS: "9.0", visionOS: "1.0")
+    static let gRPCSwift = Self(name: "gRPCSwift", macOS: "15.0", iOS: "18.0", tvOS: "18.0", watchOS: "11.0", visionOS: "2.0")
 }
 
 if ["true", "y", "yes", "on", "1"].contains(Context.environment["OTEL_ENABLE_BENCHMARKS"]?.lowercased()) {
