@@ -58,9 +58,11 @@ extension OTel.Configuration.Key.GeneralKey {
     static let metricExportInterval = Self(key: "OTEL_METRIC_EXPORT_INTERVAL")
     static let metricExportTimeout = Self(key: "OTEL_METRIC_EXPORT_TIMEOUT")
     static let metricDefaultValueHistogramBuckets = Self(key: "OTEL_SWIFT_METRICS_DEFAULT_VALUE_HISTOGRAM_BUCKETS")
-    static let metricDefaultDurationHistogramBuckets = Self(key: "OTEL_SWIFT_METRICS_DEFAULT_DURATION_HISTOGRAM_BUCKETS")
+    static let metricDefaultDurationHistogramBuckets = Self(
+        key: "OTEL_SWIFT_METRICS_DEFAULT_DURATION_HISTOGRAM_BUCKETS"
+    )
     static let logsExporter = Self(key: "OTEL_LOGS_EXPORTER")
-    static let logsLevel = Self(key: "OTEL_SWIFT_LOG_LEVEL") // SDK-specific => different format.
+    static let logsLevel = Self(key: "OTEL_SWIFT_LOG_LEVEL")  // SDK-specific => different format.
     static let propagators = Self(key: "OTEL_PROPAGATORS")
     static let sampler = Self(key: "OTEL_TRACES_SAMPLER")
     static let samplerArgument = Self(key: "OTEL_TRACES_SAMPLER_ARG")
@@ -109,7 +111,10 @@ extension [String: String] {
         self[key.key]
     }
 
-    func getStringValue(_ key: OTel.Configuration.Key.SignalSpecificKey, signal: OTel.Configuration.Key.Signal) -> String? {
+    func getStringValue(
+        _ key: OTel.Configuration.Key.SignalSpecificKey,
+        signal: OTel.Configuration.Key.Signal
+    ) -> String? {
         switch signal {
         case .traces: self[key.traces] ?? self[key.shared]
         case .metrics: self[key.metrics] ?? self[key.shared]

@@ -23,6 +23,7 @@ extension [Opentelemetry_Proto_Common_V1_KeyValue] {
     init(_ attributes: SpanAttributes) {
         var keyValuePairs = [Opentelemetry_Proto_Common_V1_KeyValue]()
 
+        // swift-format-ignore: ReplaceForEachWithForLoop
         attributes.forEach { key, spanAttribute in
             guard let anyValue = Opentelemetry_Proto_Common_V1_AnyValue(spanAttribute) else {
                 // TODO: Log unsupported span attribute type

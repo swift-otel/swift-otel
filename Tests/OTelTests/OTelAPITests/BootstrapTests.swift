@@ -11,11 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) // Swift Testing exit tests only added in 6.2
+#if compiler(>=6.2)  // Swift Testing exit tests only added in 6.2
 import Foundation
 import Logging
 import Metrics
-import OTel // NOTE: Not @testable import, to test public API visibility.
+import OTel  // NOTE: Not @testable import, to test public API visibility.
 import ServiceLifecycle
 import Testing
 import Tracing
@@ -158,4 +158,4 @@ import Tracing
         }
     }
 }
-#endif // compiler(>=6.2)
+#endif  // compiler(>=6.2)

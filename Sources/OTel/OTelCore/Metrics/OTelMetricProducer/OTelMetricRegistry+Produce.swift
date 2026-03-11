@@ -15,7 +15,7 @@ extension OTelMetricRegistry: OTelMetricProducer {
     func produce() -> [OTelMetricPoint] {
         let metrics = storage.withLockedValue { $0 }
         var buffer: [OTelMetricPoint] = []
-        buffer.reserveCapacity(1024) // TODO: Make this configurable? Also, does this overlap with OTel "cardinality"?
+        buffer.reserveCapacity(1024)  // TODO: Make this configurable? Also, does this overlap with OTel "cardinality"?
         for instruments in metrics.counters.values {
             for instrument in instruments.values {
                 buffer.append(instrument.measure())

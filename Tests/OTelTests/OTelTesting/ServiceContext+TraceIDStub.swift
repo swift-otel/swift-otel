@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import ServiceContextModule
 import W3CTraceContext
+
+@testable import OTel
 
 extension ServiceContext {
     /// A top-level service context with a span context containing the given trace ID.

@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
+
 @testable import OTel
 
 final class RecordingDuplicateRegistrationHandler: DuplicateRegistrationHandler {

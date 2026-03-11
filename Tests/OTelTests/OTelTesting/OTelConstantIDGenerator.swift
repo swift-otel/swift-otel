@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import W3CTraceContext
+
+@testable import OTel
 
 struct OTelConstantIDGenerator: OTelIDGenerator {
     private let _traceID: TraceID

@@ -16,6 +16,6 @@ let package = Package(
                 .product(name: "Hummingbird", package: "hummingbird"),
                 .product(name: "OTel", package: "swift-otel"),
             ]
-        ),
+        )
     ]
 )

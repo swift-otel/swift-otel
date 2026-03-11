@@ -11,11 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import Logging
 import NIO
-@testable import OTel
 import Tracing
 import XCTest
+
+@testable import Logging
+@testable import OTel
 
 @available(gRPCSwift, *)
 final class OTLPGRPCSpanExporterTests: XCTestCase {
@@ -103,15 +104,21 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
 
             XCTAssertEqual(request.message.resourceSpans.count, 1)
             let resourceSpans = try XCTUnwrap(request.message.resourceSpans.first)
-            XCTAssertEqual(resourceSpans.resource, .with {
-                $0.attributes = .init(["service.name": "test"])
-            })
+            XCTAssertEqual(
+                resourceSpans.resource,
+                .with {
+                    $0.attributes = .init(["service.name": "test"])
+                }
+            )
             XCTAssertEqual(resourceSpans.scopeSpans.count, 1)
             let scopeSpans = try XCTUnwrap(resourceSpans.scopeSpans.first)
-            XCTAssertEqual(scopeSpans.scope, .with {
-                $0.name = "swift-otel"
-                $0.version = OTelLibrary.version
-            })
+            XCTAssertEqual(
+                scopeSpans.scope,
+                .with {
+                    $0.name = "swift-otel"
+                    $0.version = OTelLibrary.version
+                }
+            )
             XCTAssertEqual(scopeSpans.spans, [.init(span)])
 
             XCTAssertEqual(request.metadata.first(where: { $0.key == "key1" })?.value, "42")

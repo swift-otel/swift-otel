@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import ServiceLifecycle
+
+@testable import OTel
 
 /// A span exporter, streaming exported batches via an async sequence.
 final actor OTelStreamingSpanExporter: OTelSpanExporter {

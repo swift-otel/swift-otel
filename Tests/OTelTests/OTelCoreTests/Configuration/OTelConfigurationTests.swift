@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Testing
+
+@testable import OTel
 
 @Suite struct ConfigurationTests {
     // OTEL_SDK_DISABLED
@@ -23,7 +24,7 @@ import Testing
         #expect(OTel.Configuration.default.traces.enabled == true)
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
-            "OTEL_SDK_DISABLED": "true",
+            "OTEL_SDK_DISABLED": "true"
         ]) { config in
             #expect(config.logs.enabled == false)
             #expect(config.metrics.enabled == false)
@@ -36,13 +37,17 @@ import Testing
     @Test func testDiagnosticsLogLevel() {
         #expect(OTel.Configuration.default.diagnosticLogLevel.backing == .info)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_LOG_LEVEL": "trace",
-        ]).diagnosticLogLevel.backing == .trace)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_LOG_LEVEL": "trace"
+            ]).diagnosticLogLevel.backing == .trace
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_LOG_LEVEL": "invalid",
-        ]).diagnosticLogLevel.backing == .info)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_LOG_LEVEL": "invalid"
+            ]).diagnosticLogLevel.backing == .info
+        )
     }
 
     // OTEL_SERVICE_NAME
@@ -51,9 +56,11 @@ import Testing
     @Test func testServiceName() {
         #expect(OTel.Configuration.default.serviceName == "unknown_service")
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_SERVICE_NAME": "some_service",
-        ]).serviceName == "some_service")
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_SERVICE_NAME": "some_service"
+            ]).serviceName == "some_service"
+        )
     }
 
     // OTEL_RESOURCE_ATTRIBUTES
@@ -63,13 +70,17 @@ import Testing
     @Test func testResourceAttributes() {
         #expect(OTel.Configuration.default.resourceAttributes.isEmpty)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_RESOURCE_ATTRIBUTES": "key1=value1,key2=value2",
-        ]).resourceAttributes == ["key1": "value1", "key2": "value2"])
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_RESOURCE_ATTRIBUTES": "key1=value1,key2=value2"
+            ]).resourceAttributes == ["key1": "value1", "key2": "value2"]
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_RESOURCE_ATTRIBUTES": "key=first_value,key=second_value",
-        ]).resourceAttributes == ["key": "second_value"])
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_RESOURCE_ATTRIBUTES": "key=first_value,key=second_value"
+            ]).resourceAttributes == ["key": "second_value"]
+        )
 
         // The resource attributes provided as an environment variable are a bit special. Most configuration values are
         // taken from the environment variable as-is, and completely override the configuration value, but for resource
@@ -78,13 +89,15 @@ import Testing
         OTel.Configuration.default.with { config in
             config.resourceAttributes["code_key"] = "code_value"
             config.resourceAttributes["shared_key"] = "code_wins"
-            #expect(config.applyingEnvironmentOverrides(environment: [
-                "OTEL_RESOURCE_ATTRIBUTES": "env_key=env_value,shared_key=env_loses",
-            ]).resourceAttributes == [
-                "code_key": "code_value",
-                "shared_key": "code_wins",
-                "env_key": "env_value",
-            ])
+            #expect(
+                config.applyingEnvironmentOverrides(environment: [
+                    "OTEL_RESOURCE_ATTRIBUTES": "env_key=env_value,shared_key=env_loses"
+                ]).resourceAttributes == [
+                    "code_key": "code_value",
+                    "shared_key": "code_wins",
+                    "env_key": "env_value",
+                ]
+            )
         }
     }
 
@@ -94,17 +107,23 @@ import Testing
     @Test func testPropagators() {
         #expect(OTel.Configuration.default.propagators.map(\.backing) == [.traceContext])
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_PROPAGATORS": "b3,xray",
-        ]).propagators.map(\.backing) == [.b3, .xray])
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_PROPAGATORS": "b3,xray"
+            ]).propagators.map(\.backing) == [.b3, .xray]
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_PROPAGATORS": "b3,xray,invalid",
-        ]).propagators.map(\.backing) == OTel.Configuration.default.propagators.map(\.backing))
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_PROPAGATORS": "b3,xray,invalid"
+            ]).propagators.map(\.backing) == OTel.Configuration.default.propagators.map(\.backing)
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_PROPAGATORS": "none",
-        ]).propagators.map(\.backing) == [.none])
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_PROPAGATORS": "none"
+            ]).propagators.map(\.backing) == [.none]
+        )
     }
 
     // OTEL_TRACES_SAMPLER and OTEL_TRACES_SAMPLER_ARG
@@ -113,16 +132,20 @@ import Testing
         #expect(OTel.Configuration.default.traces.sampler.backing == .parentBasedAlwaysOn)
         #expect(OTel.Configuration.default.traces.sampler.argument == nil)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_SAMPLER": "always_on",
-        ]).traces.sampler.backing == .alwaysOn)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_SAMPLER": "always_on"
+            ]).traces.sampler.backing == .alwaysOn
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_SAMPLER": "always_off",
-        ]).traces.sampler.backing == .alwaysOff)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_SAMPLER": "always_off"
+            ]).traces.sampler.backing == .alwaysOff
+        )
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
-            "OTEL_TRACES_SAMPLER": "traceidratio",
+            "OTEL_TRACES_SAMPLER": "traceidratio"
         ]) { config in
             #expect(config.traces.sampler.backing == .traceIDRatio)
             #expect(config.traces.sampler.argument == nil)
@@ -152,20 +175,26 @@ import Testing
             #expect(config.traces.sampler.argument == nil)
         }
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_SAMPLER": "jaeger_remote",
-        ]).traces.sampler.backing == .jaegerRemote)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_SAMPLER": "jaeger_remote"
+            ]).traces.sampler.backing == .jaegerRemote
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_SAMPLER": "parentbased_always_on",
-        ]).traces.sampler.backing == .parentBasedAlwaysOn)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_SAMPLER": "parentbased_always_on"
+            ]).traces.sampler.backing == .parentBasedAlwaysOn
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_SAMPLER": "parentbased_always_off",
-        ]).traces.sampler.backing == .parentBasedAlwaysOff)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_SAMPLER": "parentbased_always_off"
+            ]).traces.sampler.backing == .parentBasedAlwaysOff
+        )
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
-            "OTEL_TRACES_SAMPLER": "parentbased_traceidratio",
+            "OTEL_TRACES_SAMPLER": "parentbased_traceidratio"
         ]) { config in
             #expect(config.traces.sampler.backing == .parentBasedTraceIDRatio)
             #expect(config.traces.sampler.argument == nil)
@@ -179,13 +208,17 @@ import Testing
             #expect(config.traces.sampler.argument == .traceIDRatio(samplingProbability: 0.25))
         }
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_SAMPLER": "parentbased_jaeger_remote",
-        ]).traces.sampler.backing == .parentBasedJaegerRemote)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_SAMPLER": "parentbased_jaeger_remote"
+            ]).traces.sampler.backing == .parentBasedJaegerRemote
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_SAMPLER": "xray",
-        ]).traces.sampler.backing == .xray)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_SAMPLER": "xray"
+            ]).traces.sampler.backing == .xray
+        )
 
         OTel.Configuration.default.with { _ in
             typealias Sampler = OTel.Configuration.TracesConfiguration.SamplerConfiguration
@@ -206,21 +239,31 @@ import Testing
     @Test func testBatchSpanProcessorScheduleDelay() {
         #expect(OTel.Configuration.default.traces.batchSpanProcessor.scheduleDelay == .milliseconds(5000))
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_SCHEDULE_DELAY": "3000",
-        ]).traces.batchSpanProcessor.scheduleDelay == .seconds(3))
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_SCHEDULE_DELAY": "3000"
+            ]).traces.batchSpanProcessor.scheduleDelay == .seconds(3)
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_SCHEDULE_DELAY": "0",
-        ]).traces.batchSpanProcessor.scheduleDelay == .zero)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_SCHEDULE_DELAY": "0"
+            ]).traces.batchSpanProcessor.scheduleDelay == .zero
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_SCHEDULE_DELAY": "-3000",
-        ]).traces.batchSpanProcessor.scheduleDelay == OTel.Configuration.default.traces.batchSpanProcessor.scheduleDelay)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_SCHEDULE_DELAY": "-3000"
+            ]).traces.batchSpanProcessor.scheduleDelay
+                == OTel.Configuration.default.traces.batchSpanProcessor.scheduleDelay
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_SCHEDULE_DELAY": "invalid",
-        ]).traces.batchSpanProcessor.scheduleDelay == OTel.Configuration.default.traces.batchSpanProcessor.scheduleDelay)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_SCHEDULE_DELAY": "invalid"
+            ]).traces.batchSpanProcessor.scheduleDelay
+                == OTel.Configuration.default.traces.batchSpanProcessor.scheduleDelay
+        )
     }
 
     // OTEL_BSP_EXPORT_TIMEOUT
@@ -229,21 +272,31 @@ import Testing
     @Test func testBatchSpanProcessorExportTimeout() {
         #expect(OTel.Configuration.default.traces.batchSpanProcessor.exportTimeout == .milliseconds(30000))
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_EXPORT_TIMEOUT": "3000",
-        ]).traces.batchSpanProcessor.exportTimeout == .seconds(3))
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_EXPORT_TIMEOUT": "3000"
+            ]).traces.batchSpanProcessor.exportTimeout == .seconds(3)
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_EXPORT_TIMEOUT": "0",
-        ]).traces.batchSpanProcessor.exportTimeout == .zero)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_EXPORT_TIMEOUT": "0"
+            ]).traces.batchSpanProcessor.exportTimeout == .zero
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_EXPORT_TIMEOUT": "-3000",
-        ]).traces.batchSpanProcessor.exportTimeout == OTel.Configuration.default.traces.batchSpanProcessor.exportTimeout)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_EXPORT_TIMEOUT": "-3000"
+            ]).traces.batchSpanProcessor.exportTimeout
+                == OTel.Configuration.default.traces.batchSpanProcessor.exportTimeout
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_EXPORT_TIMEOUT": "invalid",
-        ]).traces.batchSpanProcessor.exportTimeout == OTel.Configuration.default.traces.batchSpanProcessor.exportTimeout)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_EXPORT_TIMEOUT": "invalid"
+            ]).traces.batchSpanProcessor.exportTimeout
+                == OTel.Configuration.default.traces.batchSpanProcessor.exportTimeout
+        )
     }
 
     // OTEL_BSP_MAX_QUEUE_SIZE
@@ -252,21 +305,31 @@ import Testing
     @Test func testBatchSpanProcessorMaxQueueSize() {
         #expect(OTel.Configuration.default.traces.batchSpanProcessor.maxQueueSize == 2048)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_MAX_QUEUE_SIZE": "1024",
-        ]).traces.batchSpanProcessor.maxQueueSize == 1024)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_MAX_QUEUE_SIZE": "1024"
+            ]).traces.batchSpanProcessor.maxQueueSize == 1024
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_MAX_QUEUE_SIZE": "0",
-        ]).traces.batchSpanProcessor.maxQueueSize == 0)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_MAX_QUEUE_SIZE": "0"
+            ]).traces.batchSpanProcessor.maxQueueSize == 0
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_MAX_QUEUE_SIZE": "-100",
-        ]).traces.batchSpanProcessor.maxQueueSize == OTel.Configuration.default.traces.batchSpanProcessor.maxQueueSize)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_MAX_QUEUE_SIZE": "-100"
+            ]).traces.batchSpanProcessor.maxQueueSize
+                == OTel.Configuration.default.traces.batchSpanProcessor.maxQueueSize
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_MAX_QUEUE_SIZE": "invalid",
-        ]).traces.batchSpanProcessor.maxQueueSize == OTel.Configuration.default.traces.batchSpanProcessor.maxQueueSize)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_MAX_QUEUE_SIZE": "invalid"
+            ]).traces.batchSpanProcessor.maxQueueSize
+                == OTel.Configuration.default.traces.batchSpanProcessor.maxQueueSize
+        )
     }
 
     // OTEL_BSP_MAX_EXPORT_BATCH_SIZE
@@ -275,21 +338,31 @@ import Testing
     @Test func testBatchSpanProcessorMaxExportBatchSize() {
         #expect(OTel.Configuration.default.traces.batchSpanProcessor.maxExportBatchSize == 512)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_MAX_EXPORT_BATCH_SIZE": "256",
-        ]).traces.batchSpanProcessor.maxExportBatchSize == 256)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_MAX_EXPORT_BATCH_SIZE": "256"
+            ]).traces.batchSpanProcessor.maxExportBatchSize == 256
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_MAX_EXPORT_BATCH_SIZE": "0",
-        ]).traces.batchSpanProcessor.maxExportBatchSize == 0)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_MAX_EXPORT_BATCH_SIZE": "0"
+            ]).traces.batchSpanProcessor.maxExportBatchSize == 0
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_MAX_EXPORT_BATCH_SIZE": "-50",
-        ]).traces.batchSpanProcessor.maxExportBatchSize == OTel.Configuration.default.traces.batchSpanProcessor.maxExportBatchSize)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_MAX_EXPORT_BATCH_SIZE": "-50"
+            ]).traces.batchSpanProcessor.maxExportBatchSize
+                == OTel.Configuration.default.traces.batchSpanProcessor.maxExportBatchSize
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BSP_MAX_EXPORT_BATCH_SIZE": "invalid",
-        ]).traces.batchSpanProcessor.maxExportBatchSize == OTel.Configuration.default.traces.batchSpanProcessor.maxExportBatchSize)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BSP_MAX_EXPORT_BATCH_SIZE": "invalid"
+            ]).traces.batchSpanProcessor.maxExportBatchSize
+                == OTel.Configuration.default.traces.batchSpanProcessor.maxExportBatchSize
+        )
     }
 
     // OTEL_METRIC_EXPORT_INTERVAL
@@ -298,21 +371,29 @@ import Testing
     @Test func testMetricExportInterval() {
         #expect(OTel.Configuration.default.metrics.exportInterval == .seconds(60))
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_METRIC_EXPORT_INTERVAL": "30000",
-        ]).metrics.exportInterval == .seconds(30))
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_METRIC_EXPORT_INTERVAL": "30000"
+            ]).metrics.exportInterval == .seconds(30)
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_METRIC_EXPORT_INTERVAL": "0",
-        ]).metrics.exportInterval == .zero)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_METRIC_EXPORT_INTERVAL": "0"
+            ]).metrics.exportInterval == .zero
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_METRIC_EXPORT_INTERVAL": "-5000",
-        ]).metrics.exportInterval == OTel.Configuration.default.metrics.exportInterval)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_METRIC_EXPORT_INTERVAL": "-5000"
+            ]).metrics.exportInterval == OTel.Configuration.default.metrics.exportInterval
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_METRIC_EXPORT_INTERVAL": "invalid",
-        ]).metrics.exportInterval == OTel.Configuration.default.metrics.exportInterval)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_METRIC_EXPORT_INTERVAL": "invalid"
+            ]).metrics.exportInterval == OTel.Configuration.default.metrics.exportInterval
+        )
     }
 
     // OTEL_METRIC_EXPORT_TIMEOUT
@@ -321,21 +402,29 @@ import Testing
     @Test func testMetricExportTimeout() {
         #expect(OTel.Configuration.default.metrics.exportTimeout == .seconds(30))
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_METRIC_EXPORT_TIMEOUT": "15000",
-        ]).metrics.exportTimeout == .seconds(15))
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_METRIC_EXPORT_TIMEOUT": "15000"
+            ]).metrics.exportTimeout == .seconds(15)
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_METRIC_EXPORT_TIMEOUT": "0",
-        ]).metrics.exportTimeout == .zero)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_METRIC_EXPORT_TIMEOUT": "0"
+            ]).metrics.exportTimeout == .zero
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_METRIC_EXPORT_TIMEOUT": "-3000",
-        ]).metrics.exportTimeout == OTel.Configuration.default.metrics.exportTimeout)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_METRIC_EXPORT_TIMEOUT": "-3000"
+            ]).metrics.exportTimeout == OTel.Configuration.default.metrics.exportTimeout
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_METRIC_EXPORT_TIMEOUT": "invalid",
-        ]).metrics.exportTimeout == OTel.Configuration.default.metrics.exportTimeout)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_METRIC_EXPORT_TIMEOUT": "invalid"
+            ]).metrics.exportTimeout == OTel.Configuration.default.metrics.exportTimeout
+        )
     }
 
     // OTEL_BLRP_SCHEDULE_DELAY
@@ -344,21 +433,31 @@ import Testing
     @Test func testBatchLogRecordProcessorScheduleDelay() {
         #expect(OTel.Configuration.default.logs.batchLogRecordProcessor.scheduleDelay == .seconds(1))
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_SCHEDULE_DELAY": "2000",
-        ]).logs.batchLogRecordProcessor.scheduleDelay == .seconds(2))
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_SCHEDULE_DELAY": "2000"
+            ]).logs.batchLogRecordProcessor.scheduleDelay == .seconds(2)
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_SCHEDULE_DELAY": "0",
-        ]).logs.batchLogRecordProcessor.scheduleDelay == .zero)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_SCHEDULE_DELAY": "0"
+            ]).logs.batchLogRecordProcessor.scheduleDelay == .zero
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_SCHEDULE_DELAY": "-1000",
-        ]).logs.batchLogRecordProcessor.scheduleDelay == OTel.Configuration.default.logs.batchLogRecordProcessor.scheduleDelay)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_SCHEDULE_DELAY": "-1000"
+            ]).logs.batchLogRecordProcessor.scheduleDelay
+                == OTel.Configuration.default.logs.batchLogRecordProcessor.scheduleDelay
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_SCHEDULE_DELAY": "invalid",
-        ]).logs.batchLogRecordProcessor.scheduleDelay == OTel.Configuration.default.logs.batchLogRecordProcessor.scheduleDelay)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_SCHEDULE_DELAY": "invalid"
+            ]).logs.batchLogRecordProcessor.scheduleDelay
+                == OTel.Configuration.default.logs.batchLogRecordProcessor.scheduleDelay
+        )
     }
 
     // OTEL_BLRP_EXPORT_TIMEOUT
@@ -367,21 +466,31 @@ import Testing
     @Test func testBatchLogRecordProcessorExportTimeout() {
         #expect(OTel.Configuration.default.logs.batchLogRecordProcessor.exportTimeout == .seconds(30))
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_EXPORT_TIMEOUT": "15000",
-        ]).logs.batchLogRecordProcessor.exportTimeout == .seconds(15))
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_EXPORT_TIMEOUT": "15000"
+            ]).logs.batchLogRecordProcessor.exportTimeout == .seconds(15)
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_EXPORT_TIMEOUT": "0",
-        ]).logs.batchLogRecordProcessor.exportTimeout == .zero)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_EXPORT_TIMEOUT": "0"
+            ]).logs.batchLogRecordProcessor.exportTimeout == .zero
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_EXPORT_TIMEOUT": "-5000",
-        ]).logs.batchLogRecordProcessor.exportTimeout == OTel.Configuration.default.logs.batchLogRecordProcessor.exportTimeout)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_EXPORT_TIMEOUT": "-5000"
+            ]).logs.batchLogRecordProcessor.exportTimeout
+                == OTel.Configuration.default.logs.batchLogRecordProcessor.exportTimeout
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_EXPORT_TIMEOUT": "invalid",
-        ]).logs.batchLogRecordProcessor.exportTimeout == OTel.Configuration.default.logs.batchLogRecordProcessor.exportTimeout)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_EXPORT_TIMEOUT": "invalid"
+            ]).logs.batchLogRecordProcessor.exportTimeout
+                == OTel.Configuration.default.logs.batchLogRecordProcessor.exportTimeout
+        )
     }
 
     // OTEL_BLRP_MAX_QUEUE_SIZE
@@ -390,21 +499,31 @@ import Testing
     @Test func testBatchLogRecordProcessorMaxQueueSize() {
         #expect(OTel.Configuration.default.logs.batchLogRecordProcessor.maxQueueSize == 2048)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_MAX_QUEUE_SIZE": "1024",
-        ]).logs.batchLogRecordProcessor.maxQueueSize == 1024)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_MAX_QUEUE_SIZE": "1024"
+            ]).logs.batchLogRecordProcessor.maxQueueSize == 1024
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_MAX_QUEUE_SIZE": "0",
-        ]).logs.batchLogRecordProcessor.maxQueueSize == 0)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_MAX_QUEUE_SIZE": "0"
+            ]).logs.batchLogRecordProcessor.maxQueueSize == 0
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_MAX_QUEUE_SIZE": "-100",
-        ]).logs.batchLogRecordProcessor.maxQueueSize == OTel.Configuration.default.logs.batchLogRecordProcessor.maxQueueSize)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_MAX_QUEUE_SIZE": "-100"
+            ]).logs.batchLogRecordProcessor.maxQueueSize
+                == OTel.Configuration.default.logs.batchLogRecordProcessor.maxQueueSize
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_MAX_QUEUE_SIZE": "invalid",
-        ]).logs.batchLogRecordProcessor.maxQueueSize == OTel.Configuration.default.logs.batchLogRecordProcessor.maxQueueSize)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_MAX_QUEUE_SIZE": "invalid"
+            ]).logs.batchLogRecordProcessor.maxQueueSize
+                == OTel.Configuration.default.logs.batchLogRecordProcessor.maxQueueSize
+        )
     }
 
     // OTEL_BLRP_MAX_EXPORT_BATCH_SIZE
@@ -413,21 +532,31 @@ import Testing
     @Test func testBatchLogRecordProcessorMaxExportBatchSize() {
         #expect(OTel.Configuration.default.logs.batchLogRecordProcessor.maxExportBatchSize == 512)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "256",
-        ]).logs.batchLogRecordProcessor.maxExportBatchSize == 256)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "256"
+            ]).logs.batchLogRecordProcessor.maxExportBatchSize == 256
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "0",
-        ]).logs.batchLogRecordProcessor.maxExportBatchSize == 0)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "0"
+            ]).logs.batchLogRecordProcessor.maxExportBatchSize == 0
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "-50",
-        ]).logs.batchLogRecordProcessor.maxExportBatchSize == OTel.Configuration.default.logs.batchLogRecordProcessor.maxExportBatchSize)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "-50"
+            ]).logs.batchLogRecordProcessor.maxExportBatchSize
+                == OTel.Configuration.default.logs.batchLogRecordProcessor.maxExportBatchSize
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "invalid",
-        ]).logs.batchLogRecordProcessor.maxExportBatchSize == OTel.Configuration.default.logs.batchLogRecordProcessor.maxExportBatchSize)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "invalid"
+            ]).logs.batchLogRecordProcessor.maxExportBatchSize
+                == OTel.Configuration.default.logs.batchLogRecordProcessor.maxExportBatchSize
+        )
     }
 
     // OTEL_TRACES_EXPORTER
@@ -438,31 +567,41 @@ import Testing
         #expect(OTel.Configuration.default.traces.exporter.backing == .otlp)
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
-            "OTEL_TRACES_EXPORTER": "none",
+            "OTEL_TRACES_EXPORTER": "none"
         ]) { config in
             #expect(config.traces.enabled == true)
             #expect(config.traces.exporter.backing == .none)
         }
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_EXPORTER": "jaeger",
-        ]).traces.exporter.backing == .jaeger)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_EXPORTER": "jaeger"
+            ]).traces.exporter.backing == .jaeger
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_EXPORTER": "zipkin",
-        ]).traces.exporter.backing == .zipkin)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_EXPORTER": "zipkin"
+            ]).traces.exporter.backing == .zipkin
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_EXPORTER": "console",
-        ]).traces.exporter.backing == .console)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_EXPORTER": "console"
+            ]).traces.exporter.backing == .console
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_EXPORTER": "otlp",
-        ]).traces.exporter.backing == .otlp)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_EXPORTER": "otlp"
+            ]).traces.exporter.backing == .otlp
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_TRACES_EXPORTER": "mumble",
-        ]).traces.exporter.backing == .otlp)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_TRACES_EXPORTER": "mumble"
+            ]).traces.exporter.backing == .otlp
+        )
     }
 
     // OTEL_METRICS_EXPORTER
@@ -472,16 +611,20 @@ import Testing
         #expect(OTel.Configuration.default.metrics.enabled == true)
         #expect(OTel.Configuration.default.metrics.exporter.backing == .otlp)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_METRICS_EXPORTER": "console",
-        ]).metrics.exporter.backing == .console)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_METRICS_EXPORTER": "console"
+            ]).metrics.exporter.backing == .console
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_METRICS_EXPORTER": "otlp",
-        ]).metrics.exporter.backing == .otlp)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_METRICS_EXPORTER": "otlp"
+            ]).metrics.exporter.backing == .otlp
+        )
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
-            "OTEL_METRICS_EXPORTER": "none",
+            "OTEL_METRICS_EXPORTER": "none"
         ]) { config in
             #expect(config.metrics.enabled == true)
             #expect(config.metrics.exporter.backing == .none)
@@ -495,16 +638,20 @@ import Testing
         #expect(OTel.Configuration.default.logs.enabled == true)
         #expect(OTel.Configuration.default.logs.exporter.backing == .otlp)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_LOGS_EXPORTER": "console",
-        ]).logs.exporter.backing == .console)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_LOGS_EXPORTER": "console"
+            ]).logs.exporter.backing == .console
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_LOGS_EXPORTER": "otlp",
-        ]).logs.exporter.backing == .otlp)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_LOGS_EXPORTER": "otlp"
+            ]).logs.exporter.backing == .otlp
+        )
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
-            "OTEL_LOGS_EXPORTER": "none",
+            "OTEL_LOGS_EXPORTER": "none"
         ]) { config in
             #expect(config.logs.enabled == true)
             #expect(config.logs.exporter.backing == .none)
@@ -516,25 +663,35 @@ import Testing
     @Test func testLogsLevel() {
         #expect(OTel.Configuration.default.logs.level.backing == .info)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_SWIFT_LOG_LEVEL": "trace",
-        ]).logs.level.backing == .trace)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_SWIFT_LOG_LEVEL": "trace"
+            ]).logs.level.backing == .trace
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_SWIFT_LOG_LEVEL": "debug",
-        ]).logs.level.backing == .debug)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_SWIFT_LOG_LEVEL": "debug"
+            ]).logs.level.backing == .debug
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_SWIFT_LOG_LEVEL": "info",
-        ]).logs.level.backing == .info)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_SWIFT_LOG_LEVEL": "info"
+            ]).logs.level.backing == .info
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_SWIFT_LOG_LEVEL": "warning",
-        ]).logs.level.backing == .warning)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_SWIFT_LOG_LEVEL": "warning"
+            ]).logs.level.backing == .warning
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_SWIFT_LOG_LEVEL": "error",
-        ]).logs.level.backing == .error)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_SWIFT_LOG_LEVEL": "error"
+            ]).logs.level.backing == .error
+        )
     }
 
     // OTEL_EXPORTER_OTLP_ENDPOINT (OTLP/HTTP edition).
@@ -544,9 +701,16 @@ import Testing
     @Test func testOTLPExporterEndpointHTTP() {
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.protocol == .httpProtobuf)
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.endpoint == "http://localhost:4318")
-        #expect(OTel.Configuration.OTLPExporterConfiguration.default.logsHTTPEndpoint == "http://localhost:4318/v1/logs")
-        #expect(OTel.Configuration.OTLPExporterConfiguration.default.metricsHTTPEndpoint == "http://localhost:4318/v1/metrics")
-        #expect(OTel.Configuration.OTLPExporterConfiguration.default.tracesHTTPEndpoint == "http://localhost:4318/v1/traces")
+        #expect(
+            OTel.Configuration.OTLPExporterConfiguration.default.logsHTTPEndpoint == "http://localhost:4318/v1/logs"
+        )
+        #expect(
+            OTel.Configuration.OTLPExporterConfiguration.default.metricsHTTPEndpoint
+                == "http://localhost:4318/v1/metrics"
+        )
+        #expect(
+            OTel.Configuration.OTLPExporterConfiguration.default.tracesHTTPEndpoint == "http://localhost:4318/v1/traces"
+        )
 
         #expect(OTel.Configuration.default.logs.otlpExporter.protocol == .httpProtobuf)
         #expect(OTel.Configuration.default.logs.otlpExporter.endpoint == "http://localhost:4318")
@@ -554,7 +718,9 @@ import Testing
 
         #expect(OTel.Configuration.default.metrics.otlpExporter.protocol == .httpProtobuf)
         #expect(OTel.Configuration.default.metrics.otlpExporter.endpoint == "http://localhost:4318")
-        #expect(OTel.Configuration.default.metrics.otlpExporter.metricsHTTPEndpoint == "http://localhost:4318/v1/metrics")
+        #expect(
+            OTel.Configuration.default.metrics.otlpExporter.metricsHTTPEndpoint == "http://localhost:4318/v1/metrics"
+        )
 
         #expect(OTel.Configuration.default.traces.otlpExporter.protocol == .httpProtobuf)
         #expect(OTel.Configuration.default.traces.otlpExporter.endpoint == "http://localhost:4318")
@@ -567,9 +733,14 @@ import Testing
             config.logs.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
             #expect(config.logs.otlpExporter.logsHTTPEndpoint == "https://other-otel-collector.example.com:3123/custom")
             config.metrics.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
-            #expect(config.metrics.otlpExporter.metricsHTTPEndpoint == "https://other-otel-collector.example.com:3123/custom")
+            #expect(
+                config.metrics.otlpExporter.metricsHTTPEndpoint
+                    == "https://other-otel-collector.example.com:3123/custom"
+            )
             config.traces.otlpExporter.endpoint = "https://other-otel-collector.example.com:3123/custom"
-            #expect(config.traces.otlpExporter.tracesHTTPEndpoint == "https://other-otel-collector.example.com:3123/custom")
+            #expect(
+                config.traces.otlpExporter.tracesHTTPEndpoint == "https://other-otel-collector.example.com:3123/custom"
+            )
         }
 
         // OTLP/HTTP environment overrides.
@@ -579,32 +750,53 @@ import Testing
             // Doesn't mess up the endpoint computation if no environment is set.
             config.withEnvironmentOverrides(environment: [:]) { config in
                 #expect(config.logs.otlpExporter.endpoint == OTel.Configuration.default.metrics.otlpExporter.endpoint)
-                #expect(config.logs.otlpExporter.logsHTTPEndpoint == OTel.Configuration.default.metrics.otlpExporter.logsHTTPEndpoint)
-                #expect(config.metrics.otlpExporter.endpoint == OTel.Configuration.default.metrics.otlpExporter.endpoint)
-                #expect(config.metrics.otlpExporter.metricsHTTPEndpoint == OTel.Configuration.default.metrics.otlpExporter.metricsHTTPEndpoint)
+                #expect(
+                    config.logs.otlpExporter.logsHTTPEndpoint
+                        == OTel.Configuration.default.metrics.otlpExporter.logsHTTPEndpoint
+                )
+                #expect(
+                    config.metrics.otlpExporter.endpoint == OTel.Configuration.default.metrics.otlpExporter.endpoint
+                )
+                #expect(
+                    config.metrics.otlpExporter.metricsHTTPEndpoint
+                        == OTel.Configuration.default.metrics.otlpExporter.metricsHTTPEndpoint
+                )
                 #expect(config.traces.otlpExporter.endpoint == OTel.Configuration.default.metrics.otlpExporter.endpoint)
-                #expect(config.traces.otlpExporter.tracesHTTPEndpoint == OTel.Configuration.default.metrics.otlpExporter.tracesHTTPEndpoint)
+                #expect(
+                    config.traces.otlpExporter.tracesHTTPEndpoint
+                        == OTel.Configuration.default.metrics.otlpExporter.tracesHTTPEndpoint
+                )
             }
 
             // Applies signal-specific suffix.
             config.withEnvironmentOverrides(environment: [
-                "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otel-collector.example.com:4318",
+                "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otel-collector.example.com:4318"
             ]) { config in
                 #expect(config.logs.otlpExporter.endpoint == "https://otel-collector.example.com:4318")
                 #expect(config.logs.otlpExporter.logsHTTPEndpoint == "https://otel-collector.example.com:4318/v1/logs")
                 #expect(config.metrics.otlpExporter.endpoint == "https://otel-collector.example.com:4318")
-                #expect(config.metrics.otlpExporter.metricsHTTPEndpoint == "https://otel-collector.example.com:4318/v1/metrics")
+                #expect(
+                    config.metrics.otlpExporter.metricsHTTPEndpoint
+                        == "https://otel-collector.example.com:4318/v1/metrics"
+                )
                 #expect(config.traces.otlpExporter.endpoint == "https://otel-collector.example.com:4318")
-                #expect(config.traces.otlpExporter.tracesHTTPEndpoint == "https://otel-collector.example.com:4318/v1/traces")
+                #expect(
+                    config.traces.otlpExporter.tracesHTTPEndpoint == "https://otel-collector.example.com:4318/v1/traces"
+                )
             }
 
             // Handles trailing slash.
             config.withEnvironmentOverrides(environment: [
-                "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otel-collector.example.com:4318/",
+                "OTEL_EXPORTER_OTLP_ENDPOINT": "https://otel-collector.example.com:4318/"
             ]) { config in
                 #expect(config.logs.otlpExporter.logsHTTPEndpoint == "https://otel-collector.example.com:4318/v1/logs")
-                #expect(config.metrics.otlpExporter.metricsHTTPEndpoint == "https://otel-collector.example.com:4318/v1/metrics")
-                #expect(config.traces.otlpExporter.tracesHTTPEndpoint == "https://otel-collector.example.com:4318/v1/traces")
+                #expect(
+                    config.metrics.otlpExporter.metricsHTTPEndpoint
+                        == "https://otel-collector.example.com:4318/v1/metrics"
+                )
+                #expect(
+                    config.traces.otlpExporter.tracesHTTPEndpoint == "https://otel-collector.example.com:4318/v1/traces"
+                )
             }
 
             // Signal-specific endpoints takes precedence.
@@ -613,8 +805,13 @@ import Testing
                 "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "https://other-otel-collector.example.com:3123/custom",
             ]) { config in
                 #expect(config.logs.otlpExporter.logsHTTPEndpoint == "https://otel-collector.example.com:4318/v1/logs")
-                #expect(config.metrics.otlpExporter.metricsHTTPEndpoint == "https://other-otel-collector.example.com:3123/custom")
-                #expect(config.traces.otlpExporter.tracesHTTPEndpoint == "https://otel-collector.example.com:4318/v1/traces")
+                #expect(
+                    config.metrics.otlpExporter.metricsHTTPEndpoint
+                        == "https://other-otel-collector.example.com:3123/custom"
+                )
+                #expect(
+                    config.traces.otlpExporter.tracesHTTPEndpoint == "https://otel-collector.example.com:4318/v1/traces"
+                )
             }
         }
     }
@@ -679,7 +876,9 @@ import Testing
                 #expect(config.logs.otlpExporter.endpoint == "https://otel-collector.example.com:4317")
                 #expect(config.logs.otlpExporter.grpcEndpoint == "https://otel-collector.example.com:4317")
                 #expect(config.metrics.otlpExporter.endpoint == "https://other-otel-collector.example.com:3123/custom")
-                #expect(config.metrics.otlpExporter.grpcEndpoint == "https://other-otel-collector.example.com:3123/custom")
+                #expect(
+                    config.metrics.otlpExporter.grpcEndpoint == "https://other-otel-collector.example.com:3123/custom"
+                )
                 #expect(config.traces.otlpExporter.endpoint == "https://otel-collector.example.com:4317")
                 #expect(config.traces.otlpExporter.grpcEndpoint == "https://otel-collector.example.com:4317")
             }
@@ -694,7 +893,7 @@ import Testing
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.headers.isEmpty)
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_HEADERS": "key1=value1,key2=value2 , key 3 = value 3 ",
+            "OTEL_EXPORTER_OTLP_HEADERS": "key1=value1,key2=value2 , key 3 = value 3 "
         ]) { config in
             #expect(config.traces.otlpExporter.headers.count == 3)
             #expect(config.traces.otlpExporter.headers.contains { key, value in key == "key1" && value == "value1" })
@@ -723,23 +922,31 @@ import Testing
     @Test func testOTLPExporterTimeout() {
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.timeout == .seconds(10))
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_TIMEOUT": "5000",
-        ]).traces.otlpExporter.timeout == .seconds(5))
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_TIMEOUT": "5000"
+            ]).traces.otlpExporter.timeout == .seconds(5)
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_TIMEOUT": "0",
-        ]).traces.otlpExporter.timeout == .zero)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_TIMEOUT": "0"
+            ]).traces.otlpExporter.timeout == .zero
+        )
 
         // Negative values should be ignored
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_TIMEOUT": "-1000",
-        ]).traces.otlpExporter.timeout == OTel.Configuration.default.traces.otlpExporter.timeout)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_TIMEOUT": "-1000"
+            ]).traces.otlpExporter.timeout == OTel.Configuration.default.traces.otlpExporter.timeout
+        )
 
         // Invalid values should be ignored
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_TIMEOUT": "invalid",
-        ]).traces.otlpExporter.timeout == OTel.Configuration.default.traces.otlpExporter.timeout)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_TIMEOUT": "invalid"
+            ]).traces.otlpExporter.timeout == OTel.Configuration.default.traces.otlpExporter.timeout
+        )
 
         // Signal-specific key
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
@@ -759,21 +966,29 @@ import Testing
     @Test func testOTLPExporterProtocol() {
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.protocol == .httpProtobuf)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/json",
-        ]).traces.otlpExporter.protocol.backing == .httpJSON)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/json"
+            ]).traces.otlpExporter.protocol.backing == .httpJSON
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
-        ]).traces.otlpExporter.protocol.backing == .grpc)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc"
+            ]).traces.otlpExporter.protocol.backing == .grpc
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-        ]).traces.otlpExporter.protocol.backing == .httpProtobuf)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf"
+            ]).traces.otlpExporter.protocol.backing == .httpProtobuf
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_PROTOCOL": "invalid",
-        ]).traces.otlpExporter.protocol.backing == .httpProtobuf)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "invalid"
+            ]).traces.otlpExporter.protocol.backing == .httpProtobuf
+        )
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/json",
@@ -791,17 +1006,23 @@ import Testing
     @Test func testOTLPExporterCompression() {
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.compression.backing == .none)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_COMPRESSION": "gzip",
-        ]).traces.otlpExporter.compression.backing == .gzip)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_COMPRESSION": "gzip"
+            ]).traces.otlpExporter.compression.backing == .gzip
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_COMPRESSION": "none",
-        ]).traces.otlpExporter.compression.backing == .none)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_COMPRESSION": "none"
+            ]).traces.otlpExporter.compression.backing == .none
+        )
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_COMPRESSION": "invalid",
-        ]).traces.otlpExporter.compression.backing == .none)
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_COMPRESSION": "invalid"
+            ]).traces.otlpExporter.compression.backing == .none
+        )
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
             "OTEL_EXPORTER_OTLP_COMPRESSION": "gzip",
@@ -819,9 +1040,11 @@ import Testing
     @Test func testOTLPExporterCertificate() {
         #expect(OTel.Configuration.default.traces.otlpExporter.certificateFilePath == nil)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_CERTIFICATE": "/path/to/cert.pem",
-        ]).traces.otlpExporter.certificateFilePath == "/path/to/cert.pem")
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_CERTIFICATE": "/path/to/cert.pem"
+            ]).traces.otlpExporter.certificateFilePath == "/path/to/cert.pem"
+        )
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
             "OTEL_EXPORTER_OTLP_CERTIFICATE": "/path/to/general.pem",
@@ -839,9 +1062,11 @@ import Testing
     @Test func testOTLPExporterClientKey() {
         #expect(OTel.Configuration.default.traces.otlpExporter.clientKeyFilePath == nil)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_CLIENT_KEY": "/path/to/client.key",
-        ]).traces.otlpExporter.clientKeyFilePath == "/path/to/client.key")
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_CLIENT_KEY": "/path/to/client.key"
+            ]).traces.otlpExporter.clientKeyFilePath == "/path/to/client.key"
+        )
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
             "OTEL_EXPORTER_OTLP_CLIENT_KEY": "/path/to/general.key",
@@ -859,9 +1084,11 @@ import Testing
     @Test func testOTLPExporterClientCertificate() {
         #expect(OTel.Configuration.default.traces.otlpExporter.clientCertificateFilePath == nil)
 
-        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
-            "OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE": "/path/to/client.crt",
-        ]).traces.otlpExporter.clientCertificateFilePath == "/path/to/client.crt")
+        #expect(
+            OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+                "OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE": "/path/to/client.crt"
+            ]).traces.otlpExporter.clientCertificateFilePath == "/path/to/client.crt"
+        )
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
             "OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE": "/path/to/general.crt",
@@ -875,32 +1102,56 @@ import Testing
 
     @Test func testServiceNameResourceAttributeResolution() {
         OTel.Configuration.default.with { config in
-            #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("unknown_service"))
+            #expect(
+                OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute()
+                    == .string("unknown_service")
+            )
         }
         OTel.Configuration.default.with { config in
             config.resourceAttributes["service.name"] = "resource_attribute_value"
-            #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("resource_attribute_value"))
+            #expect(
+                OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute()
+                    == .string("resource_attribute_value")
+            )
         }
         OTel.Configuration.default.with { config in
             config.serviceName = "service_name_value"
-            #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("service_name_value"))
+            #expect(
+                OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute()
+                    == .string("service_name_value")
+            )
         }
         OTel.Configuration.default.with { config in
             config.resourceAttributes["service.name"] = "resource_attribute_value"
             config.serviceName = "service_name_value"
-            #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("service_name_value"))
+            #expect(
+                OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute()
+                    == .string("service_name_value")
+            )
         }
 
         OTel.Configuration.default.with { config in
             config.resourceAttributes["service.name"] = "code_value"
-            #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("code_value"))
+            #expect(
+                OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute()
+                    == .string("code_value")
+            )
         }
     }
 
     @Test func testMetricHistogramBuckets() {
         OTel.Configuration.default.with { config in
-            #expect(config.metrics.defaultDurationHistogramBuckets == [0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000].map(Duration.milliseconds))
-            #expect(config.metrics.defaultValueHistogramBuckets == [0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000])
+            #expect(
+                config.metrics.defaultDurationHistogramBuckets
+                    == [0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000].map(
+                        Duration.milliseconds
+                    )
+            )
+            #expect(
+                config.metrics.defaultValueHistogramBuckets == [
+                    0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000,
+                ]
+            )
             #expect(config.metrics.durationHistogramBuckets == [:])
             #expect(config.metrics.valueHistogramBuckets == [:])
         }
@@ -925,7 +1176,10 @@ extension OTel.Configuration {
         return result
     }
 
-    fileprivate func withEnvironmentOverrides<Result>(environment: [String: String], operation: (Self) throws -> Result) rethrows -> Result {
+    fileprivate func withEnvironmentOverrides<Result>(
+        environment: [String: String],
+        operation: (Self) throws -> Result
+    ) rethrows -> Result {
         try operation(applyingEnvironmentOverrides(environment: environment))
     }
 

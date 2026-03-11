@@ -11,24 +11,28 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Tracing
 import XCTest
+
+@testable import OTel
 
 final class SpanEventProtoTests: XCTestCase {
     func test_init_withSpanEvent() {
         let spanEvent = SpanEvent(name: "test", at: .constant(42), attributes: ["test": 42])
         let event = Opentelemetry_Proto_Trace_V1_Span.Event(spanEvent)
 
-        XCTAssertEqual(event, .with {
-            $0.name = "test"
-            $0.timeUnixNano = 42
-            $0.attributes = [
-                .with {
-                    $0.key = "test"
-                    $0.value = .with { $0.intValue = 42 }
-                },
-            ]
-        })
+        XCTAssertEqual(
+            event,
+            .with {
+                $0.name = "test"
+                $0.timeUnixNano = 42
+                $0.attributes = [
+                    .with {
+                        $0.key = "test"
+                        $0.value = .with { $0.intValue = 42 }
+                    }
+                ]
+            }
+        )
     }
 }

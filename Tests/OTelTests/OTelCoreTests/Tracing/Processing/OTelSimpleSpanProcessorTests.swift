@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import ServiceLifecycle
 import XCTest
+
+@testable import OTel
 
 final class OTelSimpleSpanProcessorTests: XCTestCase {
     func test_onEnd_withSampledSpan_forwardsSampledSpanToExporter() async throws {

@@ -51,6 +51,8 @@ struct OTelMultiplexPropagator: OTelPropagator {
         into carrier: inout Carrier,
         using injector: Inject
     ) where Inject: Injector, Carrier == Inject.Carrier {
-        propagators.forEach { $0.inject(spanContext, into: &carrier, using: injector) }
+        for propagator in propagators {
+            propagator.inject(spanContext, into: &carrier, using: injector)
+        }
     }
 }

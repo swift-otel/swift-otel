@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import XCTest
+
+@testable import OTel
 
 final class OTelMultiplexSpanExporterTests: XCTestCase {
     func test_export_forwardsBatchToAllExporters() async throws {

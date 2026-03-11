@@ -23,12 +23,13 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     OTelLogRecordProcessor,
     Service,
     CustomStringConvertible
-    where Clock.Duration == Duration
-{
+where Clock.Duration == Duration {
     nonisolated let description = "OTelBatchLogRecordProcessor"
 
-    internal /* for testing */ private(set) var buffer: Deque<OTelLogRecord>
-    internal /* for testing */ private(set) var droppedCount = 0
+    // internal for testing
+    internal private(set) var buffer: Deque<OTelLogRecord>
+    // internal for testing
+    internal private(set) var droppedCount = 0
 
     private let exporter: Exporter
     private let configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration
@@ -40,7 +41,12 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
     private let explicitTick: AsyncStream<Void>.Continuation
     private var batchID: UInt = 0
 
-    init(exporter: Exporter, configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration, logger: Logger, clock: Clock) {
+    init(
+        exporter: Exporter,
+        configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration,
+        logger: Logger,
+        clock: Clock
+    ) {
         self.logger = logger.withMetadata(component: "OTelBatchLogRecordProcessor")
         self.exporter = exporter
         self.configuration = configuration
@@ -124,10 +130,13 @@ actor OTelBatchLogRecordProcessor<Exporter: OTelLogRecordExporter, Clock: _Concu
 
     private func tick() async {
         if droppedCount > 0 {
-            logger.warning("Log records were dropped this iteration because queue was full", metadata: [
-                "queue_size": "\(configuration.maxQueueSize)",
-                "dropped_count": "\(droppedCount)",
-            ])
+            logger.warning(
+                "Log records were dropped this iteration because queue was full",
+                metadata: [
+                    "queue_size": "\(configuration.maxQueueSize)",
+                    "dropped_count": "\(droppedCount)",
+                ]
+            )
             droppedCount = 0
         }
         let batch = buffer.prefix(configuration.maxExportBatchSize)
@@ -160,7 +169,11 @@ extension OTelBatchLogRecordProcessor where Clock == ContinuousClock {
     /// - Parameters:
     ///   - exporter: The log exporter to receive batched logs to export.
     ///   - configuration: Further configuration parameters to tweak the batching behavior.
-    init(exporter: Exporter, configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration, logger: Logger) {
+    init(
+        exporter: Exporter,
+        configuration: OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration,
+        logger: Logger
+    ) {
         self.init(exporter: exporter, configuration: configuration, logger: logger, clock: .continuous)
     }
 }

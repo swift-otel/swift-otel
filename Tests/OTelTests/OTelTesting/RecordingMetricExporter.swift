@@ -55,9 +55,27 @@ extension RecordingMetricExporter {
         line: UInt = #line
     ) {
         let recordedCalls = recordedCalls.withLockedValue { $0 }
-        XCTAssertEqual(recordedCalls.exportCalls.count, exportCallCount, "Unexpected export call count", file: file, line: line)
-        XCTAssertEqual(recordedCalls.forceFlushCallCount, forceFlushCallCount, "Unexpected forceFlush call count", file: file, line: line)
-        XCTAssertEqual(recordedCalls.shutdownCallCount, shutdownCallCount, "Unexpected shutdown call count", file: file, line: line)
+        XCTAssertEqual(
+            recordedCalls.exportCalls.count,
+            exportCallCount,
+            "Unexpected export call count",
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(
+            recordedCalls.forceFlushCallCount,
+            forceFlushCallCount,
+            "Unexpected forceFlush call count",
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(
+            recordedCalls.shutdownCallCount,
+            shutdownCallCount,
+            "Unexpected shutdown call count",
+            file: file,
+            line: line
+        )
     }
 }
 #endif

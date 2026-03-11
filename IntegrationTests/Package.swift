@@ -16,7 +16,7 @@ let package = Package(
                 .product(name: "ServiceLifecycle", package: "swift-service-lifecycle"),
             ],
             swiftSettings: [.enableExperimentalFeature("StrictConcurrency=complete")]
-        ),
+        )
     ],
     swiftLanguageVersions: [.version("6"), .v5]
 )

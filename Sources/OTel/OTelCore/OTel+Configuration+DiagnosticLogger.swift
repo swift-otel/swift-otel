@@ -11,21 +11,23 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Logging
+
 #if canImport(FoundationEssentials)
 import class FoundationEssentials.ProcessInfo
 #else
 import class Foundation.ProcessInfo
 #endif
-import Logging
 
 extension OTel.Configuration {
     func makeDiagnosticLogger() -> Logger {
-        var logger = switch self.diagnosticLogger.backing {
-        case .console:
-            Logger(label: "swift-otel", factory: { label in StreamLogHandler.standardError(label: label) })
-        case .custom(let logger):
-            logger
-        }
+        var logger =
+            switch self.diagnosticLogger.backing {
+            case .console:
+                Logger(label: "swift-otel", factory: { label in StreamLogHandler.standardError(label: label) })
+            case .custom(let logger):
+                logger
+            }
         // Environment variable overrides may not have been applied, so we explicitly check here.
         logger.logLevel = Self.diagnosticLogLevelEnvironmentOverride ?? Logger.Level(self.diagnosticLogLevel)
         return logger

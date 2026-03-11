@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Tracing
 import XCTest
+
+@testable import OTel
 
 final class OTelTraceIDRatioBasedSamplerTests: XCTestCase {
     func test_samplingResult_withZeroRatio_neverSamples() {
@@ -55,7 +56,7 @@ final class OTelTraceIDRatioBasedSamplerTests: XCTestCase {
             let n = 100_000
             var sampled = 0
 
-            for _ in 0 ..< n {
+            for _ in 0..<n {
                 let result = sampler.samplingResult(
                     operationName: "does-not-matter",
                     kind: .internal,

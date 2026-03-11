@@ -12,19 +12,21 @@
 //===----------------------------------------------------------------------===//
 
 import AsyncHTTPClient
+import Metrics
+import NIOConcurrencyHelpers
+import NIOHTTP1
+import NIOTestUtils
+import ServiceLifecycle
+import Testing
+import Tracing
+
+@testable import OTel
+
 #if canImport(FoundationEssentials)
 import struct FoundationEssentials.Data
 #else
 import struct Foundation.Data
 #endif
-import Metrics
-import NIOConcurrencyHelpers
-import NIOHTTP1
-import NIOTestUtils
-@testable import OTel
-import ServiceLifecycle
-import Testing
-import Tracing
 
 @Suite(.serialized) struct OTLPHTTPExporterTests {
     @Test func testOTLPHTTPSpanExporterProtobuf() async throws {
@@ -48,14 +50,18 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/x-protobuf"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(serializedBytes: ByteBufferWrapper(backing: body))
+                let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(
+                    serializedBytes: ByteBufferWrapper(backing: body)
+                )
                 #expect(message.resourceSpans.count == 1)
             }
             try testServer.receiveEndAndVerify { trailers in
                 #expect(trailers == nil)
             }
 
-            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
+            try testServer.writeOutbound(
+                .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"]))
+            )
             let response = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse()
             let body: ByteBufferWrapper = try response.serializedBytes()
             try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -86,14 +92,18 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/json"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
+                let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(
+                    jsonUTF8Bytes: ByteBufferWrapper(backing: body)
+                )
                 #expect(message.resourceSpans.count == 1)
             }
             try testServer.receiveEndAndVerify { trailers in
                 #expect(trailers == nil)
             }
 
-            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
+            try testServer.writeOutbound(
+                .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"]))
+            )
             let response = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse()
             let body: ByteBufferWrapper = try response.jsonUTF8Bytes()
             try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -124,14 +134,18 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/x-protobuf"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(serializedBytes: ByteBufferWrapper(backing: body))
+                let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(
+                    serializedBytes: ByteBufferWrapper(backing: body)
+                )
                 #expect(message.resourceMetrics.count == 1)
             }
             try testServer.receiveEndAndVerify { trailers in
                 #expect(trailers == nil)
             }
 
-            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
+            try testServer.writeOutbound(
+                .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"]))
+            )
             let response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse()
             let body: ByteBufferWrapper = try response.serializedBytes()
             try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -162,14 +176,18 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/json"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
+                let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(
+                    jsonUTF8Bytes: ByteBufferWrapper(backing: body)
+                )
                 #expect(message.resourceMetrics.count == 1)
             }
             try testServer.receiveEndAndVerify { trailers in
                 #expect(trailers == nil)
             }
 
-            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
+            try testServer.writeOutbound(
+                .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"]))
+            )
             let response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse()
             let body: ByteBufferWrapper = try response.jsonUTF8Bytes()
             try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -190,7 +208,16 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpProtobuf
                 let exporter = try OTLPHTTPLogRecordExporter(configuration: config)
-                try await exporter.export([OTelLogRecord(body: "Hello", level: .trace, metadata: ["foo": "bar"], timeNanosecondsSinceEpoch: 1234, resource: OTelResource(), spanContext: nil)])
+                try await exporter.export([
+                    OTelLogRecord(
+                        body: "Hello",
+                        level: .trace,
+                        metadata: ["foo": "bar"],
+                        timeNanosecondsSinceEpoch: 1234,
+                        resource: OTelResource(),
+                        spanContext: nil
+                    )
+                ])
                 await exporter.shutdown()
             }
 
@@ -200,19 +227,26 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/x-protobuf"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(serializedBytes: ByteBufferWrapper(backing: body))
+                let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(
+                    serializedBytes: ByteBufferWrapper(backing: body)
+                )
                 #expect(message.resourceLogs.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Hello"))
-                #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "foo" }?.value == .init("bar"))
+                #expect(
+                    message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "foo" }?
+                        .value == .init("bar")
+                )
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.timeUnixNano == 1234)
             }
             try testServer.receiveEndAndVerify { trailers in
                 #expect(trailers == nil)
             }
 
-            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
+            try testServer.writeOutbound(
+                .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"]))
+            )
             let response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse()
             let body: ByteBufferWrapper = try response.serializedBytes()
             try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -233,7 +267,16 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpJSON
                 let exporter = try OTLPHTTPLogRecordExporter(configuration: config)
-                try await exporter.export([OTelLogRecord(body: "Hello", level: .trace, metadata: ["foo": "bar"], timeNanosecondsSinceEpoch: 1234, resource: OTelResource(), spanContext: nil)])
+                try await exporter.export([
+                    OTelLogRecord(
+                        body: "Hello",
+                        level: .trace,
+                        metadata: ["foo": "bar"],
+                        timeNanosecondsSinceEpoch: 1234,
+                        resource: OTelResource(),
+                        spanContext: nil
+                    )
+                ])
                 await exporter.shutdown()
             }
 
@@ -243,19 +286,26 @@ import Tracing
                 #expect(head.headers["Content-Type"] == ["application/json"])
             }
             try testServer.receiveBodyAndVerify { body in
-                let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
+                let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(
+                    jsonUTF8Bytes: ByteBufferWrapper(backing: body)
+                )
                 #expect(message.resourceLogs.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Hello"))
-                #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "foo" }?.value == .init("bar"))
+                #expect(
+                    message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "foo" }?
+                        .value == .init("bar")
+                )
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.timeUnixNano == 1234)
             }
             try testServer.receiveEndAndVerify { trailers in
                 #expect(trailers == nil)
             }
 
-            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
+            try testServer.writeOutbound(
+                .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"]))
+            )
             let response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse()
             let body: ByteBufferWrapper = try response.jsonUTF8Bytes()
             try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -400,7 +450,7 @@ import Tracing
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
 
         try await withThrowingTaskGroup { group in
-            group.addTask { // client
+            group.addTask {  // client
                 let client = HTTPClient(eventLoopGroup: .singletonMultiThreadedEventLoopGroup)
                 defer { #expect(throws: Never.self, "Error shutting down HTTP client") { try client.syncShutdown() } }
                 var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
@@ -433,10 +483,10 @@ import Tracing
                 #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 3)
                 _ = try await response.body.collect(upTo: .max)
             }
-            group.addTask { // server
+            group.addTask {  // server
                 var sleepCalls = clock.sleepCalls.makeAsyncIterator()
                 // For the max attempts, return too many requests.
-                for attempt in 1 ... 3 {
+                for attempt in 1...3 {
                     if attempt > 1 {
                         await sleepCalls.next()
                         clock.advance(by: .seconds(42))
@@ -445,7 +495,9 @@ import Tracing
                     _ = try testServer.receiveBody()
                     _ = try testServer.receiveEnd()
                     numRequestsReceivedByServer.withLockedValue { $0 += 1 }
-                    try testServer.writeOutbound(.head(.init(version: .http1_1, status: .tooManyRequests, headers: ["Retry-After": "42"])))
+                    try testServer.writeOutbound(
+                        .head(.init(version: .http1_1, status: .tooManyRequests, headers: ["Retry-After": "42"]))
+                    )
                     try testServer.writeOutbound(.body(.byteBuffer(.init())))
                     try testServer.writeOutbound(.end(nil))
                 }
@@ -462,7 +514,7 @@ import Tracing
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
 
         try await withThrowingTaskGroup { group in
-            group.addTask { // client
+            group.addTask {  // client
                 let client = HTTPClient(eventLoopGroup: .singletonMultiThreadedEventLoopGroup)
                 defer { #expect(throws: Never.self, "Error shutting down HTTP client") { try client.syncShutdown() } }
                 var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
@@ -484,12 +536,17 @@ import Tracing
                     default: .doNotRetry
                     }
                 }
-                let response = try await client.execute(request, timeout: .seconds(60), clock: clock, retryPolicy: retryPolicy)
+                let response = try await client.execute(
+                    request,
+                    timeout: .seconds(60),
+                    clock: clock,
+                    retryPolicy: retryPolicy
+                )
                 _ = try await response.body.collect(upTo: .max)
                 #expect(response.status == .ok)
                 #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 1)
             }
-            group.addTask { // server
+            group.addTask {  // server
                 // Return OK.
                 _ = try testServer.receiveHead()
                 _ = try testServer.receiveBody()
@@ -511,7 +568,7 @@ import Tracing
         let numRequestsReceivedByServer = NIOLockedValueBox(0)
 
         try await withThrowingTaskGroup { group in
-            group.addTask { // client
+            group.addTask {  // client
                 let client = HTTPClient(eventLoopGroup: .singletonMultiThreadedEventLoopGroup)
                 defer { #expect(throws: Never.self, "Error shutting down HTTP client") { try client.syncShutdown() } }
                 var request = HTTPClientRequest(url: "http://127.0.0.1:\(testServer.serverPort)/some/path")
@@ -533,19 +590,26 @@ import Tracing
                     default: .doNotRetry
                     }
                 }
-                let response = try await client.execute(request, timeout: .seconds(60), clock: clock, retryPolicy: retryPolicy)
+                let response = try await client.execute(
+                    request,
+                    timeout: .seconds(60),
+                    clock: clock,
+                    retryPolicy: retryPolicy
+                )
                 #expect(response.status == .ok)
                 #expect(numRequestsReceivedByServer.withLockedValue { $0 } == 2)
                 _ = try await response.body.collect(upTo: .max)
             }
-            group.addTask { // server
+            group.addTask {  // server
                 var sleepCalls = clock.sleepCalls.makeAsyncIterator()
                 // For one request, return too many requests.
                 _ = try testServer.receiveHead()
                 _ = try testServer.receiveBody()
                 _ = try testServer.receiveEnd()
                 numRequestsReceivedByServer.withLockedValue { $0 += 1 }
-                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .tooManyRequests, headers: ["Retry-After": "1"])))
+                try testServer.writeOutbound(
+                    .head(.init(version: .http1_1, status: .tooManyRequests, headers: ["Retry-After": "1"]))
+                )
                 try testServer.writeOutbound(.body(.byteBuffer(.init())))
                 try testServer.writeOutbound(.end(nil))
                 // Wait for backoff to sleep, then advance clock by retry delay.
@@ -567,7 +631,7 @@ import Tracing
     @Test func testOTelSpecRetryPolicy() {
         /// The requests that receive a response status code listed in following table SHOULD be retried. All other 4xx or 5xx response status codes MUST NOT be retried.
         /// — source: https://opentelemetry.io/docs/specs/otlp/#retryable-response-codes
-        for code in 100 ... 599 {
+        for code in 100...599 {
             let responseWithoutHeader = HTTPClientResponse(status: .init(statusCode: code))
             let responseWithHeader = HTTPClientResponse(status: .init(statusCode: code), headers: ["Retry-After": "42"])
             var policy = HTTPClient.RetryPolicy.otel
@@ -613,16 +677,22 @@ import Tracing
                 _ = try testServer.receiveHead()
                 _ = try testServer.receiveBody()
                 _ = try testServer.receiveEnd()
-                try testServer.writeOutbound(.head(.init(
-                    version: .http1_1,
-                    status: .noContent
-                )))
+                try testServer.writeOutbound(
+                    .head(
+                        .init(
+                            version: .http1_1,
+                            status: .noContent
+                        )
+                    )
+                )
             }
 
-            try await exporter.export([OTelLogRecord.stub(
-                body: "hello",
-                level: .info
-            )])
+            try await exporter.export([
+                OTelLogRecord.stub(
+                    body: "hello",
+                    level: .info
+                )
+            ])
             try await group.waitForAll()
         }
     }

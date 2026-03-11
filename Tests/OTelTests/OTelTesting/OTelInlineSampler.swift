@@ -11,29 +11,32 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Tracing
 import W3CTraceContext
 
-struct OTelInlineSampler: OTelSampler {
-    private let onSamplingResult: @Sendable (
-        _ operationName: String,
-        _ kind: SpanKind,
-        _ traceID: TraceID,
-        _ attributes: SpanAttributes,
-        _ links: [SpanLink],
-        _ parentContext: ServiceContext
-    ) -> OTelSamplingResult
+@testable import OTel
 
-    init(
-        onSamplingResult: @escaping @Sendable (
+struct OTelInlineSampler: OTelSampler {
+    private let onSamplingResult:
+        @Sendable (
             _ operationName: String,
-            _ spanKind: SpanKind,
+            _ kind: SpanKind,
             _ traceID: TraceID,
             _ attributes: SpanAttributes,
             _ links: [SpanLink],
             _ parentContext: ServiceContext
         ) -> OTelSamplingResult
+
+    init(
+        onSamplingResult:
+            @escaping @Sendable (
+                _ operationName: String,
+                _ spanKind: SpanKind,
+                _ traceID: TraceID,
+                _ attributes: SpanAttributes,
+                _ links: [SpanLink],
+                _ parentContext: ServiceContext
+            ) -> OTelSamplingResult
     ) {
         self.onSamplingResult = onSamplingResult
     }

@@ -66,10 +66,14 @@ final class OTLPHTTPSpanExporter: OTelSpanExporter {
             } else {
                 logLevel = .warning
             }
-            logger.log(level: logLevel, "Partial success", metadata: [
-                "message": "\(response.partialSuccess.errorMessage)",
-                "rejected_spans": "\(response.partialSuccess.rejectedSpans)",
-            ])
+            logger.log(
+                level: logLevel,
+                "Partial success",
+                metadata: [
+                    "message": "\(response.partialSuccess.errorMessage)",
+                    "rejected_spans": "\(response.partialSuccess.rejectedSpans)",
+                ]
+            )
         }
     }
 

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import OTel // NOTE: Not @testable import, to test public API visibility.
+import OTel  // NOTE: Not @testable import, to test public API visibility.
 import ServiceContextModule
 import Testing
 import W3CTraceContext

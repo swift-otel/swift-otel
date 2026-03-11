@@ -12,9 +12,10 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-@testable import OTel
 import ServiceLifecycle
 import XCTest
+
+@testable import OTel
 
 final class OTelMultiplexSpanProcessorTests: XCTestCase {
     func test_onStart_forwardsStartedSpanToAllProcessors() async {
