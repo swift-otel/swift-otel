@@ -12,8 +12,9 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-@testable import OTel
 import Testing
+
+@testable import OTel
 
 @Suite struct DiagnosticLoggingTests {
     @Test(arguments: Logger.Level.allCases) func testLogErrorHelper(level: Logger.Level) async throws {

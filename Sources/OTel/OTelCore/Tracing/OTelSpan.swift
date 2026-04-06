@@ -183,17 +183,19 @@ final class OTelSpan: Span {
         startTimeNanosecondsSinceEpoch: UInt64,
         onEnd: @escaping @Sendable (OTelRecordingSpan, _ endTimeNanosecondsSinceEpoch: UInt64) -> Void
     ) -> OTelSpan {
-        OTelSpan(underlying: .recording(
-            OTelRecordingSpan(
-                operationName: operationName,
-                kind: kind,
-                context: context,
-                attributes: attributes,
-                startTimeNanosecondsSinceEpoch: startTimeNanosecondsSinceEpoch,
-                onEnd: onEnd
-            ),
-            kind: kind
-        ))
+        OTelSpan(
+            underlying: .recording(
+                OTelRecordingSpan(
+                    operationName: operationName,
+                    kind: kind,
+                    context: context,
+                    attributes: attributes,
+                    startTimeNanosecondsSinceEpoch: startTimeNanosecondsSinceEpoch,
+                    onEnd: onEnd
+                ),
+                kind: kind
+            )
+        )
     }
 
     private enum Underlying {
@@ -264,22 +266,16 @@ final class OTelRecordingSpan: Span, Sendable {
     }
 
     func setStatus(_ status: SpanStatus) {
-        /*
-         When span status is set to Ok it SHOULD be considered final
-         and any further attempts to change it SHOULD be ignored.
-
-         https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/api.md#set-status
-         */
+        // When span status is set to Ok it SHOULD be considered final
+        // and any further attempts to change it SHOULD be ignored.
+        // https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/api.md#set-status
         guard self.status?.code != .ok else { return }
 
         let status: SpanStatus = {
             switch status.code {
             case .ok:
-                /*
-                 Description MUST be IGNORED for StatusCode Ok & Unset values.
-
-                 https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/api.md#set-status
-                 */
+                // Description MUST be IGNORED for StatusCode Ok & Unset values.
+                // https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/api.md#set-status
                 return SpanStatus(code: .ok, message: nil)
             case .error:
                 return status

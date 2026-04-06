@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import ServiceLifecycle
+
+@testable import OTel
 
 /// An in-memory span exporter, collecting exported batches into ``OTelInMemorySpanExporter/exportedBatches``.
 final actor OTelInMemorySpanExporter: OTelSpanExporter {

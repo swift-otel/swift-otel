@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import W3CTraceContext
 import XCTest
+
+@testable import OTel
 
 final class OTelRandomIDGeneratorTests: XCTestCase {
     func test_traceID_witConstantNumberGenerator_returnsConstantTraceID() {
@@ -42,7 +43,7 @@ final class OTelRandomIDGeneratorTests: XCTestCase {
         let generator = OTelRandomIDGenerator()
         var traceIDs = Set<TraceID>()
 
-        for _ in 0 ..< 1000 {
+        for _ in 0..<1000 {
             let (inserted, traceID) = traceIDs.insert(generator.nextTraceID())
 
             XCTAssertTrue(inserted, "Expected unique trace IDs, got duplicate: \(traceID)")
@@ -72,7 +73,7 @@ final class OTelRandomIDGeneratorTests: XCTestCase {
         let generator = OTelRandomIDGenerator()
         var spanIDs = Set<SpanID>()
 
-        for _ in 0 ..< 1000 {
+        for _ in 0..<1000 {
             let (inserted, spanID) = spanIDs.insert(generator.nextSpanID())
 
             XCTAssertTrue(inserted, "Expected unique span IDs, got duplicate: \(spanID)")

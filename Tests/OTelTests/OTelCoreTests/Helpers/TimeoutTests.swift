@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import XCTest
+
+@testable import OTel
 
 final class TimeoutTests: XCTestCase {
     func test_withTimeout_operationCompletesWithinTime_returnsResult() async throws {

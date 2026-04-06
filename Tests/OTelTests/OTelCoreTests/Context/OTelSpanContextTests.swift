@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import W3CTraceContext
 import XCTest
+
+@testable import OTel
 
 final class OTelSpanContextTests: XCTestCase {
     func test_local_withoutParentSpanID() {

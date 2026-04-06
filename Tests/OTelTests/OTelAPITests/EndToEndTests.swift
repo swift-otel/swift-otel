@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) // Swift Testing exit tests only added in 6.2
+#if compiler(>=6.2)  // Swift Testing exit tests only added in 6.2
 #if canImport(FoundationEssentials)
 import struct FoundationEssentials.Data
 #else
@@ -20,7 +20,7 @@ import struct Foundation.Data
 import Logging
 import Metrics
 import NIOTestUtils
-import OTel // NOTE: Not @testable import because this test only uses public API.
+import OTel  // NOTE: Not @testable import because this test only uses public API.
 import ServiceLifecycle
 import Testing
 import Tracing
@@ -76,19 +76,29 @@ import Tracing
                     #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
-                    let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(serializedBytes: ByteBufferWrapper(backing: body))
+                    let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(
+                        serializedBytes: ByteBufferWrapper(backing: body)
+                    )
                     #expect(message.resourceSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.first?.spans.count == 5)
                     #expect(message.resourceSpans.first?.resource.attributes.count == 2)
-                    #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
-                    #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+                    #expect(
+                        message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value
+                            .stringValue == "innie"
+                    )
+                    #expect(
+                        message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?
+                            .value.stringValue == "prod"
+                    )
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
                 }
 
-                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
+                try testServer.writeOutbound(
+                    .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"]))
+                )
                 let response = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse()
                 let body: ByteBufferWrapper = try response.serializedBytes()
                 try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -145,19 +155,29 @@ import Tracing
                     #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
-                    let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
+                    let message = try Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceRequest(
+                        jsonUTF8Bytes: ByteBufferWrapper(backing: body)
+                    )
                     #expect(message.resourceSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.first?.spans.count == 5)
                     #expect(message.resourceSpans.first?.resource.attributes.count == 2)
-                    #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
-                    #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+                    #expect(
+                        message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value
+                            .stringValue == "innie"
+                    )
+                    #expect(
+                        message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?
+                            .value.stringValue == "prod"
+                    )
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
                 }
 
-                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
+                try testServer.writeOutbound(
+                    .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"]))
+                )
                 let response = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse()
                 let body: ByteBufferWrapper = try response.jsonUTF8Bytes()
                 try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -208,8 +228,14 @@ import Tracing
                 #expect(message.resourceSpans.first?.scopeSpans.count == 1)
                 #expect(message.resourceSpans.first?.scopeSpans.first?.spans.count == 5)
                 #expect(message.resourceSpans.first?.resource.attributes.count == 2)
-                #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
-                #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+                #expect(
+                    message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value
+                        .stringValue == "innie"
+                )
+                #expect(
+                    message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value
+                        .stringValue == "prod"
+                )
             }
         }
     }
@@ -262,12 +288,16 @@ import Tracing
                     #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
-                    let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(serializedBytes: ByteBufferWrapper(backing: body))
+                    let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(
+                        serializedBytes: ByteBufferWrapper(backing: body)
+                    )
 
                     #expect(message.resourceMetrics.count == 1)
                     let resource = try #require(message.resourceMetrics.first?.resource)
                     #expect(resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
-                    #expect(resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+                    #expect(
+                        resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod"
+                    )
                     #expect(message.resourceMetrics.first?.scopeMetrics.count == 1)
                     let metrics = try #require(message.resourceMetrics.first?.scopeMetrics.first?.metrics)
                     #expect(metrics.count == 4)
@@ -328,7 +358,9 @@ import Tracing
                     #expect(trailers == nil)
                 }
 
-                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
+                try testServer.writeOutbound(
+                    .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"]))
+                )
                 let response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse()
                 let body: ByteBufferWrapper = try response.serializedBytes()
                 try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -387,11 +419,15 @@ import Tracing
                     #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
-                    let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
+                    let message = try Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceRequest(
+                        jsonUTF8Bytes: ByteBufferWrapper(backing: body)
+                    )
                     #expect(message.resourceMetrics.count == 1)
                     let resource = try #require(message.resourceMetrics.first?.resource)
                     #expect(resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
-                    #expect(resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+                    #expect(
+                        resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod"
+                    )
                     #expect(message.resourceMetrics.first?.scopeMetrics.count == 1)
                     let metrics = try #require(message.resourceMetrics.first?.scopeMetrics.first?.metrics)
                     #expect(metrics.count == 4)
@@ -452,7 +488,9 @@ import Tracing
                     #expect(trailers == nil)
                 }
 
-                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
+                try testServer.writeOutbound(
+                    .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"]))
+                )
                 let response = Opentelemetry_Proto_Collector_Metrics_V1_ExportMetricsServiceResponse()
                 let body: ByteBufferWrapper = try response.jsonUTF8Bytes()
                 try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -498,8 +536,14 @@ import Tracing
                 #expect(message.resourceMetrics.first?.scopeMetrics.count == 1)
                 #expect(message.resourceMetrics.first?.scopeMetrics.first?.metrics.count == 3)
                 #expect(message.resourceMetrics.first?.resource.attributes.count == 2)
-                #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
-                #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+                #expect(
+                    message.resourceMetrics.first?.resource.attributes.first { $0.key == "service.name" }?.value
+                        .stringValue == "innie"
+                )
+                #expect(
+                    message.resourceMetrics.first?.resource.attributes.first { $0.key == "deployment.environment" }?
+                        .value.stringValue == "prod"
+                )
             }
         }
     }
@@ -548,21 +592,38 @@ import Tracing
                     #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
-                    let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(serializedBytes: ByteBufferWrapper(backing: body))
+                    let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(
+                        serializedBytes: ByteBufferWrapper(backing: body)
+                    )
                     #expect(message.resourceLogs.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
-                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue == "Waffle party privileges have been revoked due to insufficient team spirit")
-                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
+                    #expect(
+                        message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue
+                            == "Waffle party privileges have been revoked due to insufficient team spirit"
+                    )
+                    #expect(
+                        message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first {
+                            $0.key == "person"
+                        }?.value.stringValue == "milchick"
+                    )
                     #expect(message.resourceLogs.first?.resource.attributes.count == 2)
-                    #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
-                    #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+                    #expect(
+                        message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value
+                            .stringValue == "innie"
+                    )
+                    #expect(
+                        message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?
+                            .value.stringValue == "prod"
+                    )
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
                 }
 
-                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
+                try testServer.writeOutbound(
+                    .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"]))
+                )
                 let response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse()
                 let body: ByteBufferWrapper = try response.serializedBytes()
                 try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -617,21 +678,38 @@ import Tracing
                     #expect(head.headers["morale"] == ["acceptable"])
                 }
                 try testServer.receiveBodyAndVerify { body in
-                    let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
+                    let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(
+                        jsonUTF8Bytes: ByteBufferWrapper(backing: body)
+                    )
                     #expect(message.resourceLogs.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
-                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue == "Waffle party privileges have been revoked due to insufficient team spirit")
-                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
+                    #expect(
+                        message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue
+                            == "Waffle party privileges have been revoked due to insufficient team spirit"
+                    )
+                    #expect(
+                        message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first {
+                            $0.key == "person"
+                        }?.value.stringValue == "milchick"
+                    )
                     #expect(message.resourceLogs.first?.resource.attributes.count == 2)
-                    #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
-                    #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+                    #expect(
+                        message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value
+                            .stringValue == "innie"
+                    )
+                    #expect(
+                        message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?
+                            .value.stringValue == "prod"
+                    )
                 }
                 try testServer.receiveEndAndVerify { trailers in
                     #expect(trailers == nil)
                 }
 
-                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
+                try testServer.writeOutbound(
+                    .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"]))
+                )
                 let response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse()
                 let body: ByteBufferWrapper = try response.jsonUTF8Bytes()
                 try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -681,18 +759,35 @@ import Tracing
                 #expect(message.resourceLogs.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
-                #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue == "Waffle party privileges have been revoked due to insufficient team spirit")
-                #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
+                #expect(
+                    message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue
+                        == "Waffle party privileges have been revoked due to insufficient team spirit"
+                )
+                #expect(
+                    message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first {
+                        $0.key == "person"
+                    }?.value.stringValue == "milchick"
+                )
                 #expect(message.resourceLogs.first?.resource.attributes.count == 2)
-                #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
-                #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
+                #expect(
+                    message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value
+                        .stringValue == "innie"
+                )
+                #expect(
+                    message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value
+                        .stringValue == "prod"
+                )
             }
         }
     }
 
     @Test func testLoggingConsoleExportUsingBootstrap() async throws {
         /// Note: It's easier to debug this test by commenting out the surrounding `#expect(procesExitsWith:_:)`.
-        let result = try await #require(processExitsWith: .success, observing: [\.standardOutputContent, \.standardErrorContent], "Running in a separate process because test uses bootstrap") {
+        let result = try await #require(
+            processExitsWith: .success,
+            observing: [\.standardOutputContent, \.standardErrorContent],
+            "Running in a separate process because test uses bootstrap"
+        ) {
             var config = OTel.Configuration.default
             config.traces.enabled = false
             config.metrics.enabled = false
@@ -714,10 +809,14 @@ import Tracing
                 try await group.waitForAll()
             }
         }
-        let diagnostics = try #require(String(bytes: result.standardErrorContent, encoding: .utf8)).split(separator: "\n")
+        let diagnostics = try #require(String(bytes: result.standardErrorContent, encoding: .utf8)).split(
+            separator: "\n"
+        )
         #expect(diagnostics.isEmpty == false)
         let lines = try #require(String(bytes: result.standardOutputContent, encoding: .utf8)).split(separator: "\n")
-        let match = try #require(lines.first { $0.contains("Waffle party privileges have been revoked due to insufficient team spirit") })
+        let match = try #require(
+            lines.first { $0.contains("Waffle party privileges have been revoked due to insufficient team spirit") }
+        )
         #expect(match.contains("person") && match.contains("milchick"))
     }
 
@@ -766,7 +865,9 @@ import Tracing
                     #expect(head.headers["Content-Type"] == ["application/json"])
                 }
                 try testServer.receiveBodyAndVerify { body in
-                    let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
+                    let message = try Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceRequest(
+                        jsonUTF8Bytes: ByteBufferWrapper(backing: body)
+                    )
                     let spanID = try #require(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.spanID)
                     #expect(spanID.count == 8 && !spanID.allSatisfy { $0 == 0 })
                     let traceID = try #require(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.traceID)
@@ -776,7 +877,9 @@ import Tracing
                     #expect(trailers == nil)
                 }
 
-                try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"])))
+                try testServer.writeOutbound(
+                    .head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/json"]))
+                )
                 let response = Opentelemetry_Proto_Collector_Logs_V1_ExportLogsServiceResponse()
                 let body: ByteBufferWrapper = try response.jsonUTF8Bytes()
                 try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
@@ -788,7 +891,11 @@ import Tracing
     }
 
     @Test func testBootstrapLogsHandoffMessage() async throws {
-        let result = try await #require(processExitsWith: .success, observing: [\.standardErrorContent], "Running in a separate process because test uses bootstrap") {
+        let result = try await #require(
+            processExitsWith: .success,
+            observing: [\.standardErrorContent],
+            "Running in a separate process because test uses bootstrap"
+        ) {
             var config = OTel.Configuration.default
             config.metrics.enabled = false
             config.traces.enabled = false
@@ -796,7 +903,10 @@ import Tracing
             _ = try OTel.bootstrap(configuration: config)
             Logger(label: "test").info("after bootstrap")
         }
-        let lines = try #require(String(bytes: result.standardErrorContent, encoding: .utf8)).split(separator: "\n", omittingEmptySubsequences: false)
+        let lines = try #require(String(bytes: result.standardErrorContent, encoding: .utf8)).split(
+            separator: "\n",
+            omittingEmptySubsequences: false
+        )
         print(lines.joined(separator: "\n"))
         #expect(lines.contains { $0.contains("before bootstrap") })
         #expect(lines.contains { $0.contains("Only Swift OTel diagnostic logging will use the console") })
@@ -804,7 +914,11 @@ import Tracing
     }
 
     @Test func testLogsIncludeSpanContext() async throws {
-        let result = try await #require(processExitsWith: .success, observing: [\.standardErrorContent], "Running in a separate process because test uses bootstrap") {
+        let result = try await #require(
+            processExitsWith: .success,
+            observing: [\.standardErrorContent],
+            "Running in a separate process because test uses bootstrap"
+        ) {
             var bootstrapConfig = OTel.Configuration.default
             bootstrapConfig.traces.exporter = .none
             bootstrapConfig.diagnosticLogLevel = .trace
@@ -831,7 +945,11 @@ import Tracing
     // Cannot use parametrized test because there's a compiler bug preventing the passing of values into exit tests.
     // https://github.com/swiftlang/swift/issues/82783
     @Test func testLogsIncludeSpanContextWithCustomKeys() async throws {
-        let result = try await #require(processExitsWith: .success, observing: [\.standardErrorContent], "Running in a separate process because test uses bootstrap") {
+        let result = try await #require(
+            processExitsWith: .success,
+            observing: [\.standardErrorContent],
+            "Running in a separate process because test uses bootstrap"
+        ) {
             var bootstrapConfig = OTel.Configuration.default
             bootstrapConfig.traces.exporter = .none
             bootstrapConfig.diagnosticLogLevel = .trace
@@ -912,4 +1030,4 @@ import Tracing
         }
     }
 }
-#endif // compiler(>=6.2)
+#endif  // compiler(>=6.2)

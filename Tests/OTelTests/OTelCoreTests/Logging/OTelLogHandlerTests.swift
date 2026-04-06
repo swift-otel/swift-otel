@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+import XCTest
+
 @testable import Logging
 @testable import OTel
-import XCTest
 
 final class OTelLogHandlerTests: XCTestCase {
     private let resource = OTelResource(attributes: ["service.name": "log_handler_tests"])
@@ -32,12 +33,15 @@ final class OTelLogHandlerTests: XCTestCase {
 
         logger.info(.stub, file: "file", function: "function", line: 42)
 
-        XCTAssertEqual(processor.records, [
-            .stub(
-                metadata: ["code.file.path": "file", "code.function.name": "function", "code.line.number": "42"],
-                resource: resource
-            ),
-        ])
+        XCTAssertEqual(
+            processor.records,
+            [
+                .stub(
+                    metadata: ["code.file.path": "file", "code.function.name": "function", "code.line.number": "42"],
+                    resource: resource
+                )
+            ]
+        )
     }
 
     func test_log_withLoggerMetadata_includesMetadataInLogRecord() {
@@ -55,12 +59,18 @@ final class OTelLogHandlerTests: XCTestCase {
 
         logger.info(.stub, file: "file", function: "function", line: 42)
 
-        XCTAssertEqual(processor.records, [
-            .stub(
-                metadata: ["code.file.path": "file", "code.function.name": "function", "code.line.number": "42", "logger": "42"],
-                resource: resource
-            ),
-        ])
+        XCTAssertEqual(
+            processor.records,
+            [
+                .stub(
+                    metadata: [
+                        "code.file.path": "file", "code.function.name": "function", "code.line.number": "42",
+                        "logger": "42",
+                    ],
+                    resource: resource
+                )
+            ]
+        )
     }
 
     func test_log_withLoggerMetadata_overridesCodeMetadata() {
@@ -78,12 +88,18 @@ final class OTelLogHandlerTests: XCTestCase {
 
         logger.info(.stub, file: "file", function: "function", line: 42)
 
-        XCTAssertEqual(processor.records, [
-            .stub(
-                metadata: ["code.file.path": "custom/file/path", "code.function.name": "function", "code.line.number": "42"],
-                resource: resource
-            ),
-        ])
+        XCTAssertEqual(
+            processor.records,
+            [
+                .stub(
+                    metadata: [
+                        "code.file.path": "custom/file/path", "code.function.name": "function",
+                        "code.line.number": "42",
+                    ],
+                    resource: resource
+                )
+            ]
+        )
     }
 
     func test_log_withHandlerMetadata_includesMetadataInLogRecord() {
@@ -100,12 +116,18 @@ final class OTelLogHandlerTests: XCTestCase {
 
         logger.info(.stub, file: "file", function: "function", line: 42)
 
-        XCTAssertEqual(processor.records, [
-            .stub(
-                metadata: ["code.file.path": "file", "code.function.name": "function", "code.line.number": "42", "handler": "42"],
-                resource: resource
-            ),
-        ])
+        XCTAssertEqual(
+            processor.records,
+            [
+                .stub(
+                    metadata: [
+                        "code.file.path": "file", "code.function.name": "function", "code.line.number": "42",
+                        "handler": "42",
+                    ],
+                    resource: resource
+                )
+            ]
+        )
     }
 
     func test_log_withHandlerAndLoggerMetadata_overridesHandlerWithLoggerMetadata() {
@@ -123,17 +145,20 @@ final class OTelLogHandlerTests: XCTestCase {
 
         logger.info(.stub, file: "file", function: "function", line: 42)
 
-        XCTAssertEqual(processor.records, [
-            .stub(
-                metadata: [
-                    "code.file.path": "file",
-                    "code.function.name": "function",
-                    "code.line.number": "42",
-                    "shared": "logger",
-                ],
-                resource: resource
-            ),
-        ])
+        XCTAssertEqual(
+            processor.records,
+            [
+                .stub(
+                    metadata: [
+                        "code.file.path": "file",
+                        "code.function.name": "function",
+                        "code.line.number": "42",
+                        "shared": "logger",
+                    ],
+                    resource: resource
+                )
+            ]
+        )
     }
 
     func test_log_withLoggerAndAdHocMetadata_overridesLoggerWithAdHocMetadata() {
@@ -151,17 +176,20 @@ final class OTelLogHandlerTests: XCTestCase {
 
         logger.info(.stub, metadata: ["shared": "ad-hoc"], file: "file", function: "function", line: 42)
 
-        XCTAssertEqual(processor.records, [
-            .stub(
-                metadata: [
-                    "code.file.path": "file",
-                    "code.function.name": "function",
-                    "code.line.number": "42",
-                    "shared": "ad-hoc",
-                ],
-                resource: resource
-            ),
-        ])
+        XCTAssertEqual(
+            processor.records,
+            [
+                .stub(
+                    metadata: [
+                        "code.file.path": "file",
+                        "code.function.name": "function",
+                        "code.line.number": "42",
+                        "shared": "ad-hoc",
+                    ],
+                    resource: resource
+                )
+            ]
+        )
     }
 
     func test_log_withAdHocMetadata_overridesCodeMetadata() {
@@ -185,12 +213,18 @@ final class OTelLogHandlerTests: XCTestCase {
             line: 42
         )
 
-        XCTAssertEqual(processor.records, [
-            .stub(
-                metadata: ["code.file.path": "custom/file/path", "code.function.name": "function", "code.line.number": "84"],
-                resource: resource
-            ),
-        ])
+        XCTAssertEqual(
+            processor.records,
+            [
+                .stub(
+                    metadata: [
+                        "code.file.path": "custom/file/path", "code.function.name": "function",
+                        "code.line.number": "84",
+                    ],
+                    resource: resource
+                )
+            ]
+        )
     }
 
     func test_loggerMetadataProxiesToHandlerMetadata() throws {
@@ -212,12 +246,15 @@ final class OTelLogHandlerTests: XCTestCase {
         logger.info(.stub, file: "file", function: "function", line: 42)
 
         let record = try XCTUnwrap(processor.records.first)
-        XCTAssertEqual(record.metadata, [
-            "code.file.path": "file",
-            "code.function.name": "function",
-            "code.line.number": "42",
-            "shared": "logger",
-        ])
+        XCTAssertEqual(
+            record.metadata,
+            [
+                "code.file.path": "file",
+                "code.function.name": "function",
+                "code.line.number": "42",
+                "shared": "logger",
+            ]
+        )
     }
 }
 

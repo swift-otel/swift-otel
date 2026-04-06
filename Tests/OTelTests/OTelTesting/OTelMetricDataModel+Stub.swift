@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import Tracing
+
+@testable import OTel
 
 extension OTelResource {
     static func stub(

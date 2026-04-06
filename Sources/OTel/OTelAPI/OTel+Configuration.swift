@@ -384,7 +384,9 @@ extension OTel.Configuration {
             otlpExporter: .default
         )
 
-        static let defaultHistogramBuckets = [0.0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000]
+        static let defaultHistogramBuckets = [
+            0.0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000,
+        ]
     }
 
     /// Configuration for structured logging integration.

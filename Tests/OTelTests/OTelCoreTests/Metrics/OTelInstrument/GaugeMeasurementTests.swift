@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import XCTest
+
+@testable import OTel
 
 final class GaugeMeasurementTests: XCTestCase {
     func test_measure_returnsGauge() {
@@ -44,12 +45,12 @@ final class GaugeMeasurementTests: XCTestCase {
     func test_measure_followingConcurrentIncrementDecerement_returnsGauge() async {
         let gauge = Gauge(name: "my_gauge", attributes: [])
         await withTaskGroup(of: Void.self) { group in
-            for _ in 0 ..< 100_000 {
+            for _ in 0..<100_000 {
                 group.addTask {
                     gauge.increment(by: 3.5)
                 }
             }
-            for _ in 0 ..< 100_000 {
+            for _ in 0..<100_000 {
                 group.addTask {
                     gauge.decrement(by: 2.5)
                 }

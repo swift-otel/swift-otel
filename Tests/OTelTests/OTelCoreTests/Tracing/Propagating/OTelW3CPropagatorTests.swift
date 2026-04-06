@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import W3CTraceContext
 import XCTest
+
+@testable import OTel
 
 final class OTelW3CPropagatorTests: XCTestCase {
     private let propagator = OTelW3CPropagator()

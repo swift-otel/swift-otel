@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import ServiceLifecycle
 import Testing
 
 #if canImport(Darwin)
@@ -28,7 +29,6 @@ import struct FoundationEssentials.URL
 #else
 import struct Foundation.URL
 #endif
-import ServiceLifecycle
 
 extension Testing.Test {
     /// Update the `LLVM_PROFILE_PATH` with per-process pattern.
@@ -57,7 +57,9 @@ extension Testing.Test {
         let previousPath = URL(filePath: previousValue)
         guard previousPath.pathExtension == profrawExtension else { return }
         guard !previousPath.lastPathComponent.contains("%p") else { return }
-        let newPath = previousPath.deletingPathExtension().appendingPathExtension("%p").appendingPathExtension(profrawExtension)
+        let newPath = previousPath.deletingPathExtension().appendingPathExtension("%p").appendingPathExtension(
+            profrawExtension
+        )
         let newValue = newPath.path(percentEncoded: false)
         print("Replacing \(key)=\(previousValue) with \(key)=\(newValue)")
         setenv(key, newValue, 1)

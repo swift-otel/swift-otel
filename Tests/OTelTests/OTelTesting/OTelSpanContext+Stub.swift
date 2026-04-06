@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import W3CTraceContext
+
+@testable import OTel
 
 extension OTelSpanContext {
     /// A local span context stub.

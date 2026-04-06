@@ -12,9 +12,10 @@
 //===----------------------------------------------------------------------===//
 
 import Instrumentation
-@testable import OTel
 import W3CTraceContext
 import XCTest
+
+@testable import OTel
 
 final class OTelMultiplexPropagatorTests: XCTestCase {
     private let injector = DictionaryInjector()

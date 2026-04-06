@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import XCTest
+
+@testable import OTel
 
 final class OTelMetricRegistryProducerTests: XCTestCase {
     func test_produce_noMetrics_returnsNoPoints() {

@@ -11,9 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import ServiceContextModule
 import Testing
+
+@testable import OTel
 
 @Suite
 struct OTelSpanContextServiceContextTests {

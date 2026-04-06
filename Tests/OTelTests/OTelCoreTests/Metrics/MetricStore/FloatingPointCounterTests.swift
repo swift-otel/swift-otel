@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import XCTest
+
+@testable import OTel
 
 final class FloatingPointCounterTests: XCTestCase {
     func test_increment() {
@@ -35,7 +36,7 @@ final class FloatingPointCounterTests: XCTestCase {
     func test_increment_concurrent() async {
         let counter = FloatingPointCounter(name: "my_floating_point_counter", attributes: [])
         await withTaskGroup(of: Void.self) { group in
-            for _ in 0 ..< 100_000 {
+            for _ in 0..<100_000 {
                 group.addTask {
                     counter.increment(by: 0.5)
                 }

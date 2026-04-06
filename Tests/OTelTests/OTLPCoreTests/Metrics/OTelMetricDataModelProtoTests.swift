@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import XCTest
+
+@testable import OTel
 
 final class OTelMetricDataModelProtoTests: XCTestCase {
     func test_initProto_resourceUnset_protoHasNoResource() {

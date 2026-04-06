@@ -11,8 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import OTel
 import XCTest
+
+@testable import OTel
 
 final class CounterMeasurementTests: XCTestCase {
     func test_measure_returnsCumulativeSum() {
@@ -38,7 +39,7 @@ final class CounterMeasurementTests: XCTestCase {
     func test_measure_followingConcurrentIncrement_returnsCumulativeSum() async {
         let counter = Counter(name: "my_counter", attributes: [])
         await withTaskGroup(of: Void.self) { group in
-            for _ in 0 ..< 100_000 {
+            for _ in 0..<100_000 {
                 group.addTask {
                     counter.increment(by: 2)
                 }

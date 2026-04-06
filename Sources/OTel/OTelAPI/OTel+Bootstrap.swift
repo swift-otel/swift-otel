@@ -11,15 +11,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Logging
+import Metrics
+public import ServiceLifecycle
+import Tracing
+
 #if canImport(FoundationEssentials)
 import class FoundationEssentials.ProcessInfo
 #else
 import class Foundation.ProcessInfo
 #endif
-import Logging
-import Metrics
-public import ServiceLifecycle
-import Tracing
 
 // MARK: - API
 
@@ -116,11 +117,16 @@ extension OTel {
         try Self.bootstrap(configuration: configuration, environment: ProcessInfo.processInfo.environment)
     }
 
-    package static func bootstrap(configuration: Configuration = .default, environment: [String: String]) throws -> some Service {
+    package static func bootstrap(
+        configuration: Configuration = .default,
+        environment: [String: String]
+    ) throws -> some Service {
         let logger = configuration.makeDiagnosticLogger().withMetadata(component: "bootstrap")
         var configuration = configuration
         if configuration.logs.disabled, configuration.metrics.disabled, configuration.traces.disabled {
-            throw OTel.Configuration.Error.invalidConfiguration("bootstrap called but config has all telemetry disabled")
+            throw OTel.Configuration.Error.invalidConfiguration(
+                "bootstrap called but config has all telemetry disabled"
+            )
         }
 
         configuration.applyEnvironmentOverrides(environment: environment, logger: logger)
@@ -156,21 +162,28 @@ extension OTel {
 // MARK: - Internal
 
 extension OTel {
-    internal static func bootstrapTraces(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
+    internal static func bootstrapTraces(
+        resolvedConfiguration: OTel.Configuration,
+        logger: Logger
+    ) throws -> some Service {
         let backend = try makeTracingBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
         logger.info("Bootstrapping instrumentation system with \(resolvedConfiguration.traces.exporterName) exporter.")
         InstrumentationSystem.bootstrap(backend.factory)
         return backend.service
     }
 
-    internal static func bootstrapMetrics(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
+    internal static func bootstrapMetrics(
+        resolvedConfiguration: OTel.Configuration,
+        logger: Logger
+    ) throws -> some Service {
         let backend = try makeMetricsBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
         logger.info("Bootstrapping metrics system with \(resolvedConfiguration.metrics.exporterName) exporter.")
         MetricsSystem.bootstrap(backend.factory)
         return backend.service
     }
 
-    internal static func bootstrapLogs(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
+    internal static func bootstrapLogs(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service
+    {
         let backend = try makeLoggingBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
         if resolvedConfiguration.logs.exporter.backing != .console {
             logger.info(

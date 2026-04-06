@@ -66,7 +66,13 @@ final class Histogram<Value: Bucketable>: Sendable {
 
     @usableFromInline let box: NIOLockedValueBox<State>
 
-    init(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = [], buckets: [Value]) {
+    init(
+        name: String,
+        unit: String? = nil,
+        description: String? = nil,
+        attributes: Set<Attribute> = [],
+        buckets: [Value]
+    ) {
         self.name = name
         self.unit = unit
         self.description = description
@@ -74,7 +80,13 @@ final class Histogram<Value: Bucketable>: Sendable {
         box = .init(.init(buckets: buckets))
     }
 
-    convenience init(name: String, unit: String? = nil, description: String? = nil, attributes: [(String, String)] = [], buckets: [Value]) {
+    convenience init(
+        name: String,
+        unit: String? = nil,
+        description: String? = nil,
+        attributes: [(String, String)] = [],
+        buckets: [Value]
+    ) {
         self.init(name: name, unit: unit, description: description, attributes: Set(attributes), buckets: buckets)
     }
 
@@ -88,7 +100,7 @@ final class Histogram<Value: Bucketable>: Sendable {
                 state.countAboveUpperBound += 1
             } else {
                 var didMatchBucket = false
-                for i in state.buckets.startIndex ..< state.buckets.endIndex {
+                for i in state.buckets.startIndex..<state.buckets.endIndex {
                     if value <= state.buckets[i].0 {
                         state.buckets[i].1 += 1
                         didMatchBucket = true

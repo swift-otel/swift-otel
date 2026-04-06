@@ -46,11 +46,18 @@ struct OTelPeriodicExportingMetricsReader<Clock: _Concurrency.Clock> where Clock
         let batch = [
             OTelResourceMetrics(
                 resource: resource,
-                scopeMetrics: [OTelScopeMetrics(
-                    scope: .init(name: "swift-otel", version: OTelLibrary.version, attributes: [], droppedAttributeCount: 0),
-                    metrics: metrics
-                )]
-            ),
+                scopeMetrics: [
+                    OTelScopeMetrics(
+                        scope: .init(
+                            name: "swift-otel",
+                            version: OTelLibrary.version,
+                            attributes: [],
+                            droppedAttributeCount: 0
+                        ),
+                        metrics: metrics
+                    )
+                ]
+            )
         ]
         logger.debug("Exporting metrics.", metadata: ["count": "\(metrics.count)"])
         do {

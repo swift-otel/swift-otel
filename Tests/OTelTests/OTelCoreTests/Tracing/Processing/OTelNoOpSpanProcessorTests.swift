@@ -12,9 +12,10 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-@testable import OTel
 import ServiceLifecycle
 import XCTest
+
+@testable import OTel
 
 final class OTelNoOpSpanProcessorTests: XCTestCase {
     func test_run_onGracefulShutdown_stopsExecuting() async {

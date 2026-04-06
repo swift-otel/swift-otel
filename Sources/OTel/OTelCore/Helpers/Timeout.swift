@@ -17,7 +17,7 @@ struct TimeoutError: Error {
 
 func withTimeout<T: Sendable>(
     _ timeout: Duration,
-    isolation: isolated(any Actor)? = #isolation,
+    isolation: isolated (any Actor)? = #isolation,
     operation: @escaping @Sendable () async throws -> T
 ) async throws -> T {
     try await withTimeout(timeout, clock: ContinuousClock(), operation: operation)
@@ -26,7 +26,7 @@ func withTimeout<T: Sendable>(
 func withTimeout<T: Sendable, Clock: _Concurrency.Clock>(
     _ timeout: Clock.Duration,
     clock: Clock,
-    isolation: isolated(any Actor)? = #isolation,
+    isolation: isolated (any Actor)? = #isolation,
     operation: @escaping () async throws -> T
 ) async throws -> T {
     nonisolated(unsafe) let operation = { operation }

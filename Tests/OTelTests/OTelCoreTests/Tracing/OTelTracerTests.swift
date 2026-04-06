@@ -13,12 +13,13 @@
 
 import Logging
 import NIOConcurrencyHelpers
-@testable import OTel
 import ServiceContextModule
 import ServiceLifecycle
 import Tracing
 import W3CTraceContext
 import XCTest
+
+@testable import OTel
 
 final class OTelTracerTests: XCTestCase {
     override func setUp() async throws {
@@ -411,17 +412,31 @@ final class OTelTracerTests: XCTestCase {
                 return .allZeroes
             }
 
-            func samplingResult(operationName: String, kind: SpanKind, traceID: TraceID, attributes: Tracing.SpanAttributes, links: [SpanLink], parentContext: ServiceContext) -> OTelSamplingResult {
+            func samplingResult(
+                operationName: String,
+                kind: SpanKind,
+                traceID: TraceID,
+                attributes: Tracing.SpanAttributes,
+                links: [SpanLink],
+                parentContext: ServiceContext
+            ) -> OTelSamplingResult {
                 XCTFail()
                 return .init(decision: .drop)
             }
 
-            func extractSpanContext<Carrier, Extract>(from carrier: Carrier, using extractor: Extract) throws -> OTelSpanContext? where Carrier == Extract.Carrier, Extract: Extractor {
+            func extractSpanContext<Carrier, Extract>(
+                from carrier: Carrier,
+                using extractor: Extract
+            ) throws -> OTelSpanContext? where Carrier == Extract.Carrier, Extract: Extractor {
                 XCTFail()
                 return nil
             }
 
-            func inject<Carrier, Inject>(_ spanContext: OTelSpanContext, into carrier: inout Carrier, using injector: Inject) where Carrier == Inject.Carrier, Inject: Injector {
+            func inject<Carrier, Inject>(
+                _ spanContext: OTelSpanContext,
+                into carrier: inout Carrier,
+                using injector: Inject
+            ) where Carrier == Inject.Carrier, Inject: Injector {
                 XCTFail()
             }
 

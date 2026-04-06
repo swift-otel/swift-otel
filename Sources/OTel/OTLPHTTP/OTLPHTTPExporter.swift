@@ -98,7 +98,7 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
             retryPolicy: .otel
         )
 
-        guard 200 ... 299 ~= response.status.code else {
+        guard 200...299 ~= response.status.code else {
             // https://opentelemetry.io/docs/specs/otlp/#failures
             // TODO: Apparently failures include Protobuf-encoded GRPC Status -- we could try and include it here.
             throw OTLPHTTPExporterError.requestFailed(response.status)
@@ -106,20 +106,22 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
 
         // https://opentelemetry.io/docs/specs/otlp/#full-success-1
         let body = try await response.body.collect(upTo: 2 * 1024 * 1024)
-        let responseMessage = switch response.headers.first(name: "Content-Type") {
-        case "application/x-protobuf", "application/x-protobuf; charset=UTF-8", "application/x-protobuf; charset=utf-8":
-            try Response(serializedBytes: ByteBufferWrapper(backing: body))
-        case "application/json", "application/json; charset=UTF-8", "application/json; charset=utf-8":
-            try Response(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
-        case .some(let content):
-            throw OTLPHTTPExporterError.responseHasUnsupportedContentType(content)
-        case .none:
-            if response.status == .noContent {
-                Response()
-            } else {
-                throw OTLPHTTPExporterError.responseHasMissingContentType
+        let responseMessage =
+            switch response.headers.first(name: "Content-Type") {
+            case "application/x-protobuf", "application/x-protobuf; charset=UTF-8",
+                "application/x-protobuf; charset=utf-8":
+                try Response(serializedBytes: ByteBufferWrapper(backing: body))
+            case "application/json", "application/json; charset=UTF-8", "application/json; charset=utf-8":
+                try Response(jsonUTF8Bytes: ByteBufferWrapper(backing: body))
+            case .some(let content):
+                throw OTLPHTTPExporterError.responseHasUnsupportedContentType(content)
+            case .none:
+                if response.status == .noContent {
+                    Response()
+                } else {
+                    throw OTLPHTTPExporterError.responseHasMissingContentType
+                }
             }
-        }
         return responseMessage
     }
 
@@ -237,7 +239,7 @@ extension HTTPClient {
             case .retryWithBackoff:
                 let exponentialDelay = baseDelay * (2 << (attempts - 2))
                 let cappedDelay = min(exponentialDelay, maxDelay)
-                let jitterAmount = cappedDelay * jitter * Double.random(in: -1 ... 1)
+                let jitterAmount = cappedDelay * jitter * Double.random(in: -1...1)
                 let delay = max(Duration.zero, cappedDelay + jitterAmount)
                 return .retryAfter(delay)
             case .retryWithSpecificBackoff(let delay):
