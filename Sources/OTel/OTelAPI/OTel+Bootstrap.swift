@@ -24,6 +24,63 @@ import Tracing
 // MARK: - API
 
 extension OTel {
+    /// Create observability backends without setting process-global factories.
+    ///
+    /// - Parameter configuration: Configuration for observability backends.
+    ///
+    ///   This value can be used to configure or disable the bootstrapped backends and defaults to
+    ///   `OTel.Configuration.default`, which creates all backends with the default configuration defined in the
+    ///   OpenTelemetry specification.
+    ///
+    ///   Configuration can also be provided at runtime with environment variable overrides.
+    ///
+    /// - Returns: An ``OTelService`` that manages the lifecycle of all enabled backends and provides access to
+    ///   their factories.
+    ///
+    ///   The returned service manages the complete lifecycle of all observability backends. It handles startup,
+    ///   background processing, and graceful shutdown of exporters and processors.
+    ///
+    ///   > Important: You must run this service in a `ServiceGroup` alongside your application services for
+    ///   observability data to be exported.
+    ///
+    /// Unlike ``bootstrap(configuration:)``, this function does **not** set any process-global factories. The caller
+    /// is responsible for deciding how to use the returned factories — for example, setting them globally, using them
+    /// as task-local values, or composing them with other backends.
+    ///
+    /// This API supports overriding the configuration using environment variables defined in the OpenTelemetry
+    /// specification. This enables operators to customize the observability of your application during deployment.
+    /// For more details on the configuration options, their defaults, and their associated environment variables, see
+    /// `OTel.Configuration`.
+    ///
+    /// ## Example usage
+    ///
+    /// ### Task-local metrics with global logging and tracing
+    ///
+    /// ```swift
+    /// let otel = try OTel.makeBackends()
+    ///
+    /// // Use process-global factories for logging and tracing.
+    /// if let loggingFactory = otel.loggingFactory {
+    ///     LoggingSystem.bootstrap(loggingFactory)
+    /// }
+    /// if let tracer = otel.tracer {
+    ///     InstrumentationSystem.bootstrap(tracer)
+    /// }
+    ///
+    /// // Use task-local factory for metrics.
+    /// let serviceGroup = ServiceGroup(services: [otel, server], logger: logger)
+    /// try await withMetricsFactory(otel.metricsFactory!) {
+    ///     try await serviceGroup.run()
+    /// }
+    /// ```
+    ///
+    /// - SeeAlso:
+    ///   - ``bootstrap(configuration:)`` for simple, all-in-one observability setup that sets process-global factories
+    ///   - ``Configuration`` for configuration options and environment variables
+    public static func makeBackends(configuration: Configuration = .default) throws -> OTelService {
+        try Self.makeBackends(configuration: configuration, environment: ProcessInfo.processInfo.environment)
+    }
+
     /// Bootstrap observability backends with OTLP exporters.
     ///
     /// - Parameter configuration: Configuration for observability backends.
@@ -116,26 +173,107 @@ extension OTel {
         try Self.bootstrap(configuration: configuration, environment: ProcessInfo.processInfo.environment)
     }
 
-    package static func bootstrap(configuration: Configuration = .default, environment: [String: String]) throws -> some Service {
-        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "bootstrap")
+    package static func makeBackends(
+        configuration: Configuration = .default,
+        environment: [String: String]
+    ) throws -> OTelService {
+        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "makeBackends")
         var configuration = configuration
         if configuration.logs.disabled, configuration.metrics.disabled, configuration.traces.disabled {
-            throw OTel.Configuration.Error.invalidConfiguration("bootstrap called but config has all telemetry disabled")
+            throw OTel.Configuration.Error.invalidConfiguration(
+                "makeBackends called but config has all telemetry disabled"
+            )
         }
 
         configuration.applyEnvironmentOverrides(environment: environment, logger: logger)
 
-        var services: [Service] = []
+        return try makeBackends(resolvedConfiguration: configuration, logger: logger)
+    }
 
-        if configuration.logs.enabled {
-            try services.append(bootstrapLogs(resolvedConfiguration: configuration, logger: logger))
+    package static func bootstrap(
+        configuration: Configuration = .default,
+        environment: [String: String]
+    ) throws -> some Service {
+        let logger = configuration.makeDiagnosticLogger().withMetadata(component: "bootstrap")
+        var configuration = configuration
+        if configuration.logs.disabled, configuration.metrics.disabled, configuration.traces.disabled {
+            throw OTel.Configuration.Error.invalidConfiguration(
+                "bootstrap called but config has all telemetry disabled"
+            )
         }
-        if configuration.metrics.enabled {
-            try services.append(bootstrapMetrics(resolvedConfiguration: configuration, logger: logger))
+
+        configuration.applyEnvironmentOverrides(environment: environment, logger: logger)
+
+        let otelService = try makeBackends(resolvedConfiguration: configuration, logger: logger)
+
+        if let loggingFactory = otelService.loggingFactory {
+            if configuration.logs.exporter.backing != .console {
+                logger.info(
+                    """
+                    Bootstrapping logging system with \(configuration.logs.exporterName) exporter.
+                    ---
+                    Only Swift OTel diagnostic logging will use the console logger.
+
+                    If you require console logging for local development, use the
+                    console logs exporter, which can be enabled using the
+                    following configuration:
+
+                        config.logs.exporter = .console
+
+                    Or, run your process with the following environment variable:
+
+                        OTEL_LOGS_EXPORTER=console
+
+                    If you require logs to go to both the console and another
+                    exporter, manually bootstrap the logging subsystem with a
+                    multiplex log handler. See the documentation of
+                    `makeLoggingBackend` for details.
+                    ---
+                    """
+                )
+            } else {
+                logger.info("Bootstrapping logging system with \(configuration.logs.exporterName) exporter.")
+            }
+            LoggingSystem.bootstrap(loggingFactory)
         }
-        if configuration.traces.enabled {
-            try services.append(bootstrapTraces(resolvedConfiguration: configuration, logger: logger))
+        if let metricsFactory = otelService.metricsFactory {
+            logger.info("Bootstrapping metrics system with \(configuration.metrics.exporterName) exporter.")
+            MetricsSystem.bootstrap(metricsFactory)
         }
+        if let tracer = otelService.tracer {
+            logger.info("Bootstrapping instrumentation system with \(configuration.traces.exporterName) exporter.")
+            InstrumentationSystem.bootstrap(tracer)
+        }
+
+        return otelService
+    }
+}
+
+// MARK: - Internal
+
+extension OTel {
+    internal static func makeBackends(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> OTelService {
+        var services: [Service] = []
+        var loggingFactory: (@Sendable (String) -> any LogHandler)?
+        var metricsFactory: (any MetricsFactory)?
+        var tracer: (any Tracer)?
+
+        if resolvedConfiguration.logs.enabled {
+            let backend = try makeLoggingBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
+            loggingFactory = backend.factory
+            services.append(backend.service)
+        }
+        if resolvedConfiguration.metrics.enabled {
+            let backend = try makeMetricsBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
+            metricsFactory = backend.factory
+            services.append(backend.service)
+        }
+        if resolvedConfiguration.traces.enabled {
+            let backend = try makeTracingBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
+            tracer = backend.factory
+            services.append(backend.service)
+        }
+
         if services.isEmpty {
             // If we created a service group that doesn't contain any services, it would return immediately, which would
             // then take down the entire service lifecycle of a server because OTel terminates unexpectedly. To fix
@@ -149,58 +287,12 @@ extension OTel {
             services.append(DummyService())
         }
 
-        return ServiceGroup(services: services, logger: logger)
-    }
-}
-
-// MARK: - Internal
-
-extension OTel {
-    internal static func bootstrapTraces(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
-        let backend = try makeTracingBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
-        logger.info("Bootstrapping instrumentation system with \(resolvedConfiguration.traces.exporterName) exporter.")
-        InstrumentationSystem.bootstrap(backend.factory)
-        return backend.service
-    }
-
-    internal static func bootstrapMetrics(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
-        let backend = try makeMetricsBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
-        logger.info("Bootstrapping metrics system with \(resolvedConfiguration.metrics.exporterName) exporter.")
-        MetricsSystem.bootstrap(backend.factory)
-        return backend.service
-    }
-
-    internal static func bootstrapLogs(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> some Service {
-        let backend = try makeLoggingBackend(resolvedConfiguration: resolvedConfiguration, logger: logger)
-        if resolvedConfiguration.logs.exporter.backing != .console {
-            logger.info(
-                """
-                Bootstrapping logging system with \(resolvedConfiguration.logs.exporterName) exporter.
-                ---
-                Only Swift OTel diagnostic logging will use the console logger.
-
-                If you require console logging for local development, use the
-                console logs exporter, which can be enabled using the
-                following configuration:
-
-                    config.logs.exporter = .console
-
-                Or, run your process with the following environment variable:
-
-                    OTEL_LOGS_EXPORTER=console
-
-                If you require logs to go to both the console and another
-                exporter, manually bootstrap the logging subsystem with a
-                multiplex log handler. See the documentation of
-                `makeLoggingBackend` for details.
-                ---
-                """
-            )
-        } else {
-            logger.info("Bootstrapping logging system with \(resolvedConfiguration.logs.exporterName) exporter.")
-        }
-        LoggingSystem.bootstrap(backend.factory)
-        return backend.service
+        return OTelService(
+            loggingFactory: loggingFactory,
+            metricsFactory: metricsFactory,
+            tracer: tracer,
+            serviceGroup: ServiceGroup(services: services, logger: logger)
+        )
     }
 }
 

@@ -157,5 +157,51 @@ import Tracing
             }
         }
     }
+
+    // MARK: - makeBackends
+
+    @Test func testMakeBackendsAllEnabled() async throws {
+        await #expect(processExitsWith: .success, "Running in a separate process because test creates backends") {
+            let otelService = try OTel.makeBackends()
+            #expect(otelService.loggingFactory != nil)
+            #expect(otelService.metricsFactory != nil)
+            #expect(otelService.tracer != nil)
+        }
+    }
+
+    @Test func testMakeBackendsWithDisabledSignals() async throws {
+        await #expect(processExitsWith: .success, "Running in a separate process because test creates backends") {
+            var config = OTel.Configuration.default
+            config.logs.enabled = false
+            config.traces.enabled = false
+            let otelService = try OTel.makeBackends(configuration: config)
+            #expect(otelService.loggingFactory == nil)
+            #expect(otelService.metricsFactory != nil)
+            #expect(otelService.tracer == nil)
+        }
+    }
+
+    @Test func testMakeBackendsDoesNotBootstrapGlobals() async throws {
+        await #expect(processExitsWith: .success, "Running in a separate process because test uses bootstrap") {
+            var config = OTel.Configuration.default
+            config.logs.enabled = false
+            config.traces.enabled = false
+            _ = try OTel.makeBackends(configuration: config)
+            // If makeBackends had bootstrapped MetricsSystem, this second bootstrap would crash.
+            MetricsSystem.bootstrap(NOOPMetricsHandler.instance)
+        }
+    }
+
+    @Test func testMakeBackendsThrowsWhenAllDisabled() async throws {
+        await #expect(processExitsWith: .success, "Running in a separate process because test creates backends") {
+            var config = OTel.Configuration.default
+            config.logs.enabled = false
+            config.metrics.enabled = false
+            config.traces.enabled = false
+            #expect(throws: (any Error).self) {
+                _ = try OTel.makeBackends(configuration: config)
+            }
+        }
+    }
 }
 #endif // compiler(>=6.2)
