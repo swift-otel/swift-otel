@@ -42,17 +42,19 @@ final class Counter: Sendable {
     let unit: String?
     let description: String?
     let attributes: Set<Attribute>
+    let temporality: OTelAggregationTemporality
 
-    init(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = []) {
+    init(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = [], temporality: OTelAggregationTemporality = .cumulative) {
         self.name = name
         self.unit = unit
         self.description = description
         self.attributes = attributes
-        self.startTimeNanoseconds = ManagedAtomic(DefaultTracerClock.now.nanosecondsSinceEpoch)
+        self.temporality = temporality
+        startTimeNanoseconds = ManagedAtomic(DefaultTracerClock.now.nanosecondsSinceEpoch)
     }
 
-    convenience init(name: String, unit: String? = nil, description: String? = nil, attributes: [(String, String)] = []) {
-        self.init(name: name, unit: unit, description: description, attributes: Set(attributes))
+    convenience init(name: String, unit: String? = nil, description: String? = nil, attributes: [(String, String)] = [], temporality: OTelAggregationTemporality = .cumulative) {
+        self.init(name: name, unit: unit, description: description, attributes: Set(attributes), temporality: temporality)
     }
 
     func increment() {
