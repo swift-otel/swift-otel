@@ -25,6 +25,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
+import Tracing
 
 /// A type that can be used in a ``Histogram`` to create bucket boundaries.
 protocol Bucketable: AdditiveArithmetic, Comparable, Sendable {
@@ -52,6 +53,7 @@ final class Histogram<Value: Bucketable>: Sendable {
         @usableFromInline var max: Value?
         @usableFromInline var sum: Value
         @usableFromInline var count: Int
+        @usableFromInline var startTimeNanoseconds: UInt64
 
         @inlinable
         init(buckets: [Value]) {
@@ -60,6 +62,7 @@ final class Histogram<Value: Bucketable>: Sendable {
             max = nil
             sum = .zero
             count = 0
+            startTimeNanoseconds = DefaultTracerClock.now.nanosecondsSinceEpoch
             self.buckets = buckets.map { ($0, 0) }
         }
     }

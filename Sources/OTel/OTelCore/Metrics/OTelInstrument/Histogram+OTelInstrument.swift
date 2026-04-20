@@ -45,6 +45,7 @@ extension Histogram: OTelMetricInstrument {
                 aggregationTemporality: .cumulative,
                 points: [.init(
                     attributes: attributes.map { OTelAttribute(key: $0.key, value: $0.value) },
+                    startTimeNanosecondsSinceEpoch: state.startTimeNanoseconds,
                     timeNanosecondsSinceEpoch: instant.nanosecondsSinceEpoch,
                     count: UInt64(state.count),
                     sum: state.sum.bucketRepresentation,
