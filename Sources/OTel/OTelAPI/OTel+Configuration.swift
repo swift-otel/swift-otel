@@ -367,7 +367,17 @@ extension OTel.Configuration {
         /// - Default value: `.default`.
         public var otlpExporter: OTLPExporterConfiguration
 
-        /// Default logs configuration.
+        /// Preference for aggregation temporality of exported metrics.
+        ///
+        /// - `cumulative`: Each export sends the running total since process start.
+        /// - `delta`: Each export sends only the change since the last export.
+        ///
+        /// - Environment variable(s): `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE`.
+        /// - Default value: `.cumulative`.
+        /// - Notes: Gauges always use cumulative temporality regardless of this setting.
+        public var temporalityPreference: TemporalityPreference
+
+        /// Default metrics configuration.
         ///
         /// See individual property documentation for specific default values, which respect the OTel specification
         /// where possible.
@@ -381,7 +391,8 @@ extension OTel.Configuration {
             defaultValueHistogramBuckets: defaultHistogramBuckets,
             valueHistogramBuckets: [:],
             exporter: .otlp,
-            otlpExporter: .default
+            otlpExporter: .default,
+            temporalityPreference: .cumulative,
         )
 
         static let defaultHistogramBuckets = [0.0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000]
@@ -588,6 +599,27 @@ extension OTel.Configuration.TracesConfiguration {
         /// Console exporter for traces (development/debugging).
         @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let console: Self = .init(backing: .console)
+    }
+}
+
+extension OTel.Configuration.MetricsConfiguration {
+    /// Preference for the aggregation temporality of exported metrics.
+    ///
+    /// Determines whether metrics are exported as cumulative running totals or as
+    /// deltas representing change since the last export.
+    public struct TemporalityPreference: Sendable {
+        enum Backing: String, CaseIterable, Sendable {
+            case cumulative
+            case delta
+        }
+
+        var backing: Backing
+
+        /// Cumulative temporality — each export sends the running total since process start.
+        public static let cumulative: Self = .init(backing: .cumulative)
+
+        /// Delta temporality — each export sends only the change since the last export.
+        public static let delta: Self = .init(backing: .delta)
     }
 }
 
