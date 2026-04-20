@@ -488,6 +488,24 @@ import Testing
         }
     }
 
+    // OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+    // https://opentelemetry.io/docs/specs/otel/metrics/sdk_exporters/otlp/#additional-environment-variable-configuration
+    @Test func metricsTemporalityPreference() {
+        #expect(OTel.Configuration.default.metrics.temporalityPreference.backing == .cumulative)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "delta",
+        ]).metrics.temporalityPreference.backing == .delta)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "cumulative",
+        ]).metrics.temporalityPreference.backing == .cumulative)
+
+        #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "mumble",
+        ]).metrics.temporalityPreference.backing == .cumulative)
+    }
+
     // OTEL_LOGS_EXPORTER
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_logs_exporter
