@@ -14,19 +14,27 @@ import Tracing
 
 extension Histogram: OTelMetricInstrument {
     /// Return the current state as an OTel metric data point.
-    ///
-    /// Since our simplifed Swift Metrics backend datamodel only stores the current bucket counts, the only sensible
-    /// mapping to an OTel data point we can provide uses cumulative aggregation temporality.
     func measure() -> OTelMetricPoint {
         measure(instant: DefaultTracerClock.now)
     }
 
     /// Return the current state as an OTel metric data point.
     ///
-    /// Since our simplifed Swift Metrics backend datamodel only stores the current bucket counts, the only sensible
-    /// mapping to an OTel data point we can provide uses cumulative aggregation temporality.
+    /// For cumulative temporality, reports the all-time state.
+    /// For delta temporality, snapshots the state, resets it, and
+    /// advances the start time for the next interval.
     func measure(instant: some TracerInstant) -> OTelMetricPoint {
-        let state = box.withLockedValue { $0 }
+        let state: State = box.withLockedValue { state in
+            switch temporality.temporality {
+            case .delta:
+                let snapshot = state
+                state = emptyState
+                state.startTimeNanoseconds = instant.nanosecondsSinceEpoch
+                return snapshot
+            case .cumulative:
+                return state
+            }
+        }
         var bucketCounts = [UInt64]()
         var explicitBounds = [Double]()
         explicitBounds.reserveCapacity(state.buckets.count)
@@ -35,14 +43,13 @@ extension Histogram: OTelMetricInstrument {
             bucketCounts.append(UInt64(bucket.count))
             explicitBounds.append(bucket.bound.bucketRepresentation)
         }
-        // The count above the highest explicit bound, should be present in bucket counts, but not explicit bounds.
         bucketCounts.append(UInt64(state.countAboveUpperBound))
         return OTelMetricPoint(
             name: name,
             description: description ?? "",
             unit: unit ?? "",
             data: .histogram(OTelHistogram(
-                aggregationTemporality: .cumulative,
+                aggregationTemporality: temporality,
                 points: [.init(
                     attributes: attributes.map { OTelAttribute(key: $0.key, value: $0.value) },
                     startTimeNanosecondsSinceEpoch: state.startTimeNanoseconds,
@@ -52,9 +59,9 @@ extension Histogram: OTelMetricInstrument {
                     min: state.min?.bucketRepresentation,
                     max: state.max?.bucketRepresentation,
                     bucketCounts: bucketCounts,
-                    explicitBounds: explicitBounds
-                )]
-            ))
+                    explicitBounds: explicitBounds,
+                )],
+            )),
         )
     }
 }

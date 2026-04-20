@@ -105,13 +105,21 @@ extension OTelMetricPoint.OTelMetricData {
     }
 
     func assertIsCumulativeHistogramWith(count: Int, sum: Double, bucketCounts: [UInt64], explicitBounds: [Double], file: StaticString = #filePath, line: UInt = #line) {
+        assertIsHistogramWith(count: count, sum: sum, bucketCounts: bucketCounts, explicitBounds: explicitBounds, temporality: .cumulative, file: file, line: line)
+    }
+
+    func assertIsDeltaHistogramWith(count: Int, sum: Double, bucketCounts: [UInt64], explicitBounds: [Double], file: StaticString = #filePath, line: UInt = #line) {
+        assertIsHistogramWith(count: count, sum: sum, bucketCounts: bucketCounts, explicitBounds: explicitBounds, temporality: .delta, file: file, line: line)
+    }
+
+    private func assertIsHistogramWith(count: Int, sum: Double, bucketCounts: [UInt64], explicitBounds: [Double], temporality: OTelAggregationTemporality, file: StaticString = #filePath, line: UInt = #line) {
         guard
             case .histogram(let histogram) = data,
-            histogram.aggregationTemporality == .cumulative,
+            histogram.aggregationTemporality == temporality,
             histogram.points.count == 1,
             let point = histogram.points.first
         else {
-            XCTFail("Not cumulative histogram with one point: \(self)", file: file, line: line)
+            XCTFail("Not \(temporality) histogram with one point: \(self)", file: file, line: line)
             return
         }
 
