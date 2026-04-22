@@ -11,7 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) // Swift Testing exit tests only added in 6.2
 import Foundation
 import Logging
 import Metrics
@@ -158,4 +157,3 @@ import Tracing
         }
     }
 }
-#endif // compiler(>=6.2)

@@ -2,4 +2,4 @@ version: 1
 builder:
   configs:
     - documentation_targets: [OTel]
-      swift_version: 6.1
+      swift_version: 6.2
