@@ -71,6 +71,10 @@ extension OTelLogRecord {
             fields.append("[unknown]")
         }
         fields.append("\(self.body)")
+        if let error {
+            fields.append("exception.message=\(error)")
+            fields.append("exception.type=\(String(reflecting: type(of: error)))")
+        }
         for (key, value) in self.metadata.filter({ $0.key != "code.function" }) {
             fields.append("\(key)=\(value)")
         }
