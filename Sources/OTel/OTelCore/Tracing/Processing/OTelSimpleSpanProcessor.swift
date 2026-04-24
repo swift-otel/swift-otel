@@ -45,7 +45,7 @@ struct OTelSimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProcessor {
                     logger.trace("Received ended span.", metadata: ["span_id": "\(span.spanContext.spanID)"])
                     try await exporter.export([span])
                 } catch {
-                    logger.log(level: .warning, "Failed to export log record.", error: error)
+                    logger.warning("Failed to export log record.", error: error)
                     // simple log processor does not attempt retries
                 }
             }

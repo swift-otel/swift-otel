@@ -58,7 +58,7 @@ struct OTelPeriodicExportingMetricsReader<Clock: _Concurrency.Clock> where Clock
                 try await exporter.export(batch)
             }
         } catch {
-            logger.log(level: .warning, "Failed to export metrics.", error: error)
+            logger.warning("Failed to export metrics.", error: error)
         }
     }
 }

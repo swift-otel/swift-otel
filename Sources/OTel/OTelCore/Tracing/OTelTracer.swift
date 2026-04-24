@@ -237,7 +237,7 @@ extension OTelTracer: Instrument {
         do {
             context.spanContext = try propagator.extractSpanContext(from: carrier, using: extractor)
         } catch {
-            logger.log(level: .warning, "Failed to extract span context.", error: error, metadata: ["carrier": "\(carrier)"])
+            logger.warning("Failed to extract span context.", error: error, metadata: ["carrier": "\(carrier)"])
         }
     }
 }
