@@ -39,7 +39,7 @@ jobs:
       options: --dns 1.1.1.1 --dns 8.8.8.8
 
     steps:
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
 
