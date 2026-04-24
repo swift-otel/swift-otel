@@ -39,7 +39,7 @@ extension Histogram {
         buckets: [(bound: Value, count: Int)],
         countAboveUpperBound: Int,
         file: StaticString = #filePath,
-        line: UInt = #line
+        line: UInt = #line,
     ) {
         let state = box.withLockedValue { $0 }
         XCTAssertEqual(state.count, count, "Unexpected count", file: file, line: line)
@@ -48,7 +48,7 @@ extension Histogram {
             state.buckets.map { EquatableBucket(bound: $0.bound, count: $0.count) },
             buckets.map { EquatableBucket(bound: $0.bound, count: $0.count) },
             "Unexpected buckets",
-            file: file, line: line
+            file: file, line: line,
         )
         XCTAssertEqual(state.countAboveUpperBound, countAboveUpperBound, "Unexpected countAboveUpperBound", file: file, line: line)
     }
@@ -71,14 +71,22 @@ extension OTelMetricPoint.OTelMetricData {
     }
 
     func assertIsCumulativeSumWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
+        assertIsSumWithOneValue(value, temporality: .cumulative, file: file, line: line)
+    }
+
+    func assertIsDeltaSumWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
+        assertIsSumWithOneValue(value, temporality: .delta, file: file, line: line)
+    }
+
+    private func assertIsSumWithOneValue(_ value: OTelNumberDataPoint.Value, temporality: OTelAggregationTemporality, file: StaticString = #filePath, line: UInt = #line) {
         guard
             case .sum(let sum) = data,
             sum.monotonic,
-            sum.aggregationTemporality == .cumulative,
+            sum.aggregationTemporality == temporality,
             sum.points.count == 1,
             let point = sum.points.first
         else {
-            XCTFail("Not cumulative sum with one point: \(self)", file: file, line: line)
+            XCTFail("Not \(temporality) sum with one point: \(self)", file: file, line: line)
             return
         }
         XCTAssertEqual(point.value, value, file: file, line: line)
@@ -97,13 +105,21 @@ extension OTelMetricPoint.OTelMetricData {
     }
 
     func assertIsCumulativeHistogramWith(count: Int, sum: Double, bucketCounts: [UInt64], explicitBounds: [Double], file: StaticString = #filePath, line: UInt = #line) {
+        assertIsHistogramWith(count: count, sum: sum, bucketCounts: bucketCounts, explicitBounds: explicitBounds, temporality: .cumulative, file: file, line: line)
+    }
+
+    func assertIsDeltaHistogramWith(count: Int, sum: Double, bucketCounts: [UInt64], explicitBounds: [Double], file: StaticString = #filePath, line: UInt = #line) {
+        assertIsHistogramWith(count: count, sum: sum, bucketCounts: bucketCounts, explicitBounds: explicitBounds, temporality: .delta, file: file, line: line)
+    }
+
+    private func assertIsHistogramWith(count: Int, sum: Double, bucketCounts: [UInt64], explicitBounds: [Double], temporality: OTelAggregationTemporality, file: StaticString = #filePath, line: UInt = #line) {
         guard
             case .histogram(let histogram) = data,
-            histogram.aggregationTemporality == .cumulative,
+            histogram.aggregationTemporality == temporality,
             histogram.points.count == 1,
             let point = histogram.points.first
         else {
-            XCTFail("Not cumulative histogram with one point: \(self)", file: file, line: line)
+            XCTFail("Not \(temporality) histogram with one point: \(self)", file: file, line: line)
             return
         }
 

@@ -114,7 +114,7 @@ extension OTel {
         return try makeLoggingBackend(resolvedConfiguration: configuration, logger: logger)
     }
 
-    internal static func makeLoggingBackend(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> (factory: @Sendable (String) -> any LogHandler, service: some Service) {
+    static func makeLoggingBackend(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> (factory: @Sendable (String) -> any LogHandler, service: some Service) {
         guard resolvedConfiguration.logs.enabled else {
             throw OTel.Configuration.Error.invalidConfiguration("makeLoggingBackend called but config has logs disabled")
         }
@@ -124,7 +124,7 @@ extension OTel {
         let handler = OTelLogHandler(
             processor: processor,
             logLevel: Logger.Level(resolvedConfiguration.logs.level),
-            resource: resource
+            resource: resource,
         )
 
         // Return a nested service group, which will handle the ordered shutdown.
@@ -133,7 +133,7 @@ extension OTel {
             serviceConfigs.append(.init(
                 service: service,
                 successTerminationBehavior: .gracefullyShutdownGroup,
-                failureTerminationBehavior: .gracefullyShutdownGroup
+                failureTerminationBehavior: .gracefullyShutdownGroup,
             ))
         }
         let serviceGroup = ServiceGroup(configuration: .init(services: serviceConfigs, logger: logger))
@@ -232,12 +232,16 @@ extension OTel {
         return try makeMetricsBackend(resolvedConfiguration: configuration, logger: logger)
     }
 
-    internal static func makeMetricsBackend(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> (factory: some MetricsFactory, service: some Service) {
+    static func makeMetricsBackend(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> (factory: some MetricsFactory, service: some Service) {
         guard resolvedConfiguration.metrics.enabled else {
             throw OTel.Configuration.Error.invalidConfiguration("makeMetricsBackend called but config has metrics disabled")
         }
         let resource = OTelResource(configuration: resolvedConfiguration)
-        let registry = OTelMetricRegistry(logger: logger)
+        let temporality: OTelAggregationTemporality = switch resolvedConfiguration.metrics.temporalityPreference.backing {
+        case .cumulative: .cumulative
+        case .delta: .delta
+        }
+        let registry = OTelMetricRegistry(temporality: temporality, logger: logger)
         let factory = OTLPMetricsFactory(
             registry: registry,
             configuration: .init(
@@ -245,8 +249,8 @@ extension OTel {
                 durationHistogramBuckets: resolvedConfiguration.metrics.durationHistogramBuckets,
                 defaultValueHistogramBuckets: resolvedConfiguration.metrics.defaultValueHistogramBuckets,
                 valueHistogramBuckets: resolvedConfiguration.metrics.valueHistogramBuckets,
-                registrationPreprocessor: { ($0, $1) }
-            )
+                registrationPreprocessor: { ($0, $1) },
+            ),
         )
         let metricsExporter = try WrappedMetricExporter(configuration: resolvedConfiguration, logger: logger)
         let readerConfig = resolvedConfiguration.metrics
@@ -259,7 +263,7 @@ extension OTel {
             serviceConfigs.append(.init(
                 service: service,
                 successTerminationBehavior: .gracefullyShutdownGroup,
-                failureTerminationBehavior: .gracefullyShutdownGroup
+                failureTerminationBehavior: .gracefullyShutdownGroup,
             ))
         }
         let serviceGroup = ServiceGroup(configuration: .init(services: serviceConfigs, logger: logger))
@@ -358,7 +362,7 @@ extension OTel {
         return try makeTracingBackend(resolvedConfiguration: configuration, logger: logger)
     }
 
-    internal static func makeTracingBackend(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> (factory: some Tracer, service: some Service) {
+    static func makeTracingBackend(resolvedConfiguration: OTel.Configuration, logger: Logger) throws -> (factory: some Tracer, service: some Service) {
         guard resolvedConfiguration.traces.enabled else {
             throw OTel.Configuration.Error.invalidConfiguration("makeTracingBackend called but config has traces disabled")
         }
@@ -373,7 +377,7 @@ extension OTel {
             propagator: propagator,
             processor: processor,
             resource: resource,
-            logger: logger
+            logger: logger,
         )
         // Return a nested service group, which will handle the ordered shutdown.
         var serviceConfigs: [ServiceGroupConfiguration.ServiceConfiguration] = []
@@ -381,7 +385,7 @@ extension OTel {
             serviceConfigs.append(.init(
                 service: service,
                 successTerminationBehavior: .gracefullyShutdownGroup,
-                failureTerminationBehavior: .gracefullyShutdownGroup
+                failureTerminationBehavior: .gracefullyShutdownGroup,
             ))
         }
         let serviceGroup = ServiceGroup(configuration: .init(services: serviceConfigs, logger: logger))

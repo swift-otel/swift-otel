@@ -67,4 +67,31 @@ final class CounterMeasurementTests: XCTestCase {
         let counter = Counter(name: "my_counter", attributes: [])
         XCTAssertEqual(counter.measure(instant: .constant(42)).data.asSum?.points.first?.timeNanosecondsSinceEpoch, 42)
     }
+
+    func test_measure_withDeltaTemporality_returnsDeltaSum() {
+        let counter = Counter(name: "my_counter", attributes: [], temporality: .delta)
+        counter.measure().data.assertIsDeltaSumWithOneValue(.int64(0))
+
+        counter.increment(by: 5)
+        counter.measure().data.assertIsDeltaSumWithOneValue(.int64(5))
+
+        counter.measure().data.assertIsDeltaSumWithOneValue(.int64(0))
+
+        counter.increment(by: 3)
+        counter.increment(by: 2)
+        counter.measure().data.assertIsDeltaSumWithOneValue(.int64(5))
+    }
+
+    func test_measure_withDeltaTemporality_followingConcurrentIncrement_returnsDeltaSum() async {
+        let counter = Counter(name: "my_counter", attributes: [], temporality: .delta)
+        await withTaskGroup(of: Void.self) { group in
+            for _ in 0 ..< 100_000 {
+                group.addTask {
+                    counter.increment(by: 1)
+                }
+            }
+        }
+        counter.measure().data.assertIsDeltaSumWithOneValue(.int64(100_000))
+        counter.measure().data.assertIsDeltaSumWithOneValue(.int64(0))
+    }
 }

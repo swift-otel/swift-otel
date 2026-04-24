@@ -13,8 +13,8 @@
 
 extension OTel.Configuration {
     /// An environment variable key used to lookup OTel configuration overrides.
-    internal enum Key {
-        internal enum Signal { case traces, metrics, logs }
+    enum Key {
+        enum Signal { case traces, metrics, logs }
         /// A key for an option configured using a single key.
         ///
         case single(OTel.Configuration.Key.GeneralKey)
@@ -55,6 +55,7 @@ extension OTel.Configuration.Key.GeneralKey {
     static let logLevel = Self(key: "OTEL_LOG_LEVEL")
     static let tracesExporter = Self(key: "OTEL_TRACES_EXPORTER")
     static let metricsExporter = Self(key: "OTEL_METRICS_EXPORTER")
+    static let metricsTemporalityPreference = Self(key: "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE")
     static let metricExportInterval = Self(key: "OTEL_METRIC_EXPORT_INTERVAL")
     static let metricExportTimeout = Self(key: "OTEL_METRIC_EXPORT_TIMEOUT")
     static let metricDefaultValueHistogramBuckets = Self(key: "OTEL_SWIFT_METRICS_DEFAULT_VALUE_HISTOGRAM_BUCKETS")
@@ -80,7 +81,7 @@ extension OTel.Configuration.Key.SignalSpecificKey {
             shared: "OTEL_EXPORTER_OTLP_\(suffix)",
             traces: "OTEL_EXPORTER_OTLP_TRACES_\(suffix)",
             metrics: "OTEL_EXPORTER_OTLP_METRICS_\(suffix)",
-            logs: "OTEL_EXPORTER_OTLP_LOGS_\(suffix)"
+            logs: "OTEL_EXPORTER_OTLP_LOGS_\(suffix)",
         )
     }
 

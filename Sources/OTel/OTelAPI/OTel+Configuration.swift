@@ -140,7 +140,7 @@ extension OTel {
             propagators: [.traceContext],
             traces: .default,
             metrics: .default,
-            logs: .default
+            logs: .default,
         )
     }
 }
@@ -260,7 +260,7 @@ extension OTel.Configuration {
         public var enabled: Bool
 
         /// This is here to support the `OTEL_SDK_DISABLED` inverted boolean environment variable from the OTel spec.
-        internal var disabled: Bool {
+        var disabled: Bool {
             set { enabled = !newValue }
             get { !enabled }
         }
@@ -297,7 +297,7 @@ extension OTel.Configuration {
             sampler: .parentBasedAlwaysOn,
             batchSpanProcessor: .default,
             exporter: .otlp,
-            otlpExporter: .default
+            otlpExporter: .default,
         )
     }
 
@@ -313,7 +313,7 @@ extension OTel.Configuration {
         public var enabled: Bool
 
         /// This is here to support the `OTEL_SDK_DISABLED` inverted boolean environment variable from the OTel spec.
-        internal var disabled: Bool {
+        var disabled: Bool {
             set { enabled = !newValue }
             get { !enabled }
         }
@@ -367,7 +367,17 @@ extension OTel.Configuration {
         /// - Default value: `.default`.
         public var otlpExporter: OTLPExporterConfiguration
 
-        /// Default logs configuration.
+        /// Preference for aggregation temporality of exported metrics.
+        ///
+        /// - `cumulative`: Each export sends the running total since process start.
+        /// - `delta`: Each export sends only the change since the last export.
+        ///
+        /// - Environment variable(s): `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE`.
+        /// - Default value: `.cumulative`.
+        /// - Notes: Gauges always use cumulative temporality regardless of this setting.
+        public var temporalityPreference: TemporalityPreference
+
+        /// Default metrics configuration.
         ///
         /// See individual property documentation for specific default values, which respect the OTel specification
         /// where possible.
@@ -381,7 +391,8 @@ extension OTel.Configuration {
             defaultValueHistogramBuckets: defaultHistogramBuckets,
             valueHistogramBuckets: [:],
             exporter: .otlp,
-            otlpExporter: .default
+            otlpExporter: .default,
+            temporalityPreference: .cumulative,
         )
 
         static let defaultHistogramBuckets = [0.0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000]
@@ -400,7 +411,7 @@ extension OTel.Configuration {
         public var enabled: Bool
 
         /// This is here to support the `OTEL_SDK_DISABLED` inverted boolean environment variable from the OTel spec.
-        internal var disabled: Bool {
+        var disabled: Bool {
             set { enabled = !newValue }
             get { !enabled }
         }
@@ -437,7 +448,7 @@ extension OTel.Configuration {
             level: .info,
             batchLogRecordProcessor: .default,
             exporter: .otlp,
-            otlpExporter: .default
+            otlpExporter: .default,
         )
     }
 }
@@ -551,7 +562,7 @@ extension OTel.Configuration.TracesConfiguration {
             scheduleDelay: .seconds(5),
             exportTimeout: .seconds(30),
             maxQueueSize: 2048,
-            maxExportBatchSize: 512
+            maxExportBatchSize: 512,
         )
     }
 }
@@ -588,6 +599,27 @@ extension OTel.Configuration.TracesConfiguration {
         /// Console exporter for traces (development/debugging).
         @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let console: Self = .init(backing: .console)
+    }
+}
+
+extension OTel.Configuration.MetricsConfiguration {
+    /// Preference for the aggregation temporality of exported metrics.
+    ///
+    /// Determines whether metrics are exported as cumulative running totals or as
+    /// deltas representing change since the last export.
+    public struct TemporalityPreference: Sendable {
+        enum Backing: String, CaseIterable, Sendable {
+            case cumulative
+            case delta
+        }
+
+        var backing: Backing
+
+        /// Cumulative temporality — each export sends the running total since process start.
+        public static let cumulative: Self = .init(backing: .cumulative)
+
+        /// Delta temporality — each export sends only the change since the last export.
+        public static let delta: Self = .init(backing: .delta)
     }
 }
 
@@ -686,7 +718,7 @@ extension OTel.Configuration.LogsConfiguration {
             scheduleDelay: .seconds(1),
             exportTimeout: .seconds(30),
             maxQueueSize: 2048,
-            maxExportBatchSize: 512
+            maxExportBatchSize: 512,
         )
     }
 }
@@ -753,7 +785,7 @@ extension OTel.Configuration {
         /// However, to make a clearer configuration for our API users, we already have per-signal OTLP exporter
         /// configuration, and to allow the exporters the ability to follow this policy, the exporter must be able
         /// to tell if the value is default, or explicitly set, either in-code or by an environment override.
-        internal var endpointHasBeenExplicitlySet: Bool = false
+        var endpointHasBeenExplicitlySet: Bool = false
 
         var logsHTTPEndpoint: String {
             switch (endpointHasBeenExplicitlySet, endpoint.hasSuffix("/")) {
@@ -895,7 +927,7 @@ extension OTel.Configuration {
             headers: [],
             compression: .none,
             timeout: .seconds(10),
-            protocol: .init(backing: .httpProtobuf)
+            protocol: .init(backing: .httpProtobuf),
         )
     }
 }
@@ -980,7 +1012,7 @@ extension OTel.Configuration {
         public static let `default`: Self = .init(
             traceIDKey: "trace_id",
             spanIDKey: "span_id",
-            traceFlagsKey: "trace_flags"
+            traceFlagsKey: "trace_flags",
         )
     }
 }

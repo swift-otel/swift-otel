@@ -20,6 +20,7 @@ import struct NIOConcurrencyHelpers.NIOLockedValueBox
 /// measurements.
 final class OTelMetricRegistry: Sendable {
     private let logger: Logger
+    private let temporality: OTelAggregationTemporality
 
     struct Storage {
         var counters = [InstrumentIdentifier: [Set<Attribute>: Counter]]()
@@ -70,23 +71,25 @@ final class OTelMetricRegistry: Sendable {
         static let crash = Self(behavior: .crash)
     }
 
-    init(duplicateRegistrationHandler: some DuplicateRegistrationHandler, logger: Logger) {
+    init(duplicateRegistrationHandler: some DuplicateRegistrationHandler, temporality: OTelAggregationTemporality = .cumulative, logger: Logger) {
         self.logger = logger.withMetadata(component: "OTelMetricRegistry")
-        self.storage = .init(Storage(duplicateRegistrationHandler: duplicateRegistrationHandler))
+        self.temporality = temporality
+        storage = .init(Storage(duplicateRegistrationHandler: duplicateRegistrationHandler))
     }
 
     /// Create a new ``OTelMetricRegistry``.
     /// - Parameters:
     ///   - onDuplicateRegistration: Action to take when more than one instrument of the same name is created with
     ///     different identifying fields.
+    ///   - temporality: The aggregation temporality preference for exported metrics.
     ///
     /// - Seealso: ``OTelMetricRegistry/DuplicateRegistrationBehavior``.
-    convenience init(onDuplicateRegistration: DuplicateRegistrationBehavior = .warn, logger: Logger) {
+    convenience init(onDuplicateRegistration: DuplicateRegistrationBehavior = .warn, temporality: OTelAggregationTemporality = .cumulative, logger: Logger) {
         switch onDuplicateRegistration.behavior {
         case .warn:
-            self.init(duplicateRegistrationHandler: WarningDuplicateRegistrationHandler(logger: logger), logger: logger)
+            self.init(duplicateRegistrationHandler: WarningDuplicateRegistrationHandler(logger: logger), temporality: temporality, logger: logger)
         case .crash:
-            self.init(duplicateRegistrationHandler: FatalErrorDuplicateRegistrationHandler(), logger: logger)
+            self.init(duplicateRegistrationHandler: FatalErrorDuplicateRegistrationHandler(), temporality: temporality, logger: logger)
         }
     }
 
@@ -97,13 +100,13 @@ final class OTelMetricRegistry: Sendable {
                 if let existingInstrument = existingInstruments[attributes] {
                     return existingInstrument
                 }
-                let newInstrument = Counter(name: name, unit: unit, description: description, attributes: attributes)
+                let newInstrument = Counter(name: name, unit: unit, description: description, attributes: attributes, temporality: temporality)
                 existingInstruments[attributes] = newInstrument
                 storage.counters[identifier] = existingInstruments
                 return newInstrument
             }
             storage.register(identifier, forName: name)
-            let newInstrument = Counter(name: name, unit: unit, description: description, attributes: attributes)
+            let newInstrument = Counter(name: name, unit: unit, description: description, attributes: attributes, temporality: temporality)
             storage.counters[identifier] = [attributes: newInstrument]
             return newInstrument
         }
@@ -116,13 +119,13 @@ final class OTelMetricRegistry: Sendable {
                 if let existingInstrument = existingInstruments[attributes] {
                     return existingInstrument
                 }
-                let newInstrument = FloatingPointCounter(name: name, unit: unit, description: description, attributes: attributes)
+                let newInstrument = FloatingPointCounter(name: name, unit: unit, description: description, attributes: attributes, temporality: temporality)
                 existingInstruments[attributes] = newInstrument
                 storage.floatingPointCounters[identifier] = existingInstruments
                 return newInstrument
             }
             storage.register(identifier, forName: name)
-            let newInstrument = FloatingPointCounter(name: name, unit: unit, description: description, attributes: attributes)
+            let newInstrument = FloatingPointCounter(name: name, unit: unit, description: description, attributes: attributes, temporality: temporality)
             storage.floatingPointCounters[identifier] = [attributes: newInstrument]
             return newInstrument
         }
@@ -154,13 +157,13 @@ final class OTelMetricRegistry: Sendable {
                 if let existingInstrument = existingInstruments[attributes] {
                     return existingInstrument
                 }
-                let newInstrument = DurationHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets)
+                let newInstrument = DurationHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets, temporality: temporality)
                 existingInstruments[attributes] = newInstrument
                 storage.durationHistograms[identifier] = existingInstruments
                 return newInstrument
             }
             storage.register(identifier, forName: name)
-            let newInstrument = DurationHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets)
+            let newInstrument = DurationHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets, temporality: temporality)
             storage.durationHistograms[identifier] = [attributes: newInstrument]
             return newInstrument
         }
@@ -173,13 +176,13 @@ final class OTelMetricRegistry: Sendable {
                 if let existingInstrument = existingInstruments[attributes] {
                     return existingInstrument
                 }
-                let newInstrument = ValueHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets)
+                let newInstrument = ValueHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets, temporality: temporality)
                 existingInstruments[attributes] = newInstrument
                 storage.valueHistograms[identifier] = existingInstruments
                 return newInstrument
             }
             storage.register(identifier, forName: name)
-            let newInstrument = ValueHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets)
+            let newInstrument = ValueHistogram(name: name, unit: unit, description: description, attributes: attributes, buckets: buckets, temporality: temporality)
             storage.valueHistograms[identifier] = [attributes: newInstrument]
             return newInstrument
         }
@@ -187,7 +190,7 @@ final class OTelMetricRegistry: Sendable {
 
     func unregisterCounter(_ counter: Counter) {
         let identifier = counter.instrumentIdentifier
-        self.storage.withLockedValue { storage in
+        storage.withLockedValue { storage in
             if var existingInstrument = storage.counters[identifier] {
                 existingInstrument.removeValue(forKey: counter.attributes)
                 if existingInstrument.isEmpty {
@@ -202,7 +205,7 @@ final class OTelMetricRegistry: Sendable {
 
     func unregisterFloatingPointCounter(_ floatingPointCounter: FloatingPointCounter) {
         let identifier = floatingPointCounter.instrumentIdentifier
-        self.storage.withLockedValue { storage in
+        storage.withLockedValue { storage in
             if var existingInstrument = storage.floatingPointCounters[identifier] {
                 existingInstrument.removeValue(forKey: floatingPointCounter.attributes)
                 if existingInstrument.isEmpty {
@@ -217,7 +220,7 @@ final class OTelMetricRegistry: Sendable {
 
     func unregisterGauge(_ gauge: Gauge) {
         let identifier = gauge.instrumentIdentifier
-        self.storage.withLockedValue { storage in
+        storage.withLockedValue { storage in
             if var existingInstrument = storage.gauges[identifier] {
                 existingInstrument.removeValue(forKey: gauge.attributes)
                 if existingInstrument.isEmpty {
@@ -232,7 +235,7 @@ final class OTelMetricRegistry: Sendable {
 
     func unregisterDurationHistogram(_ histogram: DurationHistogram) {
         let identifier = histogram.instrumentIdentifier
-        self.storage.withLockedValue { storage in
+        storage.withLockedValue { storage in
             if var existingInstrument = storage.durationHistograms[identifier] {
                 existingInstrument.removeValue(forKey: histogram.attributes)
                 if existingInstrument.isEmpty {
@@ -247,7 +250,7 @@ final class OTelMetricRegistry: Sendable {
 
     func unregisterValueHistogram(_ histogram: ValueHistogram) {
         let identifier = histogram.instrumentIdentifier
-        self.storage.withLockedValue { storage in
+        storage.withLockedValue { storage in
             if var existingInstrument = storage.valueHistograms[identifier] {
                 existingInstrument.removeValue(forKey: histogram.attributes)
                 if existingInstrument.isEmpty {
@@ -330,7 +333,7 @@ struct WarningDuplicateRegistrationHandler: DuplicateRegistrationHandler {
     let logger: Logger
 
     func handle(newRegistration: InstrumentIdentifier, existingRegistrations: Set<InstrumentIdentifier>) {
-        self.logger.warning("Duplicate instrument registration", metadata: [
+        logger.warning("Duplicate instrument registration", metadata: [
             "newRegistration": "\(newRegistration)",
             "existingRegistrations": .array(existingRegistrations.map { "\($0)" }),
         ])
