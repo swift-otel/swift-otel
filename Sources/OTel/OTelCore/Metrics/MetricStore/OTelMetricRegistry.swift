@@ -190,7 +190,7 @@ final class OTelMetricRegistry: Sendable {
 
     func unregisterCounter(_ counter: Counter) {
         let identifier = counter.instrumentIdentifier
-        self.storage.withLockedValue { storage in
+        storage.withLockedValue { storage in
             if var existingInstrument = storage.counters[identifier] {
                 existingInstrument.removeValue(forKey: counter.attributes)
                 if existingInstrument.isEmpty {
@@ -205,7 +205,7 @@ final class OTelMetricRegistry: Sendable {
 
     func unregisterFloatingPointCounter(_ floatingPointCounter: FloatingPointCounter) {
         let identifier = floatingPointCounter.instrumentIdentifier
-        self.storage.withLockedValue { storage in
+        storage.withLockedValue { storage in
             if var existingInstrument = storage.floatingPointCounters[identifier] {
                 existingInstrument.removeValue(forKey: floatingPointCounter.attributes)
                 if existingInstrument.isEmpty {
@@ -220,7 +220,7 @@ final class OTelMetricRegistry: Sendable {
 
     func unregisterGauge(_ gauge: Gauge) {
         let identifier = gauge.instrumentIdentifier
-        self.storage.withLockedValue { storage in
+        storage.withLockedValue { storage in
             if var existingInstrument = storage.gauges[identifier] {
                 existingInstrument.removeValue(forKey: gauge.attributes)
                 if existingInstrument.isEmpty {
@@ -235,7 +235,7 @@ final class OTelMetricRegistry: Sendable {
 
     func unregisterDurationHistogram(_ histogram: DurationHistogram) {
         let identifier = histogram.instrumentIdentifier
-        self.storage.withLockedValue { storage in
+        storage.withLockedValue { storage in
             if var existingInstrument = storage.durationHistograms[identifier] {
                 existingInstrument.removeValue(forKey: histogram.attributes)
                 if existingInstrument.isEmpty {
@@ -250,7 +250,7 @@ final class OTelMetricRegistry: Sendable {
 
     func unregisterValueHistogram(_ histogram: ValueHistogram) {
         let identifier = histogram.instrumentIdentifier
-        self.storage.withLockedValue { storage in
+        storage.withLockedValue { storage in
             if var existingInstrument = storage.valueHistograms[identifier] {
                 existingInstrument.removeValue(forKey: histogram.attributes)
                 if existingInstrument.isEmpty {
@@ -333,7 +333,7 @@ struct WarningDuplicateRegistrationHandler: DuplicateRegistrationHandler {
     let logger: Logger
 
     func handle(newRegistration: InstrumentIdentifier, existingRegistrations: Set<InstrumentIdentifier>) {
-        self.logger.warning("Duplicate instrument registration", metadata: [
+        logger.warning("Duplicate instrument registration", metadata: [
             "newRegistration": "\(newRegistration)",
             "existingRegistrations": .array(existingRegistrations.map { "\($0)" }),
         ])

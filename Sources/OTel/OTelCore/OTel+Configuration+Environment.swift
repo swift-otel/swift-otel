@@ -13,8 +13,8 @@
 
 extension OTel.Configuration {
     /// An environment variable key used to lookup OTel configuration overrides.
-    internal enum Key {
-        internal enum Signal { case traces, metrics, logs }
+    enum Key {
+        enum Signal { case traces, metrics, logs }
         /// A key for an option configured using a single key.
         ///
         case single(OTel.Configuration.Key.GeneralKey)
@@ -81,7 +81,7 @@ extension OTel.Configuration.Key.SignalSpecificKey {
             shared: "OTEL_EXPORTER_OTLP_\(suffix)",
             traces: "OTEL_EXPORTER_OTLP_TRACES_\(suffix)",
             metrics: "OTEL_EXPORTER_OTLP_METRICS_\(suffix)",
-            logs: "OTEL_EXPORTER_OTLP_LOGS_\(suffix)"
+            logs: "OTEL_EXPORTER_OTLP_LOGS_\(suffix)",
         )
     }
 

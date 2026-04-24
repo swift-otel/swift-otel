@@ -28,7 +28,7 @@ extension OTel.Configuration {
 }
 
 extension OTel.Configuration.TracesConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+    mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
         sampler.applyEnvironmentOverrides(environment: environment, logger: logger)
         batchSpanProcessor.applyEnvironmentOverrides(environment: environment, logger: logger)
         exporter.override(using: .tracesExporter, from: environment, logger: logger)
@@ -37,7 +37,7 @@ extension OTel.Configuration.TracesConfiguration {
 }
 
 extension OTel.Configuration.MetricsConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+    mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
         exportInterval.override(using: .metricExportInterval, from: environment, logger: logger)
         exportTimeout.override(using: .metricExportTimeout, from: environment, logger: logger)
         defaultValueHistogramBuckets.override(using: .metricDefaultValueHistogramBuckets, from: environment, logger: logger)
@@ -49,7 +49,7 @@ extension OTel.Configuration.MetricsConfiguration {
 }
 
 extension OTel.Configuration.LogsConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+    mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
         batchLogRecordProcessor.applyEnvironmentOverrides(environment: environment, logger: logger)
         exporter.override(using: .logsExporter, from: environment, logger: logger)
         otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .logs, logger: logger)
@@ -58,14 +58,14 @@ extension OTel.Configuration.LogsConfiguration {
 }
 
 extension OTel.Configuration.TracesConfiguration.SamplerConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+    mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
         backing.override(using: .sampler, from: environment, logger: logger)
         argument.override(for: backing, using: .samplerArgument, from: environment, logger: logger)
     }
 }
 
 extension OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+    mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
         scheduleDelay.override(using: .batchSpanProcessorScheduleDelay, from: environment, logger: logger)
         exportTimeout.override(using: .batchSpanProcessorExportTimeout, from: environment, logger: logger)
         maxQueueSize.override(using: .batchSpanProcessorMaxQueueSize, from: environment, logger: logger)
@@ -74,7 +74,7 @@ extension OTel.Configuration.TracesConfiguration.BatchSpanProcessorConfiguration
 }
 
 extension OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
+    mutating func applyEnvironmentOverrides(environment: [String: String], logger: Logger) {
         scheduleDelay.override(using: .batchLogRecordProcessorScheduleDelay, from: environment, logger: logger)
         exportTimeout.override(using: .batchLogRecordProcessorExportTimeout, from: environment, logger: logger)
         maxQueueSize.override(using: .batchLogRecordProcessorMaxQueueSize, from: environment, logger: logger)
@@ -83,7 +83,7 @@ extension OTel.Configuration.LogsConfiguration.BatchLogRecordProcessorConfigurat
 }
 
 extension OTel.Configuration.OTLPExporterConfiguration {
-    internal mutating func applyEnvironmentOverrides(environment: [String: String], signal: OTel.Configuration.Key.Signal, logger: Logger) {
+    mutating func applyEnvironmentOverrides(environment: [String: String], signal: OTel.Configuration.Key.Signal, logger: Logger) {
         let previousValue = self
         self.protocol.override(using: .otlpExporterProtocol, for: signal, from: environment, logger: logger)
         endpoint.override(using: .otlpExporterEndpoint, for: signal, from: environment, logger: logger)

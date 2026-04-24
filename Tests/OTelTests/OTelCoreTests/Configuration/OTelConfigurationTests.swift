@@ -17,7 +17,7 @@ import Testing
 @Suite struct ConfigurationTests {
     // OTEL_SDK_DISABLED
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
-    @Test func testSDKDisabled() {
+    @Test func sDKDisabled() {
         #expect(OTel.Configuration.default.logs.enabled == true)
         #expect(OTel.Configuration.default.metrics.enabled == true)
         #expect(OTel.Configuration.default.traces.enabled == true)
@@ -33,7 +33,7 @@ import Testing
 
     // OTEL_LOG_LEVEL
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
-    @Test func testDiagnosticsLogLevel() {
+    @Test func diagnosticsLogLevel() {
         #expect(OTel.Configuration.default.diagnosticLogLevel.backing == .info)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -109,7 +109,7 @@ import Testing
 
     // OTEL_TRACES_SAMPLER and OTEL_TRACES_SAMPLER_ARG
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
-    @Test func testSamplerSelection() {
+    @Test func samplerSelection() {
         #expect(OTel.Configuration.default.traces.sampler.backing == .parentBasedAlwaysOn)
         #expect(OTel.Configuration.default.traces.sampler.argument == nil)
 
@@ -203,7 +203,7 @@ import Testing
     // OTEL_BSP_SCHEDULE_DELAY
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#duration
-    @Test func testBatchSpanProcessorScheduleDelay() {
+    @Test func batchSpanProcessorScheduleDelay() {
         #expect(OTel.Configuration.default.traces.batchSpanProcessor.scheduleDelay == .milliseconds(5000))
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -226,7 +226,7 @@ import Testing
     // OTEL_BSP_EXPORT_TIMEOUT
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#timeout
-    @Test func testBatchSpanProcessorExportTimeout() {
+    @Test func batchSpanProcessorExportTimeout() {
         #expect(OTel.Configuration.default.traces.batchSpanProcessor.exportTimeout == .milliseconds(30000))
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -249,7 +249,7 @@ import Testing
     // OTEL_BSP_MAX_QUEUE_SIZE
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#integer
-    @Test func testBatchSpanProcessorMaxQueueSize() {
+    @Test func batchSpanProcessorMaxQueueSize() {
         #expect(OTel.Configuration.default.traces.batchSpanProcessor.maxQueueSize == 2048)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -272,7 +272,7 @@ import Testing
     // OTEL_BSP_MAX_EXPORT_BATCH_SIZE
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#integer
-    @Test func testBatchSpanProcessorMaxExportBatchSize() {
+    @Test func batchSpanProcessorMaxExportBatchSize() {
         #expect(OTel.Configuration.default.traces.batchSpanProcessor.maxExportBatchSize == 512)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -295,7 +295,7 @@ import Testing
     // OTEL_METRIC_EXPORT_INTERVAL
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#duration
-    @Test func testMetricExportInterval() {
+    @Test func metricExportInterval() {
         #expect(OTel.Configuration.default.metrics.exportInterval == .seconds(60))
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -318,7 +318,7 @@ import Testing
     // OTEL_METRIC_EXPORT_TIMEOUT
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#timeout
-    @Test func testMetricExportTimeout() {
+    @Test func metricExportTimeout() {
         #expect(OTel.Configuration.default.metrics.exportTimeout == .seconds(30))
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -341,7 +341,7 @@ import Testing
     // OTEL_BLRP_SCHEDULE_DELAY
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#duration
-    @Test func testBatchLogRecordProcessorScheduleDelay() {
+    @Test func batchLogRecordProcessorScheduleDelay() {
         #expect(OTel.Configuration.default.logs.batchLogRecordProcessor.scheduleDelay == .seconds(1))
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -364,7 +364,7 @@ import Testing
     // OTEL_BLRP_EXPORT_TIMEOUT
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#timeout
-    @Test func testBatchLogRecordProcessorExportTimeout() {
+    @Test func batchLogRecordProcessorExportTimeout() {
         #expect(OTel.Configuration.default.logs.batchLogRecordProcessor.exportTimeout == .seconds(30))
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -387,7 +387,7 @@ import Testing
     // OTEL_BLRP_MAX_QUEUE_SIZE
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#integer
-    @Test func testBatchLogRecordProcessorMaxQueueSize() {
+    @Test func batchLogRecordProcessorMaxQueueSize() {
         #expect(OTel.Configuration.default.logs.batchLogRecordProcessor.maxQueueSize == 2048)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -410,7 +410,7 @@ import Testing
     // OTEL_BLRP_MAX_EXPORT_BATCH_SIZE
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#integer
-    @Test func testBatchLogRecordProcessorMaxExportBatchSize() {
+    @Test func batchLogRecordProcessorMaxExportBatchSize() {
         #expect(OTel.Configuration.default.logs.batchLogRecordProcessor.maxExportBatchSize == 512)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -433,7 +433,7 @@ import Testing
     // OTEL_TRACES_EXPORTER
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_traces_exporter
-    @Test func testTracesExporter() {
+    @Test func tracesExporter() {
         #expect(OTel.Configuration.default.traces.enabled == true)
         #expect(OTel.Configuration.default.traces.exporter.backing == .otlp)
 
@@ -468,7 +468,7 @@ import Testing
     // OTEL_METRICS_EXPORTER
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_metrics_exporter
-    @Test func testMetricsExporter() {
+    @Test func metricsExporter() {
         #expect(OTel.Configuration.default.metrics.enabled == true)
         #expect(OTel.Configuration.default.metrics.exporter.backing == .otlp)
 
@@ -509,7 +509,7 @@ import Testing
     // OTEL_LOGS_EXPORTER
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_logs_exporter
-    @Test func testLogsExporter() {
+    @Test func logsExporter() {
         #expect(OTel.Configuration.default.logs.enabled == true)
         #expect(OTel.Configuration.default.logs.exporter.backing == .otlp)
 
@@ -531,7 +531,7 @@ import Testing
 
     // OTEL_SWIFT_LOG_LEVEL
     // SDK-specific environment variable for configuring the default log level of the bootstrapped Swift Log backend.
-    @Test func testLogsLevel() {
+    @Test func logsLevel() {
         #expect(OTel.Configuration.default.logs.level.backing == .info)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -559,7 +559,7 @@ import Testing
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#endpoint-urls-for-otlphttp
-    @Test func testOTLPExporterEndpointHTTP() {
+    @Test func oTLPExporterEndpointHTTP() {
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.protocol == .httpProtobuf)
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.endpoint == "http://localhost:4318")
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.logsHTTPEndpoint == "http://localhost:4318/v1/logs")
@@ -642,7 +642,7 @@ import Testing
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#endpoint-urls-for-otlphttp
     @available(gRPCSwift, *)
-    @Test func testOTLPExporterEndpointGRPC() {
+    @Test func oTLPExporterEndpointGRPC() {
         #expect(OTel.Configuration.default.logs.otlpExporter.grpcEndpoint == "http://localhost:4317")
         #expect(OTel.Configuration.default.metrics.otlpExporter.grpcEndpoint == "http://localhost:4317")
         #expect(OTel.Configuration.default.traces.otlpExporter.grpcEndpoint == "http://localhost:4317")
@@ -708,7 +708,7 @@ import Testing
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specifying-headers-via-environment-variables
-    @Test func testOTLPExporterHeaders() {
+    @Test func oTLPExporterHeaders() {
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.headers.isEmpty)
 
         OTel.Configuration.default.withEnvironmentOverrides(environment: [
@@ -738,7 +738,7 @@ import Testing
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#timeout
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
-    @Test func testOTLPExporterTimeout() {
+    @Test func oTLPExporterTimeout() {
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.timeout == .seconds(10))
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -774,7 +774,7 @@ import Testing
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
     @available(gRPCSwift, *)
-    @Test func testOTLPExporterProtocol() {
+    @Test func oTLPExporterProtocol() {
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.protocol == .httpProtobuf)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -806,7 +806,7 @@ import Testing
     // OTEL_EXPORTER_OTLP_COMPRESSION
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
-    @Test func testOTLPExporterCompression() {
+    @Test func oTLPExporterCompression() {
         #expect(OTel.Configuration.OTLPExporterConfiguration.default.compression.backing == .none)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -834,7 +834,7 @@ import Testing
     // OTEL_EXPORTER_OTLP_CERTIFICATE
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
-    @Test func testOTLPExporterCertificate() {
+    @Test func oTLPExporterCertificate() {
         #expect(OTel.Configuration.default.traces.otlpExporter.certificateFilePath == nil)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -854,7 +854,7 @@ import Testing
     // OTEL_EXPORTER_OTLP_CLIENT_KEY
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
-    @Test func testOTLPExporterClientKey() {
+    @Test func oTLPExporterClientKey() {
         #expect(OTel.Configuration.default.traces.otlpExporter.clientKeyFilePath == nil)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -874,7 +874,7 @@ import Testing
     // OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/specs/otel/protocol/exporter/#configuration-options
-    @Test func testOTLPExporterClientCertificate() {
+    @Test func oTLPExporterClientCertificate() {
         #expect(OTel.Configuration.default.traces.otlpExporter.clientCertificateFilePath == nil)
 
         #expect(OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
@@ -891,7 +891,7 @@ import Testing
         }
     }
 
-    @Test func testServiceNameResourceAttributeResolution() {
+    @Test func serviceNameResourceAttributeResolution() {
         OTel.Configuration.default.with { config in
             #expect(OTelResource(configuration: config).attributes["service.name"]?.toSpanAttribute() == .string("unknown_service"))
         }
@@ -915,7 +915,7 @@ import Testing
         }
     }
 
-    @Test func testMetricHistogramBuckets() {
+    @Test func metricHistogramBuckets() {
         OTel.Configuration.default.with { config in
             #expect(config.metrics.defaultDurationHistogramBuckets == [0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000].map(Duration.milliseconds))
             #expect(config.metrics.defaultValueHistogramBuckets == [0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000])

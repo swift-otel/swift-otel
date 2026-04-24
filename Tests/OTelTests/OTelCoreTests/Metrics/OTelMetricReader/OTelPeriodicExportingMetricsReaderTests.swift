@@ -27,7 +27,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             producer: producer,
             exporter: exporter,
             configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
-            clock: clock
+            clock: clock,
         )
         _ = reader.description
         var sleepCalls = clock.sleepCalls.makeAsyncIterator()
@@ -84,7 +84,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             producer: producer,
             exporter: exporter,
             configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
-            clock: clock
+            clock: clock,
         )
         let serviceGroup = ServiceGroup(services: [reader], logger: Logger(label: #function))
         var sleepCalls = clock.sleepCalls.makeAsyncIterator()
@@ -132,7 +132,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             exporter: exporter,
             configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
             logger: recordingLogger,
-            clock: clock
+            clock: clock,
         )
         var sleepCalls = clock.sleepCalls.makeAsyncIterator()
         var warningLogs = recordingLogHandler.recordedLogMessageStream.filter { $0.level == .warning }.makeAsyncIterator()
@@ -194,7 +194,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             exporter: exporter,
             configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
             logger: recordingLogger,
-            clock: clock
+            clock: clock,
         )
         var sleepCalls = clock.sleepCalls.makeAsyncIterator()
         var warningLogs = recordingLogHandler.recordedLogMessageStream.filter { $0.level == .warning }.makeAsyncIterator()
@@ -247,7 +247,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             resource: .init(),
             producer: MockMetricProducer(),
             exporter: RecordingMetricExporter(),
-            configuration: .default
+            configuration: .default,
         )
         XCTAssert(type(of: reader.clock) == ContinuousClock.self)
     }
@@ -273,7 +273,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             exporter: exporter,
             configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
             logger: ._otelDebug,
-            clock: readerClock
+            clock: readerClock,
         )
 
         try await withThrowingTaskGroup { group in
@@ -320,7 +320,7 @@ final class OTelPeriodicExportingMetricsReaderTests: XCTestCase {
             exporter: exporter,
             configuration: .defaultWith(exportInterval: .seconds(1), exportTimeout: .milliseconds(100)),
             logger: ._otelDebug,
-            clock: readerClock
+            clock: readerClock,
         )
 
         try await withThrowingTaskGroup { group in
@@ -416,7 +416,7 @@ extension OTelPeriodicExportingMetricsReader {
         producer: OTelMetricProducer,
         exporter: OTelMetricExporter,
         configuration: OTel.Configuration.MetricsConfiguration,
-        clock: Clock = .continuous
+        clock: Clock = .continuous,
     ) {
         self.init(
             resource: resource,
@@ -424,7 +424,7 @@ extension OTelPeriodicExportingMetricsReader {
             exporter: exporter,
             configuration: configuration,
             logger: ._otelDisabled,
-            clock: clock
+            clock: clock,
         )
     }
 }
@@ -440,7 +440,7 @@ extension OTel.Configuration.MetricsConfiguration {
         defaultValueHistogramBuckets: [Double] = Self.default.defaultValueHistogramBuckets,
         valueHistogramBuckets: [String: [Double]] = Self.default.valueHistogramBuckets,
         exporter: ExporterSelection = Self.default.exporter,
-        otlpExporter: OTel.Configuration.OTLPExporterConfiguration = Self.default.otlpExporter
+        otlpExporter: OTel.Configuration.OTLPExporterConfiguration = Self.default.otlpExporter,
     ) -> Self {
         self.init(
             enabled: enabled,
