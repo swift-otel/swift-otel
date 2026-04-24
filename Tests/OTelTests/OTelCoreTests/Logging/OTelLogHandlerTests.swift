@@ -264,7 +264,7 @@ private func errorsEqual(_ lhs: (any Error)?, _ rhs: (any Error)?) -> Bool {
     switch (lhs, rhs) {
     case (nil, nil):
         return true
-    case let (l?, r?):
+    case (let l?, let r?):
         return "\(l)" == "\(r)" && String(reflecting: type(of: l)) == String(reflecting: type(of: r))
     default:
         return false
