@@ -219,6 +219,56 @@ final class OTelLogHandlerTests: XCTestCase {
             "shared": "logger",
         ])
     }
+
+    func test_log_withErrorParameter_includesErrorInLogRecord() {
+        enum TestError: Error {
+            case boom
+        }
+
+        let processor = OTelInMemoryLogRecordProcessor()
+        let logger = Logger(label: #function) { _ in
+            OTelLogHandler(
+                processor: processor,
+                logLevel: .info,
+                resource: resource,
+                metadata: [:],
+                nanosecondsSinceEpoch: { 42 }
+            )
+        }
+
+        logger.info(.stub, error: TestError.boom, file: "file", function: "function", line: 42)
+
+        XCTAssertEqual(processor.records, [
+            .stub(
+                metadata: ["code.file.path": "file", "code.function.name": "function", "code.line.number": "42"],
+                error: TestError.boom,
+                resource: resource
+            ),
+        ])
+    }
+}
+
+extension OTelLogRecord: Equatable {
+    static func == (lhs: OTelLogRecord, rhs: OTelLogRecord) -> Bool {
+        lhs.body == rhs.body
+            && lhs.level == rhs.level
+            && lhs.metadata == rhs.metadata
+            && errorsEqual(lhs.error, rhs.error)
+            && lhs.timeNanosecondsSinceEpoch == rhs.timeNanosecondsSinceEpoch
+            && lhs.resource == rhs.resource
+            && lhs.spanContext == rhs.spanContext
+    }
+}
+
+private func errorsEqual(_ lhs: (any Error)?, _ rhs: (any Error)?) -> Bool {
+    switch (lhs, rhs) {
+    case (nil, nil):
+        return true
+    case let (l?, r?):
+        return "\(l)" == "\(r)" && String(reflecting: type(of: l)) == String(reflecting: type(of: r))
+    default:
+        return false
+    }
 }
 
 extension Logger.Message {
@@ -228,12 +278,14 @@ extension Logger.Message {
 extension OTelLogRecord {
     fileprivate static func stub(
         metadata: Logger.Metadata = [:],
+        error: (any Error)? = nil,
         resource: OTelResource = OTelResource()
     ) -> OTelLogRecord {
         OTelLogRecord(
             body: .stub,
             level: .info,
             metadata: metadata,
+            error: error,
             timeNanosecondsSinceEpoch: 42,
             resource: resource,
             spanContext: nil

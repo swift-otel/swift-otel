@@ -190,7 +190,7 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpProtobuf
                 let exporter = try OTLPHTTPLogRecordExporter(configuration: config)
-                try await exporter.export([OTelLogRecord(body: "Hello", level: .trace, metadata: ["foo": "bar"], timeNanosecondsSinceEpoch: 1234, resource: OTelResource(), spanContext: nil)])
+                try await exporter.export([OTelLogRecord(body: "Hello", level: .trace, metadata: ["foo": "bar"], error: TestError(), timeNanosecondsSinceEpoch: 1234, resource: OTelResource(), spanContext: nil)])
                 await exporter.shutdown()
             }
 
@@ -206,6 +206,7 @@ import Tracing
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Hello"))
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "foo" }?.value == .init("bar"))
+                #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.message" }?.value == .init("custom error"))
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.timeUnixNano == 1234)
             }
             try testServer.receiveEndAndVerify { trailers in
@@ -233,7 +234,7 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpJSON
                 let exporter = try OTLPHTTPLogRecordExporter(configuration: config)
-                try await exporter.export([OTelLogRecord(body: "Hello", level: .trace, metadata: ["foo": "bar"], timeNanosecondsSinceEpoch: 1234, resource: OTelResource(), spanContext: nil)])
+                try await exporter.export([OTelLogRecord(body: "Hello", level: .trace, metadata: ["foo": "bar"], error: TestError(), timeNanosecondsSinceEpoch: 1234, resource: OTelResource(), spanContext: nil)])
                 await exporter.shutdown()
             }
 
@@ -249,6 +250,7 @@ import Tracing
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body == .init("Hello"))
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "foo" }?.value == .init("bar"))
+                #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.message" }?.value == .init("custom error"))
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.timeUnixNano == 1234)
             }
             try testServer.receiveEndAndVerify { trailers in
@@ -654,4 +656,8 @@ extension OTLPHTTPSpanExporter {
     convenience init(configuration: OTel.Configuration.OTLPExporterConfiguration) throws {
         try self.init(configuration: configuration, logger: ._otelDisabled)
     }
+}
+
+private struct TestError: Error, CustomStringConvertible {
+    var description: String { "custom error" }
 }

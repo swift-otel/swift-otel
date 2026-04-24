@@ -118,7 +118,7 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
                 do {
                     try await self.exporter.forceFlush()
                 } catch {
-                    self.logger.log(level: .warning, error: error, message: "Force flush failed.")
+                    self.logger.log(level: .warning, "Force flush failed.", error: error)
                 }
             }
         }
@@ -151,7 +151,7 @@ actor OTelBatchSpanProcessor<Exporter: OTelSpanExporter, Clock: _Concurrency.Clo
                 logger.debug("Exported batch.")
             }
         } catch {
-            logger.log(level: .warning, error: error, message: "Failed to export batch.")
+            logger.log(level: .warning, "Failed to export batch.", error: error)
         }
     }
 }
