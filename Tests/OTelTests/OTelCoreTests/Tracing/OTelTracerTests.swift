@@ -151,7 +151,7 @@ final class OTelTracerTests: XCTestCase {
         let propagator = OTelW3CPropagator()
         let exporter = OTelStreamingSpanExporter()
         var batches = exporter.batches.makeAsyncIterator()
-        let processor = OTelSimpleSpanProcessor(exporter: exporter)
+        let processor = SimpleSpanProcessor(exporter: exporter)
 
         let tracer = OTelTracer(
             idGenerator: idGenerator,
@@ -187,7 +187,7 @@ final class OTelTracerTests: XCTestCase {
         let propagator = OTelW3CPropagator()
         let exporter = OTelStreamingSpanExporter()
         var batches = exporter.batches.makeAsyncIterator()
-        let processor = RecordingProcessorWrapper(wrapping: OTelSimpleSpanProcessor(exporter: exporter))
+        let processor = RecordingProcessorWrapper(wrapping: SimpleSpanProcessor(exporter: exporter))
 
         let tracer = OTelTracer(
             idGenerator: idGenerator,
@@ -530,4 +530,32 @@ final class RecordingProcessorWrapper<Wrapped: OTelSpanProcessor & Sendable>: OT
         state.numRunCalls += 1
         try await wrapped.run()
     }
+}
+
+private struct SimpleSpanProcessor<Exporter: OTelSpanExporter>: OTelSpanProcessor {
+    private let exporter: Exporter
+    private let stream: AsyncStream<OTelFinishedSpan>
+    private let continuation: AsyncStream<OTelFinishedSpan>.Continuation
+
+    init(exporter: Exporter) {
+        self.exporter = exporter
+        (stream, continuation) = AsyncStream.makeStream()
+    }
+
+    func run() async throws {
+        await withGracefulShutdownHandler {
+            for await span in stream {
+                try? await exporter.export([span])
+            }
+        } onGracefulShutdown: {
+            continuation.finish()
+        }
+        await exporter.shutdown()
+    }
+
+    func onEnd(_ span: OTelFinishedSpan) {
+        continuation.yield(span)
+    }
+
+    func forceFlush() async throws {}
 }
