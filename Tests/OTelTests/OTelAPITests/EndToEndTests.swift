@@ -533,6 +533,7 @@ import Tracing
                             let logger = Logger(label: "logger")
                             logger.debug(
                                 "Waffle party privileges have been revoked due to insufficient team spirit",
+                                error: CustomError(),
                                 metadata: ["person": "milchick"]
                             )
                             await serviceGroup.triggerGracefulShutdown()
@@ -554,6 +555,8 @@ import Tracing
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue == "Waffle party privileges have been revoked due to insufficient team spirit")
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.message" }?.value.stringValue == "custom error")
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.type" }?.value.stringValue == "OTelTests.CustomError")
                     #expect(message.resourceLogs.first?.resource.attributes.count == 2)
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
@@ -602,6 +605,7 @@ import Tracing
                             let logger = Logger(label: "logger")
                             logger.debug(
                                 "Waffle party privileges have been revoked due to insufficient team spirit",
+                                error: CustomError(),
                                 metadata: ["person": "milchick"]
                             )
                             await serviceGroup.triggerGracefulShutdown()
@@ -623,6 +627,8 @@ import Tracing
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue == "Waffle party privileges have been revoked due to insufficient team spirit")
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.message" }?.value.stringValue == "custom error")
+                    #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.type" }?.value.stringValue == "OTelTests.CustomError")
                     #expect(message.resourceLogs.first?.resource.attributes.count == 2)
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
@@ -668,6 +674,7 @@ import Tracing
                         let logger = Logger(label: "logger")
                         logger.debug(
                             "Waffle party privileges have been revoked due to insufficient team spirit",
+                            error: CustomError(),
                             metadata: ["person": "milchick"]
                         )
                         await serviceGroup.triggerGracefulShutdown()
@@ -683,6 +690,8 @@ import Tracing
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.count == 1)
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.body.stringValue == "Waffle party privileges have been revoked due to insufficient team spirit")
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
+                #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.message" }?.value.stringValue == "custom error")
+                #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.type" }?.value.stringValue == "OTelTests.CustomError")
                 #expect(message.resourceLogs.first?.resource.attributes.count == 2)
                 #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                 #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
@@ -707,6 +716,7 @@ import Tracing
                     let logger = Logger(label: "Foo")
                     logger.info(
                         "Waffle party privileges have been revoked due to insufficient team spirit",
+                        error: CustomError(),
                         metadata: ["person": "milchick"]
                     )
                     await serviceGroup.triggerGracefulShutdown()
@@ -719,6 +729,8 @@ import Tracing
         let lines = try #require(String(bytes: result.standardOutputContent, encoding: .utf8)).split(separator: "\n")
         let match = try #require(lines.first { $0.contains("Waffle party privileges have been revoked due to insufficient team spirit") })
         #expect(match.contains("person") && match.contains("milchick"))
+        #expect(match.contains("exception.message=custom error"))
+        #expect(match.contains("exception.type=OTelTests.CustomError"))
     }
 
     @Test func testLogRecordsIncludeSpanContext() async throws {
@@ -911,5 +923,9 @@ import Tracing
             #expect("\(error)" == #"invalidEndpoint("example.com:443")"#)
         }
     }
+}
+
+struct CustomError: Error, CustomStringConvertible {
+    var description: String { "custom error" }
 }
 #endif // compiler(>=6.2)

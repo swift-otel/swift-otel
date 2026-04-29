@@ -27,7 +27,12 @@ extension Opentelemetry_Proto_Logs_V1_LogRecord {
 
         body = .init(logRecord.body.description)
 
-        attributes = .init(logRecord.metadata)
+        var metadata = logRecord.metadata
+        if let error = logRecord.error {
+            metadata["exception.message"] = "\(error)"
+            metadata["exception.type"] = "\(String(reflecting: type(of: error)))"
+        }
+        attributes = .init(metadata)
         // TODO: We should be setting dropped counts here.
         //       see: https://opentelemetry.io/docs/specs/otel/logs/sdk/#logrecord-limits
         droppedAttributesCount = 0

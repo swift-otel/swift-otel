@@ -13,10 +13,11 @@
 
 import Logging
 
-struct OTelLogRecord: Equatable, Sendable {
+struct OTelLogRecord: Sendable {
     var body: Logger.Message
     var level: Logger.Level
     var metadata: Logger.Metadata
+    var error: (any Error)?
     var timeNanosecondsSinceEpoch: UInt64
 
     let resource: OTelResource
@@ -26,6 +27,7 @@ struct OTelLogRecord: Equatable, Sendable {
         body: Logger.Message,
         level: Logger.Level,
         metadata: Logger.Metadata,
+        error: (any Error)?,
         timeNanosecondsSinceEpoch: UInt64,
         resource: OTelResource,
         spanContext: OTelSpanContext?
@@ -33,6 +35,7 @@ struct OTelLogRecord: Equatable, Sendable {
         self.body = body
         self.level = level
         self.metadata = metadata
+        self.error = error
         self.timeNanosecondsSinceEpoch = timeNanosecondsSinceEpoch
         self.resource = resource
         self.spanContext = spanContext
