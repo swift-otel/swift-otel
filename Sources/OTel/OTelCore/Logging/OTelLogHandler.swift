@@ -80,6 +80,7 @@ struct OTelLogHandler: Sendable, LogHandler {
             body: event.message,
             level: event.level,
             metadata: effectiveMetadata,
+            error: event.error,
             timeNanosecondsSinceEpoch: nanosecondsSinceEpoch(),
             resource: resource,
             spanContext: ServiceContext.current?.spanContext

@@ -15,7 +15,7 @@ import Logging
 import NIOConcurrencyHelpers
 
 struct RecordingLogHandler: LogHandler {
-    typealias LogFunctionCall = (level: Logger.Level, message: Logger.Message, metadata: Logger.Metadata?)
+    typealias LogFunctionCall = (level: Logger.Level, message: Logger.Message, error: (any Error)?, metadata: Logger.Metadata?)
 
     private let _level = NIOLockedValueBox(Logger.Level.trace)
     private let _metadata = NIOLockedValueBox(Logger.Metadata())
@@ -30,9 +30,9 @@ struct RecordingLogHandler: LogHandler {
 
     func log(event: LogEvent) {
         let metadata = metadata.merging(event.metadata ?? [:], uniquingKeysWith: { _, new in new })
-        recordedLogMessages.withLockedValue { $0.append((event.level, event.message, metadata)) }
+        recordedLogMessages.withLockedValue { $0.append((event.level, event.message, event.error, metadata)) }
         counts.withLockedValue { $0[event.level] = $0[event.level, default: 0] + 1 }
-        recordedLogMessageContinuation.yield((event.level, event.message, metadata))
+        recordedLogMessageContinuation.yield((event.level, event.message, event.error, metadata))
     }
 
     var metadata: Logging.Logger.Metadata {
