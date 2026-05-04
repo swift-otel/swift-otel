@@ -882,6 +882,21 @@ extension OTel.Configuration {
         /// - Notes: Signal-specific configuration takes precedence over the general configuration.
         public var `protocol`: Protocol
 
+        #if compiler(>=6.2.3)
+        /// User hook invoked when an export fails with a recognised request-level failure.
+        ///
+        /// On supported failures (currently HTTP 401 / gRPC `unauthenticated`), the OTLP exporter calls this handler
+        /// with the failure category and a snapshot of the dynamic export configuration. The handler returns either
+        /// ``ExportFailureResult/retry(configuration:)`` to re-send the same batch with replaced values, or
+        /// ``ExportFailureResult/discard`` to fall back to the default behaviour of dropping the batch and logging
+        /// a warning. A successful retry-supplied configuration also persists on the exporter, so subsequent batches
+        /// pick up the refreshed values without further intervention.
+        ///
+        /// - Default value: `nil`
+        /// - Note: This handler is configured in code only; there is no environment variable equivalent.
+        public var onExportFailure: ExportFailureHandler? = nil
+        #endif
+
         /// Default OTLP exporter configuration.
         ///
         /// See individual property documentation for specific default values, which respect the OTel specification
@@ -953,6 +968,45 @@ extension OTel.Configuration.OTLPExporterConfiguration {
         #endif
         public static let httpJSON: Self = .init(backing: .httpJSON)
     }
+
+    #if compiler(>=6.2.3)
+    /// A categorised request-level failure surfaced to ``ExportFailureHandler``.
+    ///
+    /// Marked `@nonexhaustive` so future cases (for example `forbidden`, `badRequest`) can be added in a
+    /// minor release without requiring users to update existing `switch` statements.
+    @nonexhaustive
+    public enum RequestFailure: Sendable {
+        /// The OTLP collector rejected the request as unauthenticated (HTTP 401 / gRPC `unauthenticated`).
+        case unauthenticated
+    }
+
+    /// The subset of exporter configuration that an ``ExportFailureHandler`` may replace between attempts.
+    public struct DynamicExportConfiguration: Sendable {
+        /// The headers attached to subsequent OTLP requests.
+        public var headers: [(String, String)]
+
+        public init(headers: [(String, String)]) {
+            self.headers = headers
+        }
+    }
+
+    /// The decision returned by an ``ExportFailureHandler``.
+    public enum ExportFailureResult: Sendable {
+        /// Re-send the same batch using the supplied configuration, which also becomes the new dynamic state on the exporter.
+        case retry(configuration: DynamicExportConfiguration)
+        /// Drop the batch and surface the original error to the calling processor.
+        case discard
+    }
+
+    /// A user-supplied handler invoked on a recognised request-level export failure.
+    ///
+    /// The handler receives the failure category and a snapshot of the current ``DynamicExportConfiguration``, and
+    /// returns an ``ExportFailureResult`` indicating how the exporter should proceed.
+    public typealias ExportFailureHandler = @Sendable (
+        RequestFailure,
+        DynamicExportConfiguration
+    ) async -> ExportFailureResult
+    #endif
 }
 
 extension OTel.Configuration {
