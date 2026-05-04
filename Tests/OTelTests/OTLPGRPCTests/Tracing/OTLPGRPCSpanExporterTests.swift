@@ -11,8 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+import GRPCCore
 @testable import Logging
 import NIO
+import NIOConcurrencyHelpers
 @testable import OTel
 import Tracing
 import XCTest
