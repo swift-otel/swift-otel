@@ -24,6 +24,7 @@ extension OTelLogRecord {
         body: Logger.Message = "🏎️",
         level: Logger.Level = .info,
         metadata: Logger.Metadata = [:],
+        error: (any Error)? = nil,
         timeNanosecondsSinceEpoch: UInt64 = 0,
         resource: OTelResource = OTelResource(),
         spanContext: OTelSpanContext? = nil
@@ -32,6 +33,7 @@ extension OTelLogRecord {
             body: body,
             level: level,
             metadata: metadata,
+            error: error,
             timeNanosecondsSinceEpoch: timeNanosecondsSinceEpoch,
             resource: resource,
             spanContext: spanContext
