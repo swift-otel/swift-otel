@@ -146,6 +146,70 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
             try await exporter.forceFlush()
         }
     }
+
+    #if compiler(>=6.2.3)
+    func test_export_unauthenticated_handlerRetries_resendsWithRefreshedHeaders() async throws {
+        try await OTLPGRPCMockCollector.withInsecureServer { collector, endpoint in
+            collector.recordingTraceService.recordingService.enqueueError(RPCError(code: .unauthenticated, message: ""))
+
+            let handlerInvocations = NIOLockedValueBox(0)
+            var configuration = OTel.Configuration.OTLPExporterConfiguration.default
+            configuration.protocol = .grpc
+            configuration.endpoint = endpoint
+            configuration.headers = [("authorization", "Bearer expired")]
+            configuration.onExportFailure = { failure, dynamic in
+                handlerInvocations.withLockedValue { $0 += 1 }
+                switch failure {
+                case .unauthenticated: break
+                @unknown default: XCTFail("unexpected failure category")
+                }
+                XCTAssertEqual(dynamic.headers.first?.0, "authorization")
+                XCTAssertEqual(dynamic.headers.first?.1, "Bearer expired")
+                return .retry(configuration: .init(headers: [("authorization", "Bearer refreshed")]))
+            }
+
+            try await withExporter(configuration: configuration) { exporter in
+                let span = OTelFinishedSpan.stub()
+                try await exporter.export([span])
+            }
+
+            XCTAssertEqual(handlerInvocations.withLockedValue { $0 }, 1)
+            let recorded = collector.recordingTraceService.recordingService.requests
+            XCTAssertEqual(recorded.count, 2)
+            XCTAssertEqual(recorded.first?.metadata.first(where: { $0.key == "authorization" })?.value, "Bearer expired")
+            XCTAssertEqual(recorded.last?.metadata.first(where: { $0.key == "authorization" })?.value, "Bearer refreshed")
+        }
+    }
+
+    func test_export_unauthenticated_handlerDiscards_throwsOriginalError() async throws {
+        try await OTLPGRPCMockCollector.withInsecureServer { collector, endpoint in
+            collector.recordingTraceService.recordingService.enqueueError(RPCError(code: .unauthenticated, message: ""))
+
+            let handlerInvocations = NIOLockedValueBox(0)
+            var configuration = OTel.Configuration.OTLPExporterConfiguration.default
+            configuration.protocol = .grpc
+            configuration.endpoint = endpoint
+            configuration.headers = [("authorization", "Bearer expired")]
+            configuration.onExportFailure = { _, _ in
+                handlerInvocations.withLockedValue { $0 += 1 }
+                return .discard
+            }
+
+            try await withExporter(configuration: configuration) { exporter in
+                let span = OTelFinishedSpan.stub()
+                do {
+                    try await exporter.export([span])
+                    XCTFail("Expected exporter to throw")
+                } catch let error as RPCError {
+                    XCTAssertEqual(error.code, .unauthenticated)
+                }
+            }
+
+            XCTAssertEqual(handlerInvocations.withLockedValue { $0 }, 1)
+            XCTAssertEqual(collector.recordingTraceService.recordingService.requests.count, 1)
+        }
+    }
+    #endif
 }
 
 @available(gRPCSwift, *)
