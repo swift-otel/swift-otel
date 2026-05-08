@@ -69,6 +69,8 @@ extension Opentelemetry_Proto_Metrics_V1_Metric {
             self.sum = .init(sum)
         case .histogram(let histogram):
             self.histogram = .init(histogram)
+        case .exponentialHistogram(let histogram):
+            exponentialHistogram = .init(histogram)
         }
     }
 }
@@ -185,6 +187,47 @@ extension Opentelemetry_Proto_Metrics_V1_HistogramDataPoint {
 extension [Opentelemetry_Proto_Metrics_V1_Metric] {
     init(_ points: [OTelMetricPoint]) {
         self = points.map(Element.init)
+    }
+}
+
+extension Opentelemetry_Proto_Metrics_V1_ExponentialHistogram {
+    init(_ histogram: OTelExponentialHistogram) {
+        self.init()
+        aggregationTemporality = .init(histogram.aggregationTemporality)
+        dataPoints = histogram.points.map(Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint.init)
+    }
+}
+
+extension Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint {
+    init(_ point: OTelExponentialHistogramDataPoint) {
+        self.init()
+        attributes = .init(point.attributes)
+        if let startTime = point.startTimeNanosecondsSinceEpoch {
+            startTimeUnixNano = startTime
+        }
+        timeUnixNano = point.timeNanosecondsSinceEpoch
+        count = point.count
+        if let sum = point.sum {
+            self.sum = sum
+        }
+        if let min = point.min {
+            self.min = min
+        }
+        if let max = point.max {
+            self.max = max
+        }
+        scale = point.scale
+        zeroCount = point.zeroCount
+        positive = .init(point.positive)
+        negative = .init(point.negative)
+    }
+}
+
+extension Opentelemetry_Proto_Metrics_V1_ExponentialHistogramDataPoint.Buckets {
+    init(_ buckets: OTelExponentialHistogramDataPoint.Buckets) {
+        self.init()
+        offset = buckets.offset
+        bucketCounts = buckets.bucketCounts
     }
 }
 #endif
