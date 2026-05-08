@@ -72,8 +72,6 @@ final class ExponentialHistogram<Value: Bucketable>: Sendable {
         maxScale: Int32 = expoMaxScale,
         temporality: OTelAggregationTemporality = .cumulative
     ) {
-        precondition(maxSize >= 1, "maxSize must be at least 1")
-        precondition(maxScale >= expoMinScale && maxScale <= expoMaxScale, "maxScale must be in \(expoMinScale)...\(expoMaxScale)")
         self.name = name
         self.unit = unit
         self.description = description

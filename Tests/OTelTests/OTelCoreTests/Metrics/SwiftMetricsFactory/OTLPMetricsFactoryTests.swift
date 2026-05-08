@@ -14,6 +14,7 @@
 import CoreMetrics
 import OTel
 @testable import class OTel.Counter
+@testable import class OTel.ExponentialHistogram
 @testable import class OTel.FloatingPointCounter
 @testable import class OTel.Gauge
 import XCTest
@@ -438,6 +439,115 @@ final class OTLPMetricsFactoryTests: XCTestCase {
         let factory = OTLPMetricsFactory()
         XCTAssertEqual(factory.configuration.defaultValueHistogramBuckets, defaultBucketsFromOTelSpec)
         XCTAssertEqual(factory.configuration.defaultDurationHistogramBuckets, defaultBucketsFromOTelSpec.map { .milliseconds($0) })
+    }
+
+    func test_makeTimer_exponentialConfig_returnsExponentialHistogram() throws {
+        let registry = OTelMetricRegistry()
+        var configuration = OTLPMetricsFactory.Configuration.default
+        configuration.defaultHistogramType = .exponential(maxSize: 80, maxScale: 10)
+        let factory = OTLPMetricsFactory(registry: registry, configuration: configuration)
+
+        let timer = factory.makeTimer(label: "t", dimensions: [("x", "1")])
+        let histogram = try XCTUnwrap(timer as? DurationExponentialHistogram)
+        XCTAssertEqual(histogram.name, "t")
+        XCTAssertEqual(histogram.attributes, Set([("x", "1")]))
+        XCTAssertEqual(histogram.maxSize, 80)
+        XCTAssertEqual(histogram.maxScale, 10)
+    }
+
+    func test_makeRecorder_exponentialConfig_returnsExponentialHistogram() throws {
+        let registry = OTelMetricRegistry()
+        var configuration = OTLPMetricsFactory.Configuration.default
+        configuration.defaultHistogramType = .exponential()
+        let factory = OTLPMetricsFactory(registry: registry, configuration: configuration)
+
+        let recorder = factory.makeRecorder(label: "r", dimensions: [("x", "1")], aggregate: true)
+        let histogram = try XCTUnwrap(recorder as? ValueExponentialHistogram)
+        XCTAssertEqual(histogram.name, "r")
+        XCTAssertEqual(histogram.attributes, Set([("x", "1")]))
+    }
+
+    func test_makeTimer_perLabelExponentialOverride() throws {
+        let registry = OTelMetricRegistry()
+        var configuration = OTLPMetricsFactory.Configuration.default
+        configuration.histogramTypes = ["latency": .exponential()]
+        let factory = OTLPMetricsFactory(registry: registry, configuration: configuration)
+
+        let exponential = try XCTUnwrap(factory.makeTimer(label: "latency", dimensions: []) as? DurationExponentialHistogram)
+        XCTAssertEqual(exponential.name, "latency")
+
+        let explicit = try XCTUnwrap(factory.makeTimer(label: "other", dimensions: []) as? DurationHistogram)
+        XCTAssertEqual(explicit.name, "other")
+    }
+
+    func test_exponentialTimer_methods() {
+        let registry = OTelMetricRegistry()
+        var configuration = OTLPMetricsFactory.Configuration.default
+        configuration.defaultHistogramType = .exponential()
+        let factory = OTLPMetricsFactory(registry: registry, configuration: configuration)
+        let timer = factory.makeTimer(label: "t", dimensions: [])
+
+        (timer as? DurationExponentialHistogram)?.box.withLockedValue { state in
+            XCTAssertEqual(state.positive.totalCount + state.negative.totalCount + state.zeroCount, 0)
+            XCTAssertEqual(state.sum, 0)
+        }
+
+        timer.recordNanoseconds(400)
+        (timer as? DurationExponentialHistogram)?.box.withLockedValue { state in
+            XCTAssertEqual(state.positive.totalCount + state.negative.totalCount + state.zeroCount, 1)
+            XCTAssertEqual(state.sum, Duration.nanoseconds(400).bucketRepresentation)
+        }
+
+        timer.recordNanoseconds(600)
+        (timer as? DurationExponentialHistogram)?.box.withLockedValue { state in
+            XCTAssertEqual(state.positive.totalCount + state.negative.totalCount + state.zeroCount, 2)
+            XCTAssertEqual(state.sum, Duration.nanoseconds(1000).bucketRepresentation)
+        }
+    }
+
+    func test_exponentialRecorder_methods() {
+        let registry = OTelMetricRegistry()
+        var configuration = OTLPMetricsFactory.Configuration.default
+        configuration.defaultHistogramType = .exponential()
+        let factory = OTLPMetricsFactory(registry: registry, configuration: configuration)
+        let recorder = factory.makeRecorder(label: "r", dimensions: [], aggregate: true)
+
+        (recorder as? ValueExponentialHistogram)?.box.withLockedValue { state in
+            XCTAssertEqual(state.positive.totalCount + state.negative.totalCount + state.zeroCount, 0)
+            XCTAssertEqual(state.sum, 0)
+        }
+
+        recorder.record(0.4)
+        (recorder as? ValueExponentialHistogram)?.box.withLockedValue { state in
+            XCTAssertEqual(state.positive.totalCount + state.negative.totalCount + state.zeroCount, 1)
+            XCTAssertEqual(state.sum, 0.4)
+        }
+
+        recorder.record(Int64(1))
+        (recorder as? ValueExponentialHistogram)?.box.withLockedValue { state in
+            XCTAssertEqual(state.positive.totalCount + state.negative.totalCount + state.zeroCount, 2)
+            XCTAssertEqual(state.sum, 1.4)
+        }
+    }
+
+    func test_reregister_exponentialHistograms() {
+        let duplicateRegistrationHandler = RecordingDuplicateRegistrationHandler()
+        let registry = OTelMetricRegistry(duplicateRegistrationHandler: duplicateRegistrationHandler)
+        var configuration = OTLPMetricsFactory.Configuration.default
+        configuration.defaultHistogramType = .exponential()
+        let factory = OTLPMetricsFactory(registry: registry, configuration: configuration)
+
+        let t = factory.makeTimer(label: "name", dimensions: [])
+        factory.destroyTimer(t)
+        factory.destroyTimer(t)
+
+        let r = factory.makeRecorder(label: "name", dimensions: [], aggregate: true)
+        factory.destroyRecorder(r)
+        factory.destroyRecorder(r)
+
+        _ = factory.makeTimer(label: "name", dimensions: [])
+
+        XCTAssertEqual(duplicateRegistrationHandler.invocations.withLockedValue { $0 }.count, 0)
     }
 
     func test_factoryMethods_extractUnitAndDescriptionFromDimensions() throws {
