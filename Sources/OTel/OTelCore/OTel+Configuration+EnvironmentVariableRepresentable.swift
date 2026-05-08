@@ -222,6 +222,26 @@ extension OTel.Configuration.LogLevel: OTelEnum {}
 extension OTel.Configuration.LogsConfiguration.ExporterSelection: OTelEnum {}
 extension OTel.Configuration.MetricsConfiguration.ExporterSelection: OTelEnum {}
 extension OTel.Configuration.MetricsConfiguration.TemporalityPreference: OTelEnum {}
+extension OTel.Configuration.MetricsConfiguration.HistogramType: OTelEnvironmentVariableRepresentable {
+    init?(environmentVariableValue value: String) {
+        switch value.lowercased() {
+        case "explicit_bucket_histogram":
+            self = .explicitBucket
+        case "base2_exponential_bucket_histogram":
+            self = .exponential()
+        default:
+            return nil
+        }
+    }
+
+    var environmentVariableValue: String {
+        switch backing {
+        case .explicitBucket: "explicit_bucket_histogram"
+        case .exponential: "base2_exponential_bucket_histogram"
+        }
+    }
+}
+
 extension OTel.Configuration.TracesConfiguration.ExporterSelection: OTelEnum {}
 extension OTel.Configuration.OTLPExporterConfiguration.Compression: OTelEnum {}
 // swiftformat:disable:next redundantBackticks

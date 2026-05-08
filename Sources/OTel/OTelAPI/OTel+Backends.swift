@@ -245,6 +245,8 @@ extension OTel {
         let factory = OTLPMetricsFactory(
             registry: registry,
             configuration: .init(
+                defaultHistogramType: .init(resolvedConfiguration.metrics.defaultHistogramType),
+                histogramTypes: resolvedConfiguration.metrics.histogramTypes.mapValues(OTLPMetricsFactory.Configuration.HistogramType.init),
                 defaultDurationHistogramBuckets: resolvedConfiguration.metrics.defaultDurationHistogramBuckets,
                 durationHistogramBuckets: resolvedConfiguration.metrics.durationHistogramBuckets,
                 defaultValueHistogramBuckets: resolvedConfiguration.metrics.defaultValueHistogramBuckets,
