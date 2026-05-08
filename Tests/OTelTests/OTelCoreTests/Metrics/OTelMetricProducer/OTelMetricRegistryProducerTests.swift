@@ -77,6 +77,26 @@ final class OTelMetricRegistryProducerTests: XCTestCase {
         XCTAssertEqual(registry.produce().count, 1)
         registry.unregisterDurationHistogram(durationHistogram)
         XCTAssertEqual(registry.produce().count, 0)
+
+        let valueExpoHistogram = registry.makeValueExponentialHistogram(name: "ve")
+        XCTAssertEqual(registry.produce().count, 1)
+        valueExpoHistogram.record(1.0)
+        XCTAssertEqual(registry.produce().count, 1)
+        valueExpoHistogram.record(Int64(42))
+        XCTAssertEqual(registry.produce().count, 1)
+        registry.unregisterValueExponentialHistogram(valueExpoHistogram)
+        XCTAssertEqual(registry.produce().count, 0)
+
+        let durationExpoHistogram = registry.makeDurationExponentialHistogram(name: "de")
+        XCTAssertEqual(registry.produce().count, 1)
+        durationExpoHistogram.record(.seconds(1))
+        XCTAssertEqual(registry.produce().count, 1)
+        durationExpoHistogram.record(.milliseconds(42))
+        XCTAssertEqual(registry.produce().count, 1)
+        durationExpoHistogram.recordNanoseconds(1234)
+        XCTAssertEqual(registry.produce().count, 1)
+        registry.unregisterDurationExponentialHistogram(durationExpoHistogram)
+        XCTAssertEqual(registry.produce().count, 0)
     }
 
     func test_produce_groupsAttributeSetsOfSameInstrumentIntoOnePoint() {
