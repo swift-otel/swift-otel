@@ -237,7 +237,11 @@ extension OTel {
             throw OTel.Configuration.Error.invalidConfiguration("makeMetricsBackend called but config has metrics disabled")
         }
         let resource = OTelResource(configuration: resolvedConfiguration)
-        let registry = OTelMetricRegistry(logger: logger)
+        let temporality: OTelAggregationTemporality = switch resolvedConfiguration.metrics.temporalityPreference.backing {
+        case .cumulative: .cumulative
+        case .delta: .delta
+        }
+        let registry = OTelMetricRegistry(temporality: temporality, logger: logger)
         let factory = OTLPMetricsFactory(
             registry: registry,
             configuration: .init(
