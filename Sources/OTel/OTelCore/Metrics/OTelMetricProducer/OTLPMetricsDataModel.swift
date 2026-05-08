@@ -59,6 +59,7 @@ struct OTelMetricPoint: Equatable, Sendable {
             case gauge(OTelGauge)
             case sum(OTelSum)
             case histogram(OTelHistogram)
+            case exponentialHistogram(OTelExponentialHistogram)
         }
 
         var data: Data
@@ -66,6 +67,7 @@ struct OTelMetricPoint: Equatable, Sendable {
         static func gauge(_ data: OTelGauge) -> Self { self.init(data: .gauge(data)) }
         static func sum(_ data: OTelSum) -> Self { self.init(data: .sum(data)) }
         static func histogram(_ data: OTelHistogram) -> Self { self.init(data: .histogram(data)) }
+        static func exponentialHistogram(_ data: OTelExponentialHistogram) -> Self { self.init(data: .exponentialHistogram(data)) }
     }
 
     var data: OTelMetricData
@@ -137,4 +139,28 @@ struct OTelHistogramDataPoint: Equatable, Sendable {
     var max: Double?
     var bucketCounts: [UInt64]
     var explicitBounds: [Double]
+}
+
+struct OTelExponentialHistogram: Equatable, Sendable {
+    var aggregationTemporality: OTelAggregationTemporality
+    var points: [OTelExponentialHistogramDataPoint]
+}
+
+struct OTelExponentialHistogramDataPoint: Equatable, Sendable {
+    struct Buckets: Equatable, Sendable {
+        var offset: Int32
+        var bucketCounts: [UInt64]
+    }
+
+    var attributes: [OTelAttribute]
+    var startTimeNanosecondsSinceEpoch: UInt64?
+    var timeNanosecondsSinceEpoch: UInt64
+    var count: UInt64
+    var sum: Double?
+    var min: Double?
+    var max: Double?
+    var scale: Int32
+    var zeroCount: UInt64
+    var positive: Buckets
+    var negative: Buckets
 }
