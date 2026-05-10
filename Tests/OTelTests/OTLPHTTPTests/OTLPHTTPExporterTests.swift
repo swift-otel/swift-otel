@@ -641,16 +641,10 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpProtobuf
                 config.headers = [("Authorization", "Bearer expired")]
-                config.onExportFailure = { failure, dynamic in
+                config.onExportFailure = { failure in
                     handlerInvocations.withLockedValue { $0 += 1 }
-                    switch failure {
-                    case .unauthenticated:
-                        break
-                    @unknown default:
-                        Issue.record("unexpected failure category")
-                    }
-                    #expect(dynamic.headers.first?.0 == "Authorization")
-                    #expect(dynamic.headers.first?.1 == "Bearer expired")
+                    #expect(failure.configuration.headers.first?.0 == "Authorization")
+                    #expect(failure.configuration.headers.first?.1 == "Bearer expired")
                     return .retry(configuration: .init(headers: [("Authorization", "Bearer refreshed")]))
                 }
                 let exporter = try OTLPHTTPSpanExporter(configuration: config)
@@ -696,7 +690,7 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpProtobuf
                 config.headers = [("Authorization", "Bearer expired")]
-                config.onExportFailure = { _, _ in
+                config.onExportFailure = { _ in
                     handlerInvocations.withLockedValue { $0 += 1 }
                     return .discard
                 }
@@ -730,7 +724,7 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpProtobuf
                 config.headers = [("Authorization", "Bearer expired")]
-                config.onExportFailure = { _, _ in
+                config.onExportFailure = { _ in
                     handlerInvocations.withLockedValue { $0 += 1 }
                     return .retry(configuration: .init(headers: [("Authorization", "Bearer refreshed")]))
                 }

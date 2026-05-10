@@ -158,14 +158,10 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
             configuration.protocol = .grpc
             configuration.endpoint = endpoint
             configuration.headers = [("authorization", "Bearer expired")]
-            configuration.onExportFailure = { failure, dynamic in
+            configuration.onExportFailure = { failure in
                 handlerInvocations.withLockedValue { $0 += 1 }
-                switch failure {
-                case .unauthenticated: break
-                @unknown default: XCTFail("unexpected failure category")
-                }
-                XCTAssertEqual(dynamic.headers.first?.0, "authorization")
-                XCTAssertEqual(dynamic.headers.first?.1, "Bearer expired")
+                XCTAssertEqual(failure.configuration.headers.first?.0, "authorization")
+                XCTAssertEqual(failure.configuration.headers.first?.1, "Bearer expired")
                 return .retry(configuration: .init(headers: [("authorization", "Bearer refreshed")]))
             }
 
@@ -191,7 +187,7 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
             configuration.protocol = .grpc
             configuration.endpoint = endpoint
             configuration.headers = [("authorization", "Bearer expired")]
-            configuration.onExportFailure = { _, _ in
+            configuration.onExportFailure = { _ in
                 handlerInvocations.withLockedValue { $0 += 1 }
                 return .discard
             }
