@@ -57,9 +57,7 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sen
     private let configuration: OTel.Configuration.OTLPExporterConfiguration
     private let staticMetadata: Metadata
     private let callOptions: CallOptions
-    #if compiler(>=6.2.3)
     private let dynamicState: NIOLockedValueBox<OTel.Configuration.OTLPExporterConfiguration.DynamicExportConfiguration>
-    #endif
 
     init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
         guard configuration.protocol == .grpc else {
@@ -71,9 +69,7 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sen
         self.configuration = configuration
         self.staticMetadata = Metadata(configuration)
         self.callOptions = CallOptions(configuration)
-        #if compiler(>=6.2.3)
         self.dynamicState = NIOLockedValueBox(.init(headers: configuration.headers))
-        #endif
     }
 
     func run() async throws {
@@ -90,13 +86,12 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sen
         } catch let error as GRPCCore.RuntimeError where error.code == .clientIsStopped {
             throw OTLPGRPCExporterError.exporterAlreadyShutDown
         } catch {
-            #if compiler(>=6.2.3)
             if let rpcError = error as? RPCError,
                rpcError.code == .unauthenticated,
                let handler = configuration.onExportFailure
             {
                 let snapshot = dynamicState.withLockedValue { $0 }
-                switch await handler(.unauthenticated, snapshot) {
+                switch await handler(.init(configuration: snapshot)) {
                 case .retry(configuration: let updated):
                     dynamicState.withLockedValue { $0 = updated }
                     return try await sendOnce(request)
@@ -104,17 +99,12 @@ final class OTLPGRPCExporter<Client: OTLPGRPCClient>: Sendable where Client: Sen
                     throw error
                 }
             }
-            #endif
             throw error
         }
     }
 
     private func sendOnce(_ request: Client.Request) async throws -> Client.Response {
-        #if compiler(>=6.2.3)
         let metadata = Metadata(headers: dynamicState.withLockedValue { $0.headers })
-        #else
-        let metadata = staticMetadata
-        #endif
         return try await client.export(request, metadata: metadata, options: callOptions) { response in
             try response.message
         }
