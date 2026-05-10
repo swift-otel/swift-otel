@@ -34,6 +34,8 @@ jobs:
             image: swift:6.1-rhel-ubi9
           - version: "6.2"
             image: swift:6.2-rhel-ubi9
+          - version: "6.3"
+            image: swift:6.3-rhel-ubi9
 
     container:
       image: ${{ matrix.swift.image }}
@@ -135,6 +137,8 @@ jobs:
             image: swift:6.1-rhel-ubi9
           - version: "6.2"
             image: swift:6.2-rhel-ubi9
+          - version: "6.3"
+            image: swift:6.3-rhel-ubi9
       fail-fast: false
     container:
       image: ${{ matrix.swift.image }}

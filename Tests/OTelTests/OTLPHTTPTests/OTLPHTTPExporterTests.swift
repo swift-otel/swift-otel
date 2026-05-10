@@ -628,6 +628,149 @@ import Tracing
             try await group.waitForAll()
         }
     }
+
+    @Test func testExportFailureHandlerRetriesWithRefreshedHeaders() async throws {
+        try await withThrowingTaskGroup { group in
+            let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
+            defer { #expect(throws: Never.self) { try testServer.stop() } }
+
+            let handlerInvocations = NIOLockedValueBox(0)
+
+            group.addTask {
+                var config = OTel.Configuration.OTLPExporterConfiguration.default
+                config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
+                config.protocol = .httpProtobuf
+                config.headers = [("Authorization", "Bearer expired")]
+                config.onExportFailure = { failure in
+                    handlerInvocations.withLockedValue { $0 += 1 }
+                    #expect(failure.configuration.headers.first?.0 == "Authorization")
+                    #expect(failure.configuration.headers.first?.1 == "Bearer expired")
+                    return .retry(configuration: .init(headers: [("Authorization", "Bearer refreshed")]))
+                }
+                let exporter = try OTLPHTTPSpanExporter(configuration: config)
+                let span = OTelFinishedSpan.stub()
+                await #expect(throws: Never.self) { try await exporter.export([span]) }
+            }
+
+            // First attempt: receives expired token, returns 401.
+            try testServer.receiveHeadAndVerify { head in
+                #expect(head.headers["Authorization"] == ["Bearer expired"])
+            }
+            _ = try testServer.receiveBody()
+            _ = try testServer.receiveEnd()
+            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .unauthorized)))
+            try testServer.writeOutbound(.end(nil))
+
+            // Second attempt: receives refreshed token, returns 200.
+            try testServer.receiveHeadAndVerify { head in
+                #expect(head.headers["Authorization"] == ["Bearer refreshed"])
+            }
+            _ = try testServer.receiveBody()
+            _ = try testServer.receiveEnd()
+            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
+            let response = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse()
+            let body: ByteBufferWrapper = try response.serializedBytes()
+            try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
+            try testServer.writeOutbound(.end(nil))
+
+            try await group.waitForAll()
+            #expect(handlerInvocations.withLockedValue { $0 } == 1)
+        }
+    }
+
+    @Test func testExportFailureHandlerDiscardThrows() async throws {
+        try await withThrowingTaskGroup { group in
+            let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
+            defer { #expect(throws: Never.self) { try testServer.stop() } }
+
+            let handlerInvocations = NIOLockedValueBox(0)
+
+            group.addTask {
+                var config = OTel.Configuration.OTLPExporterConfiguration.default
+                config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
+                config.protocol = .httpProtobuf
+                config.headers = [("Authorization", "Bearer expired")]
+                config.onExportFailure = { _ in
+                    handlerInvocations.withLockedValue { $0 += 1 }
+                    return .discard
+                }
+                let exporter = try OTLPHTTPSpanExporter(configuration: config)
+                let span = OTelFinishedSpan.stub()
+                await #expect(throws: (any Error).self) { try await exporter.export([span]) }
+            }
+
+            try testServer.receiveHeadAndVerify { head in
+                #expect(head.headers["Authorization"] == ["Bearer expired"])
+            }
+            _ = try testServer.receiveBody()
+            _ = try testServer.receiveEnd()
+            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .unauthorized)))
+            try testServer.writeOutbound(.end(nil))
+
+            try await group.waitForAll()
+            #expect(handlerInvocations.withLockedValue { $0 } == 1)
+        }
+    }
+
+    @Test func testExportFailureHandlerRefreshedHeadersPersistAcrossBatches() async throws {
+        try await withThrowingTaskGroup { group in
+            let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
+            defer { #expect(throws: Never.self) { try testServer.stop() } }
+
+            let handlerInvocations = NIOLockedValueBox(0)
+
+            group.addTask {
+                var config = OTel.Configuration.OTLPExporterConfiguration.default
+                config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
+                config.protocol = .httpProtobuf
+                config.headers = [("Authorization", "Bearer expired")]
+                config.onExportFailure = { _ in
+                    handlerInvocations.withLockedValue { $0 += 1 }
+                    return .retry(configuration: .init(headers: [("Authorization", "Bearer refreshed")]))
+                }
+                let exporter = try OTLPHTTPSpanExporter(configuration: config)
+                let span = OTelFinishedSpan.stub()
+                // First batch: triggers handler.
+                await #expect(throws: Never.self) { try await exporter.export([span]) }
+                // Second batch: should reuse the refreshed headers without invoking the handler again.
+                await #expect(throws: Never.self) { try await exporter.export([span]) }
+            }
+
+            // Batch 1, attempt 1: expired token, 401.
+            try testServer.receiveHeadAndVerify { head in
+                #expect(head.headers["Authorization"] == ["Bearer expired"])
+            }
+            _ = try testServer.receiveBody()
+            _ = try testServer.receiveEnd()
+            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .unauthorized)))
+            try testServer.writeOutbound(.end(nil))
+
+            // Batch 1, attempt 2: refreshed token, 200.
+            try testServer.receiveHeadAndVerify { head in
+                #expect(head.headers["Authorization"] == ["Bearer refreshed"])
+            }
+            _ = try testServer.receiveBody()
+            _ = try testServer.receiveEnd()
+            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
+            let response = Opentelemetry_Proto_Collector_Trace_V1_ExportTraceServiceResponse()
+            let body: ByteBufferWrapper = try response.serializedBytes()
+            try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
+            try testServer.writeOutbound(.end(nil))
+
+            // Batch 2, single attempt: refreshed token reused, 200.
+            try testServer.receiveHeadAndVerify { head in
+                #expect(head.headers["Authorization"] == ["Bearer refreshed"])
+            }
+            _ = try testServer.receiveBody()
+            _ = try testServer.receiveEnd()
+            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .ok, headers: ["Content-Type": "application/x-protobuf"])))
+            try testServer.writeOutbound(.body(.byteBuffer(body.backing)))
+            try testServer.writeOutbound(.end(nil))
+
+            try await group.waitForAll()
+            #expect(handlerInvocations.withLockedValue { $0 } == 1)
+        }
+    }
 }
 
 extension HTTPClient.RetryPolicy.RetryDecision {
