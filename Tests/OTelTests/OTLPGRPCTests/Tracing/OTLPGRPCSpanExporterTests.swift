@@ -149,7 +149,6 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
         }
     }
 
-    #if compiler(>=6.2.3)
     func test_export_unauthenticated_handlerRetries_resendsWithRefreshedHeaders() async throws {
         try await OTLPGRPCMockCollector.withInsecureServer { collector, endpoint in
             collector.recordingTraceService.recordingService.enqueueError(RPCError(code: .unauthenticated, message: ""))
@@ -211,7 +210,6 @@ final class OTLPGRPCSpanExporterTests: XCTestCase {
             XCTAssertEqual(collector.recordingTraceService.recordingService.requests.count, 1)
         }
     }
-    #endif
 }
 
 @available(gRPCSwift, *)

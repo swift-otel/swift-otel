@@ -36,17 +36,13 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
     private let logger: Logger
     let configuration: OTel.Configuration.OTLPExporterConfiguration
     let httpClient: HTTPClient
-    #if compiler(>=6.2.3)
     private let dynamicState: NIOLockedValueBox<OTel.Configuration.OTLPExporterConfiguration.DynamicExportConfiguration>
-    #endif
 
     init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
         self.logger = logger
         self.configuration = configuration
         self.httpClient = try HTTPClient(configuration: configuration)
-        #if compiler(>=6.2.3)
         self.dynamicState = NIOLockedValueBox(.init(headers: configuration.headers))
-        #endif
     }
 
     deinit {
@@ -68,10 +64,9 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
 
     func send(_ proto: Request) async throws -> Response {
         let response = try await sendOnce(proto)
-        #if compiler(>=6.2.3)
         if response.status.code == 401, let handler = configuration.onExportFailure {
             let snapshot = dynamicState.withLockedValue { $0 }
-            switch await handler(.unauthenticated, snapshot) {
+            switch await handler(.init(configuration: snapshot)) {
             case .retry(configuration: let updated):
                 dynamicState.withLockedValue { $0 = updated }
                 let retryResponse = try await sendOnce(proto)
@@ -80,7 +75,6 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
                 throw OTLPHTTPExporterError.requestFailed(response.status)
             }
         }
-        #endif
         return try await parseResponse(response)
     }
 
@@ -88,11 +82,7 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         // https://opentelemetry.io/docs/specs/otlp/#otlphttp-request
         var request = HTTPClientRequest(url: self.configuration.endpoint)
         request.method = .POST
-        #if compiler(>=6.2.3)
         let headers = dynamicState.withLockedValue { $0.headers }
-        #else
-        let headers = configuration.headers
-        #endif
         for (name, value) in headers {
             request.headers.add(name: name, value: value)
         }

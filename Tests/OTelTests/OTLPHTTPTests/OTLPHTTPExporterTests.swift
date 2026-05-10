@@ -629,7 +629,6 @@ import Tracing
         }
     }
 
-    #if compiler(>=6.2.3)
     @Test func testExportFailureHandlerRetriesWithRefreshedHeaders() async throws {
         try await withThrowingTaskGroup { group in
             let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
@@ -778,7 +777,6 @@ import Tracing
             #expect(handlerInvocations.withLockedValue { $0 } == 1)
         }
     }
-    #endif
 }
 
 extension HTTPClient.RetryPolicy.RetryDecision {
