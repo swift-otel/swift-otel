@@ -41,6 +41,16 @@ extension OTelMetricRegistry: OTelMetricProducer {
                 buffer.append(instrument.measure())
             }
         }
+        for instruments in metrics.durationExponentialHistograms.values {
+            for instrument in instruments.values {
+                buffer.append(instrument.measure())
+            }
+        }
+        for instruments in metrics.valueExponentialHistograms.values {
+            for instrument in instruments.values {
+                buffer.append(instrument.measure())
+            }
+        }
         return buffer
     }
 }

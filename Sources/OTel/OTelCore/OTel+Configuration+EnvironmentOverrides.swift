@@ -44,6 +44,7 @@ extension OTel.Configuration.MetricsConfiguration {
         defaultDurationHistogramBuckets.override(using: .metricDefaultDurationHistogramBuckets, from: environment, logger: logger)
         exporter.override(using: .metricsExporter, from: environment, logger: logger)
         temporalityPreference.override(using: .metricsTemporalityPreference, from: environment, logger: logger)
+        defaultHistogramType.override(using: .metricsDefaultHistogramAggregation, from: environment, logger: logger)
         otlpExporter.applyEnvironmentOverrides(environment: environment, signal: .metrics, logger: logger)
     }
 }

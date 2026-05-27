@@ -31,7 +31,7 @@ here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function replace_acceptable_years() {
   # this needs to replace all acceptable forms with 'YEARS'
-  sed -e 's/202[345]/YEARS/'
+  sed -e 's/202[3456]/YEARS/'
 }
 
 printf "=> Checking license headers\n"

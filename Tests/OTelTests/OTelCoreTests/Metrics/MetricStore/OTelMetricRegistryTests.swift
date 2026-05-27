@@ -39,6 +39,14 @@ final class OTelMetricRegistryTests: XCTestCase {
             registry.makeValueHistogram(name: "v", buckets: []),
             registry.makeValueHistogram(name: "v", buckets: [])
         )
+        XCTAssertIdentical(
+            registry.makeDurationExponentialHistogram(name: "de"),
+            registry.makeDurationExponentialHistogram(name: "de")
+        )
+        XCTAssertIdentical(
+            registry.makeValueExponentialHistogram(name: "ve"),
+            registry.makeValueExponentialHistogram(name: "ve")
+        )
     }
 
     func test_identity_sameNameDifferentCase_identical() throws {
@@ -64,6 +72,14 @@ final class OTelMetricRegistryTests: XCTestCase {
             registry.makeValueHistogram(name: "value_histogram", buckets: []),
             registry.makeValueHistogram(name: "vAlUe_hIsToGrAm", buckets: [])
         )
+        XCTAssertIdentical(
+            registry.makeDurationExponentialHistogram(name: "duration_expo_histogram"),
+            registry.makeDurationExponentialHistogram(name: "dUrAtIoN_eXpO_hIsToGrAm")
+        )
+        XCTAssertIdentical(
+            registry.makeValueExponentialHistogram(name: "value_expo_histogram"),
+            registry.makeValueExponentialHistogram(name: "vAlUe_eXpO_hIsToGrAm")
+        )
     }
 
     func test_identity_sameNameSameLabels_identical() {
@@ -87,6 +103,14 @@ final class OTelMetricRegistryTests: XCTestCase {
         XCTAssertIdentical(
             registry.makeValueHistogram(name: "v", attributes: Set([("one", "1")]), buckets: []),
             registry.makeValueHistogram(name: "v", attributes: Set([("one", "1")]), buckets: [])
+        )
+        XCTAssertIdentical(
+            registry.makeDurationExponentialHistogram(name: "de", attributes: Set([("one", "1")])),
+            registry.makeDurationExponentialHistogram(name: "de", attributes: Set([("one", "1")]))
+        )
+        XCTAssertIdentical(
+            registry.makeValueExponentialHistogram(name: "ve", attributes: Set([("one", "1")])),
+            registry.makeValueExponentialHistogram(name: "ve", attributes: Set([("one", "1")]))
         )
     }
 
@@ -112,6 +136,14 @@ final class OTelMetricRegistryTests: XCTestCase {
             registry.makeValueHistogram(name: "v1", buckets: []),
             registry.makeValueHistogram(name: "v2", buckets: [])
         )
+        XCTAssertNotIdentical(
+            registry.makeDurationExponentialHistogram(name: "de1"),
+            registry.makeDurationExponentialHistogram(name: "de2")
+        )
+        XCTAssertNotIdentical(
+            registry.makeValueExponentialHistogram(name: "ve1"),
+            registry.makeValueExponentialHistogram(name: "ve2")
+        )
     }
 
     func test_identity_sameNameSameLabelKeysDifferentValues_distinct() {
@@ -135,6 +167,14 @@ final class OTelMetricRegistryTests: XCTestCase {
         XCTAssertNotIdentical(
             registry.makeValueHistogram(name: "v", attributes: Set([("x", "1"), ("y", "2")]), buckets: []),
             registry.makeValueHistogram(name: "v", attributes: Set([("x", "2"), ("y", "4")]), buckets: [])
+        )
+        XCTAssertNotIdentical(
+            registry.makeDurationExponentialHistogram(name: "d", attributes: Set([("x", "1"), ("y", "2")])),
+            registry.makeDurationExponentialHistogram(name: "d", attributes: Set([("x", "2"), ("y", "4")]))
+        )
+        XCTAssertNotIdentical(
+            registry.makeValueExponentialHistogram(name: "v", attributes: Set([("x", "1"), ("y", "2")])),
+            registry.makeValueExponentialHistogram(name: "v", attributes: Set([("x", "2"), ("y", "4")]))
         )
     }
 
@@ -160,6 +200,14 @@ final class OTelMetricRegistryTests: XCTestCase {
         XCTAssertNotIdentical(
             registry.makeValueHistogram(name: "v", attributes: Set([("x", "1")]), buckets: []),
             registry.makeValueHistogram(name: "v", attributes: Set([("y", "1")]), buckets: [])
+        )
+        XCTAssertNotIdentical(
+            registry.makeDurationExponentialHistogram(name: "d", attributes: Set([("x", "1")])),
+            registry.makeDurationExponentialHistogram(name: "d", attributes: Set([("y", "1")]))
+        )
+        XCTAssertNotIdentical(
+            registry.makeValueExponentialHistogram(name: "v", attributes: Set([("x", "1")])),
+            registry.makeValueExponentialHistogram(name: "v", attributes: Set([("y", "1")]))
         )
     }
 
@@ -188,6 +236,14 @@ final class OTelMetricRegistryTests: XCTestCase {
         XCTAssertNotIdentical(
             registry.makeValueHistogram(name: "v", attributes: Set([("x", "1")]), buckets: []),
             registry.makeValueHistogram(name: "v", attributes: Set([("x", "1"), ("y", "1")]), buckets: [])
+        )
+        XCTAssertNotIdentical(
+            registry.makeDurationExponentialHistogram(name: "d", attributes: Set([("x", "1")])),
+            registry.makeDurationExponentialHistogram(name: "d", attributes: Set([("x", "1"), ("y", "1")]))
+        )
+        XCTAssertNotIdentical(
+            registry.makeValueExponentialHistogram(name: "v", attributes: Set([("x", "1")])),
+            registry.makeValueExponentialHistogram(name: "v", attributes: Set([("x", "1"), ("y", "1")]))
         )
     }
 
@@ -269,6 +325,8 @@ final class OTelMetricRegistryTests: XCTestCase {
         registry.unregisterGauge(registry.makeGauge(name: "name"))
         registry.unregisterDurationHistogram(registry.makeDurationHistogram(name: "name", buckets: []))
         registry.unregisterValueHistogram(registry.makeValueHistogram(name: "name", buckets: []))
+        registry.unregisterDurationExponentialHistogram(registry.makeDurationExponentialHistogram(name: "name"))
+        registry.unregisterValueExponentialHistogram(registry.makeValueExponentialHistogram(name: "name"))
         _ = registry.makeCounter(name: "name")
 
         XCTAssertEqual(duplicateRegistrationHandler.invocations.withLockedValue { $0 }.count, 0)
@@ -292,6 +350,12 @@ final class OTelMetricRegistryTests: XCTestCase {
 
         registry.unregisterValueHistogram(registry.makeValueHistogram(name: "name", attributes: Set([("a", "1")]), buckets: []))
         registry.unregisterValueHistogram(registry.makeValueHistogram(name: "name", attributes: Set([("b", "1")]), buckets: []))
+
+        registry.unregisterDurationExponentialHistogram(registry.makeDurationExponentialHistogram(name: "name", attributes: Set([("a", "1")])))
+        registry.unregisterDurationExponentialHistogram(registry.makeDurationExponentialHistogram(name: "name", attributes: Set([("b", "1")])))
+
+        registry.unregisterValueExponentialHistogram(registry.makeValueExponentialHistogram(name: "name", attributes: Set([("a", "1")])))
+        registry.unregisterValueExponentialHistogram(registry.makeValueExponentialHistogram(name: "name", attributes: Set([("b", "1")])))
 
         _ = registry.makeCounter(name: "name", attributes: Set([("a", "1")]))
 
@@ -463,6 +527,8 @@ extension OTelMetricRegistry {
             metrics.gauges.values.map(\.values.count).reduce(0, +),
             metrics.durationHistograms.values.map(\.values.count).reduce(0, +),
             metrics.valueHistograms.values.map(\.values.count).reduce(0, +),
+            metrics.durationExponentialHistograms.values.map(\.values.count).reduce(0, +),
+            metrics.valueExponentialHistograms.values.map(\.values.count).reduce(0, +),
         ]
         return x.reduce(0, +)
     }

@@ -356,6 +356,18 @@ extension OTel.Configuration {
         /// - Default value: `[:]`.
         public var valueHistogramBuckets: [String: [Double]]
 
+        /// The default histogram implementation used for metrics that don't have a per-label override.
+        ///
+        /// - Environment variable(s): `OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION`.
+        /// - Default value: `.explicitBucket`.
+        public var defaultHistogramType: HistogramType
+
+        /// Per-label histogram implementation overrides.
+        ///
+        /// - Environment variable(s): None.
+        /// - Default value: `[:]`.
+        public var histogramTypes: [String: HistogramType]
+
         /// Selection of metrics exporter implementation.
         ///
         /// - Environment variable(s): `OTEL_METRICS_EXPORTER`.
@@ -390,6 +402,8 @@ extension OTel.Configuration {
             durationHistogramBuckets: [:],
             defaultValueHistogramBuckets: defaultHistogramBuckets,
             valueHistogramBuckets: [:],
+            defaultHistogramType: .explicitBucket,
+            histogramTypes: [:],
             exporter: .otlp,
             otlpExporter: .default,
             temporalityPreference: .cumulative,
@@ -599,6 +613,33 @@ extension OTel.Configuration.TracesConfiguration {
         /// Console exporter for traces (development/debugging).
         @available(*, unavailable, message: "This option is not supported by Swift OTel")
         public static let console: Self = .init(backing: .console)
+    }
+}
+
+extension OTel.Configuration.MetricsConfiguration {
+    /// Selection of histogram implementation for metrics created via the Swift Metrics API.
+    ///
+    /// Explicit-bucket histograms use pre-configured boundaries and are suitable when the
+    /// expected value range is known. Exponential histograms use logarithmic boundaries
+    /// that auto-scale to maintain constant relative precision across all magnitudes.
+    public struct HistogramType: Sendable {
+        enum Backing: Sendable {
+            case explicitBucket
+            case exponential(maxSize: Int, maxScale: Int32)
+        }
+
+        var backing: Backing
+
+        /// Explicit-bucket histogram with pre-configured boundaries.
+        public static let explicitBucket: Self = .init(backing: .explicitBucket)
+
+        /// Exponential histogram with logarithmic boundaries that auto-scale.
+        ///
+        /// - Parameter maxSize: Maximum number of buckets per side (positive/negative).
+        /// - Parameter maxScale: Initial (finest) resolution. Higher values give more buckets per doubling.
+        public static func exponential(maxSize: Int = 160, maxScale: Int32 = 20) -> Self {
+            .init(backing: .exponential(maxSize: maxSize, maxScale: maxScale))
+        }
     }
 }
 
