@@ -127,7 +127,9 @@ extension Opentelemetry_Proto_Metrics_V1_NumberDataPoint {
 
 extension [Opentelemetry_Proto_Common_V1_KeyValue] {
     init(_ attributes: [OTelAttribute]) {
-        self = attributes.map(Element.init)
+        // Sort by key so the wire format is deterministic regardless of producer order
+        // (metric attributes originate from a `Set` and have no defined iteration order).
+        self = attributes.sorted { $0.key < $1.key }.map(Element.init)
     }
 }
 
