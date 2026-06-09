@@ -25,6 +25,7 @@
 //===----------------------------------------------------------------------===//
 
 import NIOConcurrencyHelpers
+import Tracing
 
 /// A type that can be used in a ``Histogram`` to create bucket boundaries.
 protocol Bucketable: AdditiveArithmetic, Comparable, Sendable {
@@ -43,6 +44,8 @@ final class Histogram<Value: Bucketable>: Sendable {
     let unit: String?
     let description: String?
     let attributes: Set<Attribute>
+    let temporality: OTelAggregationTemporality
+    let emptyState: State
 
     @usableFromInline
     struct State: Sendable {
@@ -52,6 +55,7 @@ final class Histogram<Value: Bucketable>: Sendable {
         @usableFromInline var max: Value?
         @usableFromInline var sum: Value
         @usableFromInline var count: Int
+        @usableFromInline var startTimeNanoseconds: UInt64
 
         @inlinable
         init(buckets: [Value]) {
@@ -60,22 +64,26 @@ final class Histogram<Value: Bucketable>: Sendable {
             max = nil
             sum = .zero
             count = 0
+            startTimeNanoseconds = DefaultTracerClock.now.nanosecondsSinceEpoch
             self.buckets = buckets.map { ($0, 0) }
         }
     }
 
     @usableFromInline let box: NIOLockedValueBox<State>
 
-    init(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = [], buckets: [Value]) {
+    init(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = [], buckets: [Value], temporality: OTelAggregationTemporality = .cumulative) {
         self.name = name
         self.unit = unit
         self.description = description
         self.attributes = attributes
-        box = .init(.init(buckets: buckets))
+        self.temporality = temporality
+        let initialState = State(buckets: buckets)
+        emptyState = initialState
+        box = .init(initialState)
     }
 
-    convenience init(name: String, unit: String? = nil, description: String? = nil, attributes: [(String, String)] = [], buckets: [Value]) {
-        self.init(name: name, unit: unit, description: description, attributes: Set(attributes), buckets: buckets)
+    convenience init(name: String, unit: String? = nil, description: String? = nil, attributes: [(String, String)] = [], buckets: [Value], temporality: OTelAggregationTemporality = .cumulative) {
+        self.init(name: name, unit: unit, description: description, attributes: Set(attributes), buckets: buckets, temporality: temporality)
     }
 
     func record(_ value: Value) {

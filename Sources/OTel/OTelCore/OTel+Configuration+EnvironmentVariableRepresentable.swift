@@ -221,6 +221,7 @@ extension OTel.Configuration.Propagator: OTelEnum {}
 extension OTel.Configuration.LogLevel: OTelEnum {}
 extension OTel.Configuration.LogsConfiguration.ExporterSelection: OTelEnum {}
 extension OTel.Configuration.MetricsConfiguration.ExporterSelection: OTelEnum {}
+extension OTel.Configuration.MetricsConfiguration.TemporalityPreference: OTelEnum {}
 extension OTel.Configuration.TracesConfiguration.ExporterSelection: OTelEnum {}
 extension OTel.Configuration.OTLPExporterConfiguration.Compression: OTelEnum {}
 // swiftformat:disable:next redundantBackticks

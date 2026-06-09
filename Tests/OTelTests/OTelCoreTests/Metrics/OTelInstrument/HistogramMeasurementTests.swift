@@ -104,4 +104,33 @@ final class HistogramMeasurementTests: XCTestCase {
         let histogram = DurationHistogram(name: "my_histogram", attributes: [], buckets: [])
         XCTAssertEqual(histogram.measure(instant: .constant(42)).data.asHistogram?.points.first?.timeNanosecondsSinceEpoch, 42)
     }
+
+    func test_measure_withDeltaTemporality_returnsDeltaHistogram() {
+        let histogram = DurationHistogram(name: "my_histogram", attributes: [], buckets: [
+            .milliseconds(100),
+            .milliseconds(500),
+            .seconds(1),
+        ], temporality: .delta)
+
+        histogram.record(.milliseconds(400))
+        histogram.record(.milliseconds(600))
+        histogram.measure().data.assertIsDeltaHistogramWith(
+            count: 2, sum: 1.0,
+            bucketCounts: [0, 1, 1, 0],
+            explicitBounds: [0.1, 0.5, 1.0],
+        )
+
+        histogram.measure().data.assertIsDeltaHistogramWith(
+            count: 0, sum: 0.0,
+            bucketCounts: [0, 0, 0, 0],
+            explicitBounds: [0.1, 0.5, 1.0],
+        )
+
+        histogram.record(.milliseconds(50))
+        histogram.measure().data.assertIsDeltaHistogramWith(
+            count: 1, sum: 0.05,
+            bucketCounts: [1, 0, 0, 0],
+            explicitBounds: [0.1, 0.5, 1.0],
+        )
+    }
 }

@@ -168,6 +168,16 @@ final class OTelMetricDataModelProtoTests: XCTestCase {
         XCTAssertEqual(value, 42)
     }
 
+    func test_initProto_pointAttributes_protoSortedByKey() {
+        let point = OTelNumberDataPoint.stub(attributes: [
+            .stub(key: "z", value: "3"),
+            .stub(key: "a", value: "1"),
+            .stub(key: "m", value: "2"),
+        ])
+        let proto = Opentelemetry_Proto_Metrics_V1_NumberDataPoint(point)
+        XCTAssertEqual(proto.attributes.map(\.key), ["a", "m", "z"])
+    }
+
     func test_initProto_histogramPointFields_protoHasFields() {
         let point = OTelHistogramDataPoint.stub(
             attributes: [.stub()],

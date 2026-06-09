@@ -451,7 +451,8 @@ extension OTel.Configuration.MetricsConfiguration {
             defaultValueHistogramBuckets: defaultValueHistogramBuckets,
             valueHistogramBuckets: valueHistogramBuckets,
             exporter: exporter,
-            otlpExporter: otlpExporter
+            otlpExporter: otlpExporter,
+            temporalityPreference: .cumulative,
         )
     }
 }
