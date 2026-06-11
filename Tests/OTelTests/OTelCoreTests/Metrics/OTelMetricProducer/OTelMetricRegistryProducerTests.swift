@@ -92,10 +92,16 @@ final class OTelMetricRegistryProducerTests: XCTestCase {
         registry.makeCounter(name: "c", attributes: Set([("route", "b")])).increment()
         registry.makeGauge(name: "g", attributes: Set([("route", "a")])).set(1.0)
         registry.makeGauge(name: "g", attributes: Set([("route", "b")])).set(2.0)
-        registry.makeValueHistogram(name: "v", attributes: Set([("route", "a")]), buckets: []).record(
-            1.0)
-        registry.makeValueHistogram(name: "v", attributes: Set([("route", "b")]), buckets: []).record(
-            2.0)
+        registry.makeValueHistogram(
+    name: "v",
+    attributes: Set([("route", "a")]),
+    buckets: []
+).record(1.0)
+        registry.makeValueHistogram(
+    name: "v",
+    attributes: Set([("route", "b")]),
+    buckets: []
+).record(2.0)
 
         let points = registry.produce()
         XCTAssertEqual(points.count, 3)
