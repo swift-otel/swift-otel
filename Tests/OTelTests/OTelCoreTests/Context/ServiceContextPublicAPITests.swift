@@ -31,4 +31,25 @@ struct ServiceContextPublicAPITests {
 
         #expect(context.otelTraceID == "0102030405060708090a0b0c0d0e0f10")
     }
+
+    @Test("Not sampled without span context")
+    func isSampledWithoutSpanContext() {
+        let context = ServiceContext.topLevel
+
+        #expect(context.otelIsSampled == false)
+    }
+
+    @Test("Not sampled when sampled flag not set")
+    func isSampledFalse() {
+        let context = ServiceContext.withTraceFlags([])
+
+        #expect(context.otelIsSampled == false)
+    }
+
+    @Test("Sampled when sampled flag set")
+    func isSampledTrue() {
+        let context = ServiceContext.withTraceFlags(.sampled)
+
+        #expect(context.otelIsSampled == true)
+    }
 }
