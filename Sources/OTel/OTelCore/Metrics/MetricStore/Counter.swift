@@ -25,6 +25,7 @@
 //===----------------------------------------------------------------------===//
 
 import Atomics
+import Tracing
 
 /// A counter is a cumulative metric that represents a single monotonically increasing
 /// counter whose value can only increase or be ``reset()`` to zero on restart.
@@ -35,21 +36,25 @@ import Atomics
 /// number of currently running processes; instead use a ``Gauge``.
 final class Counter: Sendable {
     let atomic = ManagedAtomic(Int64(0))
+    let startTimeNanoseconds: ManagedAtomic<UInt64>
 
     let name: String
     let unit: String?
     let description: String?
     let attributes: Set<Attribute>
+    let temporality: OTelAggregationTemporality
 
-    init(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = []) {
+    init(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = [], temporality: OTelAggregationTemporality = .cumulative) {
         self.name = name
         self.unit = unit
         self.description = description
         self.attributes = attributes
+        self.temporality = temporality
+        startTimeNanoseconds = ManagedAtomic(DefaultTracerClock.now.nanosecondsSinceEpoch)
     }
 
-    convenience init(name: String, unit: String? = nil, description: String? = nil, attributes: [(String, String)] = []) {
-        self.init(name: name, unit: unit, description: description, attributes: Set(attributes))
+    convenience init(name: String, unit: String? = nil, description: String? = nil, attributes: [(String, String)] = [], temporality: OTelAggregationTemporality = .cumulative) {
+        self.init(name: name, unit: unit, description: description, attributes: Set(attributes), temporality: temporality)
     }
 
     func increment() {

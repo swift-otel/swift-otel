@@ -78,4 +78,47 @@ final class OTelMetricRegistryProducerTests: XCTestCase {
         registry.unregisterDurationHistogram(durationHistogram)
         XCTAssertEqual(registry.produce().count, 0)
     }
+
+    func test_produce_groupsAttributeSetsOfSameInstrumentIntoOnePoint() {
+        let registry = OTelMetricRegistry()
+
+        // Each instrument is recorded with two distinct attribute sets, so each is two instruments
+        // sharing one identifier (name, unit, description, kind). The OTLP data model expects each
+        // to be emitted as a single metric stream with one data point per attribute set, not as
+        // separate metric points that happen to share a name. Registering several instruments in
+        // one registry also checks that grouping is keyed per identifier and never merges across
+        // different identifiers.
+        registry.makeCounter(name: "c", attributes: Set([("route", "a")])).increment()
+        registry.makeCounter(name: "c", attributes: Set([("route", "b")])).increment()
+        registry.makeGauge(name: "g", attributes: Set([("route", "a")])).set(1.0)
+        registry.makeGauge(name: "g", attributes: Set([("route", "b")])).set(2.0)
+        registry.makeValueHistogram(
+            name: "v",
+            attributes: Set([("route", "a")]),
+            buckets: []
+        ).record(1.0)
+        registry.makeValueHistogram(
+            name: "v",
+            attributes: Set([("route", "b")]),
+            buckets: []
+        ).record(2.0)
+
+        let points = registry.produce()
+        XCTAssertEqual(points.count, 3)
+
+        guard case .sum(let sum) = points.first(where: { $0.name == "c" })?.data.data else {
+            return XCTFail("Expected a single sum metric point named 'c', got \(points)")
+        }
+        XCTAssertEqual(sum.points.count, 2)
+
+        guard case .gauge(let gauge) = points.first(where: { $0.name == "g" })?.data.data else {
+            return XCTFail("Expected a single gauge metric point named 'g', got \(points)")
+        }
+        XCTAssertEqual(gauge.points.count, 2)
+
+        guard case .histogram(let histogram) = points.first(where: { $0.name == "v" })?.data.data else {
+            return XCTFail("Expected a single histogram metric point named 'v', got \(points)")
+        }
+        XCTAssertEqual(histogram.points.count, 2)
+    }
 }

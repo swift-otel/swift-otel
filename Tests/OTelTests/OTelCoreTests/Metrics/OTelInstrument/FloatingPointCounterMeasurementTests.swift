@@ -70,4 +70,17 @@ final class FloatingPointCounterMeasurementTests: XCTestCase {
         let counter = FloatingPointCounter(name: "my_floating_point_counter", attributes: [])
         XCTAssertEqual(counter.measure(instant: .constant(42)).data.asSum?.points.first?.timeNanosecondsSinceEpoch, 42)
     }
+
+    func test_measure_withDeltaTemporality_returnsDeltaSum() {
+        let counter = FloatingPointCounter(name: "my_floating_point_counter", attributes: [], temporality: .delta)
+        counter.measure().data.assertIsDeltaSumWithOneValue(.double(0))
+
+        counter.increment(by: 5.5)
+        counter.measure().data.assertIsDeltaSumWithOneValue(.double(5.5))
+
+        counter.measure().data.assertIsDeltaSumWithOneValue(.double(0))
+
+        counter.increment(by: 2.5)
+        counter.measure().data.assertIsDeltaSumWithOneValue(.double(2.5))
+    }
 }
