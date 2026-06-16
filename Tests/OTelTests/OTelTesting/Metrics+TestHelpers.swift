@@ -70,6 +70,11 @@ extension OTelMetricPoint.OTelMetricData {
         return histogram
     }
 
+    var asExponentialHistogram: OTelExponentialHistogram? {
+        guard case .exponentialHistogram(let histogram) = data else { return nil }
+        return histogram
+    }
+
     func assertIsCumulativeSumWithOneValue(_ value: OTelNumberDataPoint.Value, file: StaticString = #filePath, line: UInt = #line) {
         assertIsSumWithOneValue(value, temporality: .cumulative, file: file, line: line)
     }

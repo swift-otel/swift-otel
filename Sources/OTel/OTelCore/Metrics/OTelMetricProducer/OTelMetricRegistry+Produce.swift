@@ -21,6 +21,8 @@ extension OTelMetricRegistry: OTelMetricProducer {
         appendGrouped(metrics.gauges, to: &buffer)
         appendGrouped(metrics.durationHistograms, to: &buffer)
         appendGrouped(metrics.valueHistograms, to: &buffer)
+        appendGrouped(metrics.durationExponentialHistograms, to: &buffer)
+        appendGrouped(metrics.valueExponentialHistograms, to: &buffer)
         return buffer
     }
 
@@ -68,6 +70,10 @@ extension OTelMetricPoint.OTelMetricData.Data {
             guard case .histogram(let other) = other else { preconditionFailure(Self.kindMismatch) }
             data.points.append(contentsOf: other.points)
             self = .histogram(data)
+        case .exponentialHistogram(var data):
+            guard case .exponentialHistogram(let other) = other else { preconditionFailure(Self.kindMismatch) }
+            data.points.append(contentsOf: other.points)
+            self = .exponentialHistogram(data)
         }
     }
 

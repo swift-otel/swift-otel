@@ -59,6 +59,27 @@ extension OTLPMetricsFactory {
     ///
     /// - Seealso: See the static property ``default`` for details on the default configuration values.
     struct Configuration: Sendable {
+        /// Which histogram implementation to use for a given metric.
+        enum HistogramType: Sendable {
+            case explicitBucket
+            case exponential(maxSize: Int = expoDefaultMaxSize, maxScale: Int32 = expoMaxScale)
+
+            init(_ type: OTel.Configuration.MetricsConfiguration.HistogramType) {
+                switch type.backing {
+                case .explicitBucket:
+                    self = .explicitBucket
+                case .exponential(let maxSize, let maxScale):
+                    self = .exponential(maxSize: maxSize, maxScale: Int32(maxScale))
+                }
+            }
+        }
+
+        /// The default histogram type for metrics that don't have a per-label override.
+        var defaultHistogramType: HistogramType = .explicitBucket
+
+        /// Per-label histogram type overrides.
+        var histogramTypes: [String: HistogramType] = [:]
+
         /// The default bucket upper bounds for duration histograms created for a Swift Metrics `Timer`.
         var defaultDurationHistogramBuckets: [Duration]
 
@@ -148,6 +169,8 @@ extension OTLPMetricsFactory {
         /// [0]: https://github.com/open-telemetry/opentelemetry-specification/blob/v1.29.0/specification/metrics/sdk.md#explicit-bucket-histogram-aggregation
         /// [1]: https://github.com/open-telemetry/opentelemetry-specification/blob/v1.29.0/specification/metrics/sdk.md#duplicate-instrument-registration
         static let `default` = Self(
+            defaultHistogramType: .explicitBucket,
+            histogramTypes: [:],
             defaultDurationHistogramBuckets: defaultOTelHistogramBuckets.map(Duration.milliseconds),
             durationHistogramBuckets: [:],
             defaultValueHistogramBuckets: defaultOTelHistogramBuckets,
@@ -186,8 +209,13 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
         guard aggregate else {
             return registry.makeGauge(name: label, unit: unit, description: description, attributes: attributes)
         }
-        let buckets = configuration.valueHistogramBuckets[label] ?? configuration.defaultValueHistogramBuckets
-        return registry.makeValueHistogram(name: label, unit: unit, description: description, attributes: attributes, buckets: buckets)
+        switch configuration.histogramTypes[label] ?? configuration.defaultHistogramType {
+        case .explicitBucket:
+            let buckets = configuration.valueHistogramBuckets[label] ?? configuration.defaultValueHistogramBuckets
+            return registry.makeValueHistogram(name: label, unit: unit, description: description, attributes: attributes, buckets: buckets)
+        case .exponential(let maxSize, let maxScale):
+            return registry.makeValueExponentialHistogram(name: label, unit: unit, description: description, attributes: attributes, maxSize: maxSize, maxScale: maxScale)
+        }
     }
 
     func makeMeter(label: String, dimensions: [(String, String)]) -> CoreMetrics.MeterHandler {
@@ -203,8 +231,13 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
             return NOOPMetricsHandler.instance.makeTimer(label: label, dimensions: dimensions)
         }
         let (unit, description, attributes) = extractIdentifyingFieldsAndAttributes(from: dimensions)
-        let buckets = configuration.durationHistogramBuckets[label] ?? configuration.defaultDurationHistogramBuckets
-        return registry.makeDurationHistogram(name: label, unit: unit, description: description, attributes: attributes, buckets: buckets)
+        switch configuration.histogramTypes[label] ?? configuration.defaultHistogramType {
+        case .explicitBucket:
+            let buckets = configuration.durationHistogramBuckets[label] ?? configuration.defaultDurationHistogramBuckets
+            return registry.makeDurationHistogram(name: label, unit: unit, description: description, attributes: attributes, buckets: buckets)
+        case .exponential(let maxSize, let maxScale):
+            return registry.makeDurationExponentialHistogram(name: label, unit: unit, description: description, attributes: attributes, maxSize: maxSize, maxScale: maxScale)
+        }
     }
 
     func destroyCounter(_ handler: CoreMetrics.CounterHandler) {
@@ -227,6 +260,8 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
             registry.unregisterGauge(gauge)
         case let histogram as Histogram<Double>:
             registry.unregisterValueHistogram(histogram)
+        case let histogram as ExponentialHistogram<Double>:
+            registry.unregisterValueExponentialHistogram(histogram)
         default:
             break
         }
@@ -240,10 +275,14 @@ extension OTLPMetricsFactory: CoreMetrics.MetricsFactory {
     }
 
     func destroyTimer(_ handler: CoreMetrics.TimerHandler) {
-        guard let histogram = handler as? Histogram<Duration> else {
-            return
+        switch handler {
+        case let histogram as Histogram<Duration>:
+            registry.unregisterDurationHistogram(histogram)
+        case let histogram as ExponentialHistogram<Duration>:
+            registry.unregisterDurationExponentialHistogram(histogram)
+        default:
+            break
         }
-        registry.unregisterDurationHistogram(histogram)
     }
 }
 

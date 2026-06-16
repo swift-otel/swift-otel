@@ -28,6 +28,8 @@ final class OTelMetricRegistry: Sendable {
         var gauges = [InstrumentIdentifier: [Set<Attribute>: Gauge]]()
         var valueHistograms = [InstrumentIdentifier: [Set<Attribute>: ValueHistogram]]()
         var durationHistograms = [InstrumentIdentifier: [Set<Attribute>: DurationHistogram]]()
+        var valueExponentialHistograms = [InstrumentIdentifier: [Set<Attribute>: ValueExponentialHistogram]]()
+        var durationExponentialHistograms = [InstrumentIdentifier: [Set<Attribute>: DurationExponentialHistogram]]()
 
         var registrations = [String: Set<InstrumentIdentifier>]()
         let duplicateRegistrationHandler: DuplicateRegistrationHandler?
@@ -188,6 +190,44 @@ final class OTelMetricRegistry: Sendable {
         }
     }
 
+    func makeDurationExponentialHistogram(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = [], maxSize: Int = expoDefaultMaxSize, maxScale: Int32 = expoMaxScale) -> DurationExponentialHistogram {
+        storage.withLockedValue { storage in
+            let identifier = InstrumentIdentifier.exponentialHistogram(name: name, unit: unit, description: description)
+            if var existingInstruments = storage.durationExponentialHistograms[identifier] {
+                if let existingInstrument = existingInstruments[attributes] {
+                    return existingInstrument
+                }
+                let newInstrument = DurationExponentialHistogram(name: name, unit: unit, description: description, attributes: attributes, maxSize: maxSize, maxScale: maxScale, temporality: temporality)
+                existingInstruments[attributes] = newInstrument
+                storage.durationExponentialHistograms[identifier] = existingInstruments
+                return newInstrument
+            }
+            storage.register(identifier, forName: name)
+            let newInstrument = DurationExponentialHistogram(name: name, unit: unit, description: description, attributes: attributes, maxSize: maxSize, maxScale: maxScale, temporality: temporality)
+            storage.durationExponentialHistograms[identifier] = [attributes: newInstrument]
+            return newInstrument
+        }
+    }
+
+    func makeValueExponentialHistogram(name: String, unit: String? = nil, description: String? = nil, attributes: Set<Attribute> = [], maxSize: Int = expoDefaultMaxSize, maxScale: Int32 = expoMaxScale) -> ValueExponentialHistogram {
+        storage.withLockedValue { storage in
+            let identifier = InstrumentIdentifier.exponentialHistogram(name: name, unit: unit, description: description)
+            if var existingInstruments = storage.valueExponentialHistograms[identifier] {
+                if let existingInstrument = existingInstruments[attributes] {
+                    return existingInstrument
+                }
+                let newInstrument = ValueExponentialHistogram(name: name, unit: unit, description: description, attributes: attributes, maxSize: maxSize, maxScale: maxScale, temporality: temporality)
+                existingInstruments[attributes] = newInstrument
+                storage.valueExponentialHistograms[identifier] = existingInstruments
+                return newInstrument
+            }
+            storage.register(identifier, forName: name)
+            let newInstrument = ValueExponentialHistogram(name: name, unit: unit, description: description, attributes: attributes, maxSize: maxSize, maxScale: maxScale, temporality: temporality)
+            storage.valueExponentialHistograms[identifier] = [attributes: newInstrument]
+            return newInstrument
+        }
+    }
+
     func unregisterCounter(_ counter: Counter) {
         let identifier = counter.instrumentIdentifier
         self.storage.withLockedValue { storage in
@@ -262,13 +302,43 @@ final class OTelMetricRegistry: Sendable {
             }
         }
     }
+
+    func unregisterDurationExponentialHistogram(_ histogram: DurationExponentialHistogram) {
+        let identifier = histogram.instrumentIdentifier
+        self.storage.withLockedValue { storage in
+            if var existingInstrument = storage.durationExponentialHistograms[identifier] {
+                existingInstrument.removeValue(forKey: histogram.attributes)
+                if existingInstrument.isEmpty {
+                    storage.durationExponentialHistograms.removeValue(forKey: identifier)
+                    storage.unregister(identifier, forName: identifier.name)
+                } else {
+                    storage.durationExponentialHistograms[identifier] = existingInstrument
+                }
+            }
+        }
+    }
+
+    func unregisterValueExponentialHistogram(_ histogram: ValueExponentialHistogram) {
+        let identifier = histogram.instrumentIdentifier
+        self.storage.withLockedValue { storage in
+            if var existingInstrument = storage.valueExponentialHistograms[identifier] {
+                existingInstrument.removeValue(forKey: histogram.attributes)
+                if existingInstrument.isEmpty {
+                    storage.valueExponentialHistograms.removeValue(forKey: identifier)
+                    storage.unregister(identifier, forName: identifier.name)
+                } else {
+                    storage.valueExponentialHistograms[identifier] = existingInstrument
+                }
+            }
+        }
+    }
 }
 
 struct InstrumentIdentifier: Equatable, Hashable, Sendable {
     var name: String
     var unit: String?
     var description: String?
-    enum InstrumentKind { case counter, floatingPointCounter, gauge, histogram }
+    enum InstrumentKind { case counter, floatingPointCounter, gauge, histogram, exponentialHistogram }
     var kind: InstrumentKind
 
     private init(name: String, unit: String? = nil, description: String? = nil, kind: InstrumentKind) {
@@ -293,6 +363,10 @@ struct InstrumentIdentifier: Equatable, Hashable, Sendable {
     static func histogram(name: String, unit: String? = nil, description: String? = nil) -> Self {
         self.init(name: name, unit: unit, description: description, kind: .histogram)
     }
+
+    static func exponentialHistogram(name: String, unit: String? = nil, description: String? = nil) -> Self {
+        self.init(name: name, unit: unit, description: description, kind: .exponentialHistogram)
+    }
 }
 
 protocol IdentifiableInstrument {
@@ -313,6 +387,10 @@ extension Gauge: IdentifiableInstrument {
 
 extension Histogram: IdentifiableInstrument {
     var instrumentIdentifier: InstrumentIdentifier { .histogram(name: name, unit: unit, description: description) }
+}
+
+extension ExponentialHistogram: IdentifiableInstrument {
+    var instrumentIdentifier: InstrumentIdentifier { .exponentialHistogram(name: name, unit: unit, description: description) }
 }
 
 protocol DuplicateRegistrationHandler: Sendable {

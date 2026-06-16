@@ -909,6 +909,22 @@ import Tracing
             }
             #expect("\(error)" == #"invalidConfiguration("makeTracingBackend called but config has traces disabled")"#)
         }
+        do {
+            let error = try #require(throws: (any Error).self) {
+                var config = OTel.Configuration.default
+                config.metrics.defaultHistogramType = .exponential(maxSize: 0)
+                _ = try OTel.makeMetricsBackend(configuration: config)
+            }
+            #expect("\(error)" == #"invalidConfiguration("exponential histogram maxSize must be at least 1, got 0")"#)
+        }
+        do {
+            let error = try #require(throws: (any Error).self) {
+                var config = OTel.Configuration.default
+                config.metrics.defaultHistogramType = .exponential(maxScale: 50)
+                _ = try OTel.makeMetricsBackend(configuration: config)
+            }
+            #expect("\(error)" == #"invalidConfiguration("exponential histogram maxScale must be in -10...20, got 50")"#)
+        }
     }
 
     @available(gRPCSwift, *)

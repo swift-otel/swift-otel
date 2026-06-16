@@ -450,6 +450,8 @@ extension OTel.Configuration.MetricsConfiguration {
             durationHistogramBuckets: durationHistogramBuckets,
             defaultValueHistogramBuckets: defaultValueHistogramBuckets,
             valueHistogramBuckets: valueHistogramBuckets,
+            defaultHistogramType: Self.default.defaultHistogramType,
+            histogramTypes: Self.default.histogramTypes,
             exporter: exporter,
             otlpExporter: otlpExporter,
             temporalityPreference: .cumulative,

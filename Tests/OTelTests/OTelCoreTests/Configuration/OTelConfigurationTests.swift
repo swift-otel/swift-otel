@@ -506,6 +506,51 @@ import Testing
         ]).metrics.temporalityPreference.backing == .cumulative)
     }
 
+    @Test func metricsHistogramTypeDefaults() {
+        let config = OTel.Configuration.default
+        if case .explicitBucket = config.metrics.defaultHistogramType.backing {} else {
+            Issue.record("expected default histogram type to be .explicitBucket")
+        }
+        #expect(config.metrics.histogramTypes.isEmpty)
+    }
+
+    @Test func metricsHistogramTypeExponential() {
+        let exponential = OTel.Configuration.MetricsConfiguration.HistogramType.exponential(maxSize: 80, maxScale: 10)
+        guard case .exponential(let maxSize, let maxScale) = exponential.backing else {
+            Issue.record("expected .exponential")
+            return
+        }
+        #expect(maxSize == 80)
+        #expect(maxScale == 10)
+    }
+
+    @Test func metricsDefaultHistogramAggregation() {
+        if case .explicitBucket = OTel.Configuration.default.metrics.defaultHistogramType.backing {} else {
+            Issue.record("expected default to be .explicitBucket")
+        }
+
+        let exponentialOverride = OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION": "base2_exponential_bucket_histogram",
+        ]).metrics.defaultHistogramType
+        if case .exponential = exponentialOverride.backing {} else {
+            Issue.record("expected .exponential")
+        }
+
+        let explicitOverride = OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION": "explicit_bucket_histogram",
+        ]).metrics.defaultHistogramType
+        if case .explicitBucket = explicitOverride.backing {} else {
+            Issue.record("expected .explicitBucket")
+        }
+
+        let invalidOverride = OTel.Configuration.default.applyingEnvironmentOverrides(environment: [
+            "OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION": "mumble",
+        ]).metrics.defaultHistogramType
+        if case .explicitBucket = invalidOverride.backing {} else {
+            Issue.record("expected fallback to .explicitBucket")
+        }
+    }
+
     // OTEL_LOGS_EXPORTER
     // https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_logs_exporter

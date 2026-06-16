@@ -236,6 +236,19 @@ extension OTel {
         guard resolvedConfiguration.metrics.enabled else {
             throw OTel.Configuration.Error.invalidConfiguration("makeMetricsBackend called but config has metrics disabled")
         }
+        for type in [resolvedConfiguration.metrics.defaultHistogramType] + resolvedConfiguration.metrics.histogramTypes.values {
+            guard case .exponential(let maxSize, let maxScale) = type.backing else { continue }
+            guard maxSize >= 1 else {
+                throw OTel.Configuration.Error.invalidConfiguration(
+                    "exponential histogram maxSize must be at least 1, got \(maxSize)"
+                )
+            }
+            guard (Int(expoMinScale) ... Int(expoMaxScale)).contains(maxScale) else {
+                throw OTel.Configuration.Error.invalidConfiguration(
+                    "exponential histogram maxScale must be in \(expoMinScale)...\(expoMaxScale), got \(maxScale)"
+                )
+            }
+        }
         let resource = OTelResource(configuration: resolvedConfiguration)
         let temporality: OTelAggregationTemporality = switch resolvedConfiguration.metrics.temporalityPreference.backing {
         case .cumulative: .cumulative
@@ -245,6 +258,8 @@ extension OTel {
         let factory = OTLPMetricsFactory(
             registry: registry,
             configuration: .init(
+                defaultHistogramType: .init(resolvedConfiguration.metrics.defaultHistogramType),
+                histogramTypes: resolvedConfiguration.metrics.histogramTypes.mapValues(OTLPMetricsFactory.Configuration.HistogramType.init),
                 defaultDurationHistogramBuckets: resolvedConfiguration.metrics.defaultDurationHistogramBuckets,
                 durationHistogramBuckets: resolvedConfiguration.metrics.durationHistogramBuckets,
                 defaultValueHistogramBuckets: resolvedConfiguration.metrics.defaultValueHistogramBuckets,
