@@ -25,4 +25,14 @@ extension ServiceContext {
         context.spanContext = .localStub(traceID: traceID)
         return context
     }
+
+    /// A top-level service context with a span context using the given trace flags.
+    ///
+    /// - Parameter traceFlags: The trace flags to store inside the service context's span context.
+    /// - Returns: A top-level service context with a span context using `traceFlags`.
+    static func withTraceFlags(_ traceFlags: TraceFlags) -> ServiceContext {
+        var context = ServiceContext.topLevel
+        context.spanContext = .localStub(traceFlags: traceFlags)
+        return context
+    }
 }
