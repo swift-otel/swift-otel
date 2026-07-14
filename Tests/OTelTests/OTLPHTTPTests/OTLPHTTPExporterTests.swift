@@ -771,6 +771,51 @@ import Tracing
             #expect(handlerInvocations.withLockedValue { $0 } == 1)
         }
     }
+
+    @Test func testExportFailureHandlerNotInvokedForNon401Failures() async throws {
+        try await withThrowingTaskGroup { group in
+            let testServer = NIOHTTP1TestServer(group: .singletonMultiThreadedEventLoopGroup)
+            defer { #expect(throws: Never.self) { try testServer.stop() } }
+
+            let handlerInvocations = NIOLockedValueBox(0)
+
+            group.addTask {
+                var config = OTel.Configuration.OTLPExporterConfiguration.default
+                config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
+                config.protocol = .httpProtobuf
+                config.headers = [("Authorization", "Bearer expired")]
+                config.onExportFailure = { _ in
+                    handlerInvocations.withLockedValue { $0 += 1 }
+                    return .retry(configuration: .init(headers: [("Authorization", "Bearer refreshed")]))
+                }
+                let exporter = try OTLPHTTPSpanExporter(configuration: config)
+                let span = OTelFinishedSpan.stub()
+                // A non-401 failure should surface as an error without consulting the handler.
+                await #expect(throws: (any Error).self) { try await exporter.export([span]) }
+            }
+
+            // Test 500 Internal Server Error
+            try testServer.receiveHeadAndVerify { head in
+                #expect(head.headers["Authorization"] == ["Bearer expired"])
+            }
+            _ = try testServer.receiveBody()
+            _ = try testServer.receiveEnd()
+            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .internalServerError)))
+            try testServer.writeOutbound(.end(nil))
+
+            // Test 403 Forbidden
+            try testServer.receiveHeadAndVerify { head in
+                #expect(head.headers["Authorization"] == ["Bearer expired"])
+            }
+            _ = try testServer.receiveBody()
+            _ = try testServer.receiveEnd()
+            try testServer.writeOutbound(.head(.init(version: .http1_1, status: .forbidden)))
+            try testServer.writeOutbound(.end(nil))
+
+            try await group.waitForAll()
+            #expect(handlerInvocations.withLockedValue { $0 } == 0)
+        }
+    }
 }
 
 extension HTTPClient.RetryPolicy.RetryDecision {
