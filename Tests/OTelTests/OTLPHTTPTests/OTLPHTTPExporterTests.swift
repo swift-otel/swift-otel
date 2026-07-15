@@ -790,7 +790,8 @@ import Tracing
                 }
                 let exporter = try OTLPHTTPSpanExporter(configuration: config)
                 let span = OTelFinishedSpan.stub()
-                // A non-401 failure should surface as an error without consulting the handler.
+                // Non-401 failures should surface as errors without consulting the handler.
+                await #expect(throws: (any Error).self) { try await exporter.export([span]) }
                 await #expect(throws: (any Error).self) { try await exporter.export([span]) }
             }
 
