@@ -1041,7 +1041,7 @@ extension OTel.Configuration.OTLPExporterConfiguration {
     }
 
     /// Information about an export failure passed to the ``ExportFailureHandler``.
-    public struct ExportFailure {
+    public struct ExportFailure: Sendable {
         /// The current configuration of the exporter at the time of failure.
         public let configuration: DynamicExportConfiguration
     }
