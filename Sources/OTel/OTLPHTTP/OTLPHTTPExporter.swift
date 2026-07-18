@@ -28,6 +28,7 @@ import struct FoundationEssentials.URL
 import class Foundation.FileManager
 import struct Foundation.URL
 #endif
+import struct NIOConcurrencyHelpers.NIOLockedValueBox
 package import struct NIOCore.ByteBuffer
 package import struct NIOCore.TimeAmount
 
@@ -35,11 +36,13 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
     private let logger: Logger
     let configuration: OTel.Configuration.OTLPExporterConfiguration
     let httpClient: HTTPClient
+    private let dynamicState: NIOLockedValueBox<OTel.Configuration.OTLPExporterConfiguration.DynamicExportConfiguration>
 
     init(configuration: OTel.Configuration.OTLPExporterConfiguration, logger: Logger) throws {
         self.logger = logger
         self.configuration = configuration
         self.httpClient = try HTTPClient(configuration: configuration)
+        self.dynamicState = NIOLockedValueBox(.init(headers: configuration.headers))
     }
 
     deinit {
@@ -60,10 +63,27 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
     }
 
     func send(_ proto: Request) async throws -> Response {
+        let response = try await sendOnce(proto)
+        if response.status.code == 401, let handler = configuration.onExportFailure {
+            let snapshot = dynamicState.withLockedValue { $0 }
+            switch await handler(.init(configuration: snapshot)) {
+            case .retry(configuration: let updated):
+                dynamicState.withLockedValue { $0 = updated }
+                let retryResponse = try await sendOnce(proto)
+                return try await parseResponse(retryResponse)
+            case .discard:
+                throw OTLPHTTPExporterError.requestFailed(response.status)
+            }
+        }
+        return try await parseResponse(response)
+    }
+
+    private func sendOnce(_ proto: Request) async throws -> HTTPClientResponse {
         // https://opentelemetry.io/docs/specs/otlp/#otlphttp-request
         var request = HTTPClientRequest(url: self.configuration.endpoint)
         request.method = .POST
-        for (name, value) in configuration.headers {
+        let headers = dynamicState.withLockedValue { $0.headers }
+        for (name, value) in headers {
             request.headers.add(name: name, value: value)
         }
         switch self.configuration.protocol.backing {
@@ -91,13 +111,15 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         request.headers.replaceOrAdd(name: "Connection", value: "keep-alive")
 
         // https://opentelemetry.io/docs/specs/otlp/#otlphttp-response
-        let response = try await self.httpClient.execute(
+        return try await self.httpClient.execute(
             request,
             timeout: .init(self.configuration.timeout),
             logger: self.logger,
             retryPolicy: .otel
         )
+    }
 
+    private func parseResponse(_ response: HTTPClientResponse) async throws -> Response {
         guard 200 ... 299 ~= response.status.code else {
             // https://opentelemetry.io/docs/specs/otlp/#failures
             // TODO: Apparently failures include Protobuf-encoded GRPC Status -- we could try and include it here.

@@ -87,13 +87,28 @@ final class RecordingService<Request, Response>: Sendable where Request: Message
     }
 
     private let recordedRequestsBox = NIOLockedValueBox<[RecordedRequest]>([])
+    private let queuedErrorsBox = NIOLockedValueBox<[RPCError]>([])
     var requests: [RecordedRequest] {
         get { recordedRequestsBox.withLockedValue { $0 } }
         set { recordedRequestsBox.withLockedValue { $0 = newValue } }
     }
 
+    /// Enqueue an `RPCError` to be thrown for the next incoming request. Errors are consumed FIFO; any request that
+    /// arrives with an empty queue receives a default success response.
+    func enqueueError(_ error: RPCError) {
+        queuedErrorsBox.withLockedValue { $0.append(error) }
+    }
+
     func export(request: ServerRequest<Request>, context: ServerContext) async throws -> ServerResponse<Response> {
-        requests.append(RecordedRequest(message: request.message, context: context, metadata: request.metadata))
+        recordedRequestsBox.withLockedValue {
+            $0.append(RecordedRequest(message: request.message, context: context, metadata: request.metadata))
+        }
+        let queuedError = queuedErrorsBox.withLockedValue { errors -> RPCError? in
+            errors.isEmpty ? nil : errors.removeFirst()
+        }
+        if let queuedError {
+            throw queuedError
+        }
         return ServerResponse(message: Response())
     }
 }
