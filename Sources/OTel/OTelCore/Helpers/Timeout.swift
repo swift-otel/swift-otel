@@ -34,7 +34,7 @@ func withTimeout<T: Sendable, Clock: _Concurrency.Clock>(
         let operation = operation()
         group.addTask {
             do {
-                try await clock.sleep(for: timeout, tolerance: .zero)
+                try await clock.sleep(until: clock.now.advanced(by: timeout), tolerance: .zero)
                 return .timedOut
             } catch {
                 return .cancelled
