@@ -132,7 +132,7 @@ extension OTelTracer: Tracer {
     ) -> OTelSpan {
         // Fast-path for constant sampler.
         // This breaks the OTel spec, which says a dropped span should still get a fresh, propagatable
-        // context, but we value the performance of this common always-on/always-off case more.
+        // context, but we value the performance of this common always-off case more.
         // — source: https://opentelemetry.io/docs/specs/otel/trace/sdk/#sdk-span-creation
         if case .constant(let sampler) = sampler, sampler.decision == .drop { return noOpSpan }
 
