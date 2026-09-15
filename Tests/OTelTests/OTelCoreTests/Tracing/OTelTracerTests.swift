@@ -145,6 +145,49 @@ final class OTelTracerTests: XCTestCase {
         XCTAssertNil(span.context.spanContext)
     }
 
+    func test_startSpan_whenDynamicSamplerDrops_propagatesSpanContext() throws {
+        let idGenerator = OTelConstantIDGenerator(traceID: .oneToSixteen, spanID: .oneToEight)
+        let sampler = OTelInlineSampler { _, _, _, _, _, _ in .init(decision: .drop) }
+        let propagator = OTelW3CPropagator()
+        let processor = OTelNoOpSpanProcessor()
+
+        let tracer = OTelTracer(
+            idGenerator: idGenerator,
+            sampler: .other(sampler),
+            propagator: propagator,
+            processor: processor,
+            resource: OTelResource()
+        )
+
+        let randomIDGenerator = OTelRandomIDGenerator()
+        let traceID = randomIDGenerator.nextTraceID()
+        let parentSpanID = randomIDGenerator.nextSpanID()
+        let traceState = TraceState([(.simple("foo"), "bar")])
+
+        var parentContext = ServiceContext.topLevel
+        parentContext.spanContext = OTelSpanContext.remoteStub(
+            traceID: traceID,
+            spanID: parentSpanID,
+            traceFlags: .sampled,
+            traceState: traceState
+        )
+
+        let span = tracer.startSpan("test", context: parentContext)
+        XCTAssertFalse(span.isRecording)
+
+        let spanContext = try XCTUnwrap(span.context.spanContext)
+        XCTAssertEqual(
+            spanContext,
+            .local(
+                traceID: traceID,
+                spanID: .oneToEight,
+                parentSpanID: parentSpanID,
+                traceFlags: [],
+                traceState: traceState
+            )
+        )
+    }
+
     func test_startSpan_onSpanEnd_whenSpanIsSampled_forwardsSpanToProcessor() async throws {
         let idGenerator = OTelRandomIDGenerator()
         let sampler = OTelConstantSampler(isOn: true)
@@ -276,7 +319,7 @@ final class OTelTracerTests: XCTestCase {
         )
 
         let span = tracer.startSpan("test")
-        XCTAssertIdentical(span, tracer.activeSpan(identifiedBy: span.context))
+        XCTAssertEqual(tracer.activeSpan(identifiedBy: span.context)?.context.spanContext, span.context.spanContext)
     }
 
     func test_spanIdentifiedByServiceContext_withSpanContext_identifyingEndedSpan_returnsNil() async {

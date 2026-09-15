@@ -131,6 +131,9 @@ extension OTelTracer: Tracer {
         line: UInt
     ) -> OTelSpan {
         // Fast-path for constant sampler.
+        // This breaks the OTel spec, which says a dropped span should still get a fresh, propagatable
+        // context, but we value the performance of this common always-off case more.
+        // — source: https://opentelemetry.io/docs/specs/otel/trace/sdk/#sdk-span-creation
         if case .constant(let sampler) = sampler, sampler.decision == .drop { return noOpSpan }
 
         let parentContext = context()
@@ -154,24 +157,24 @@ extension OTelTracer: Tracer {
             parentContext: parentContext
         )
 
+        let spanID = idGenerator.nextSpanID()
+        var childContext = parentContext
+
+        let traceFlags: TraceFlags = samplingResult.decision == .recordAndSample ? .sampled : []
+        let spanContext = OTelSpanContext.local(
+            traceID: traceID,
+            spanID: spanID,
+            parentSpanID: parentContext.spanContext?.spanID,
+            traceFlags: traceFlags,
+            traceState: traceState
+        )
+        childContext.spanContext = spanContext
+
         switch samplingResult.decision {
         case .drop:
-            return noOpSpan
+            return OTelSpan.noOp(NoOpTracer.NoOpSpan(context: childContext))
 
         case .record, .recordAndSample:
-            let spanID = idGenerator.nextSpanID()
-            var childContext = parentContext
-
-            let traceFlags: TraceFlags = samplingResult.decision == .recordAndSample ? .sampled : []
-            let spanContext = OTelSpanContext.local(
-                traceID: traceID,
-                spanID: spanID,
-                parentSpanID: parentContext.spanContext?.spanID,
-                traceFlags: traceFlags,
-                traceState: traceState
-            )
-            childContext.spanContext = spanContext
-
             let recordingSpan = OTelSpan.recording(
                 operationName: operationName,
                 kind: kind,
