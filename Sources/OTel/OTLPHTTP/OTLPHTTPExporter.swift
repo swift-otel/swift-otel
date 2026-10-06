@@ -65,6 +65,7 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
     func send(_ proto: Request) async throws -> Response {
         let response = try await sendOnce(proto)
         if response.status.code == 401, let handler = configuration.onExportFailure {
+            await response.discardBody()
             let snapshot = dynamicState.withLockedValue { $0 }
             switch await handler(.init(configuration: snapshot)) {
             case .retry(configuration: let updated):
@@ -123,11 +124,12 @@ final class OTLPHTTPExporter<Request: Message, Response: Message>: Sendable {
         guard 200 ... 299 ~= response.status.code else {
             // https://opentelemetry.io/docs/specs/otlp/#failures
             // TODO: Apparently failures include Protobuf-encoded GRPC Status -- we could try and include it here.
+            await response.discardBody()
             throw OTLPHTTPExporterError.requestFailed(response.status)
         }
 
         // https://opentelemetry.io/docs/specs/otlp/#full-success-1
-        let body = try await response.body.collect(upTo: 2 * 1024 * 1024)
+        let body = try await response.body.collect(upTo: Constant.maximumResponseBodySize)
         let responseMessage = switch response.headers.first(name: "Content-Type") {
         case "application/x-protobuf", "application/x-protobuf; charset=UTF-8", "application/x-protobuf; charset=utf-8":
             try Response(serializedBytes: ByteBufferWrapper(backing: body))
@@ -172,6 +174,10 @@ extension HTTPClient {
             configuration: .init(configuration: configuration)
         )
     }
+}
+
+private enum Constant {
+    static let maximumResponseBodySize = 2 * 1024 * 1024
 }
 
 extension HTTPClient.Configuration {
@@ -308,6 +314,7 @@ extension HTTPClient {
             return response
         case .retryAfter(let delay):
             logger?.debug("Retrying request.", metadata: ["status_code": "\(response.status.code)"])
+            await response.discardBody()
             try await _Concurrency.Task.sleep(for: delay, clock: clock)
             return try await self.execute(
                 request,
@@ -317,6 +324,17 @@ extension HTTPClient {
                 retryPolicy: retryPolicy
             )
         }
+    }
+}
+
+extension HTTPClientResponse {
+    /// Consumes and discards the response body.
+    ///
+    /// Dropping a response without consuming its body cancels the request, which closes the underlying connection.
+    /// Draining the body instead allows the connection to be reused, e.g. for a subsequent retry.
+    /// In case the body exceeds the maximum response body size the underlying connection will still be closed.
+    func discardBody() async {
+        _ = try? await self.body.collect(upTo: Constant.maximumResponseBodySize)
     }
 }
 
