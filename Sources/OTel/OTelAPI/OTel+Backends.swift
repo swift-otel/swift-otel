@@ -387,7 +387,7 @@ extension OTel {
         let exporter = try WrappedSpanExporter(configuration: resolvedConfiguration, logger: logger)
         let processor = OTelBatchSpanProcessor(exporter: exporter, configuration: resolvedConfiguration.traces.batchSpanProcessor, logger: logger)
         let tracer = OTelTracer(
-            idGenerator: OTelRandomIDGenerator(),
+            idGenerator: SystemRandomNumberGenerator(),
             sampler: sampler,
             propagator: propagator,
             processor: processor,
