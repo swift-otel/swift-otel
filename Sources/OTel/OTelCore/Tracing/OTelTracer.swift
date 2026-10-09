@@ -19,26 +19,20 @@ import W3CTraceContext
 
 /// An OpenTelemetry tracer implementing the Swift Distributed Tracing `Tracer` protocol.
 ///
+/// The tracer has value semantics with respect to its ID generator: calling ``setIDGenerator(_:)`` only affects
+/// the mutated copy, while all copies share the same sampler, processor, event stream, and recording spans.
+///
 /// [OpenTelemetry Specification: Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.20.0/specification/trace/api.md#tracer)
-final class OTelTracer<
-    IDGenerator: OTelIDGenerator,
+struct OTelTracer<
     Propagator: OTelPropagator,
     Processor: OTelSpanProcessor,
     Clock: _Concurrency.Clock
 >: Sendable where Clock.Duration == Duration {
-    private let idGenerator: IDGenerator
-    private let sampler: WrappedSampler
-    private let propagator: Propagator
-    private let processor: Processor
-    private let resource: OTelResource
-    private let logger: Logger
-
-    private let eventStream: AsyncStream<Event>
-    private let eventStreamContinuation: AsyncStream<Event>.Continuation
-    private let recordingSpans = NIOLockedValueBox([OTelSpanContext: OTelSpan]())
+    private let storage: Storage
+    private var idGenerator: NIOLockedValueBox<any RandomNumberGenerator & Sendable>
 
     init(
-        idGenerator: IDGenerator,
+        idGenerator: any RandomNumberGenerator & Sendable,
         sampler: WrappedSampler,
         propagator: Propagator,
         processor: Processor,
@@ -46,13 +40,55 @@ final class OTelTracer<
         logger: Logger,
         clock: Clock
     ) {
-        self.idGenerator = idGenerator
-        self.sampler = sampler
-        self.propagator = propagator
-        self.processor = processor
-        self.logger = logger.withMetadata(component: "OTelTracer")
-        self.resource = resource
-        (eventStream, eventStreamContinuation) = AsyncStream.makeStream()
+        self.idGenerator = .init(idGenerator)
+        self.storage = Storage(
+            sampler: sampler,
+            propagator: propagator,
+            processor: processor,
+            resource: resource,
+            logger: logger.withMetadata(component: "OTelTracer")
+        )
+    }
+
+    /// The state shared by all copies of a tracer.
+    private final class Storage: Sendable {
+        let sampler: WrappedSampler
+        let propagator: Propagator
+        let processor: Processor
+        let resource: OTelResource
+        let logger: Logger
+
+        let eventStream: AsyncStream<Event>
+        let eventStreamContinuation: AsyncStream<Event>.Continuation
+
+        // TODO: this should likely be part of the value type? (look at activeSpan again)
+        let recordingSpans = NIOLockedValueBox([OTelSpanContext: OTelSpan]())
+
+        init(sampler: WrappedSampler, propagator: Propagator, processor: Processor, resource: OTelResource, logger: Logger) {
+            self.sampler = sampler
+            self.propagator = propagator
+            self.processor = processor
+            self.resource = resource
+            self.logger = logger
+            (eventStream, eventStreamContinuation) = AsyncStream.makeStream()
+        }
+
+        func process(_ span: OTelRecordingSpan, endedAt endTimeNanosecondsSinceEpoch: UInt64) {
+            guard let spanContext = span.context.spanContext else { return }
+            let finishedSpan = OTelFinishedSpan(
+                spanContext: spanContext,
+                operationName: span.operationName,
+                kind: span.kind,
+                status: span.status,
+                startTimeNanosecondsSinceEpoch: span.startTimeNanosecondsSinceEpoch,
+                endTimeNanosecondsSinceEpoch: endTimeNanosecondsSinceEpoch,
+                attributes: span.attributes,
+                resource: resource,
+                events: span.events,
+                links: span.links
+            )
+            eventStreamContinuation.yield(.spanEnded(finishedSpan))
+        }
     }
 
     private enum Event {
@@ -72,8 +108,8 @@ extension OTelTracer where Clock == ContinuousClock {
     ///   - processor: The processor handling started/ended spans.
     ///   - environment: The environment variables.
     ///   - resource: Attributes about the resource being traced. Should be obtained using <doc:resource-detection>.
-    convenience init(
-        idGenerator: IDGenerator,
+    init(
+        idGenerator: any RandomNumberGenerator & Sendable,
         sampler: WrappedSampler,
         propagator: Propagator,
         processor: Processor,
@@ -94,27 +130,28 @@ extension OTelTracer where Clock == ContinuousClock {
 
 extension OTelTracer: Service {
     func run() async throws {
-        logger.debug("Starting.")
+        let storage = storage
+        storage.logger.debug("Starting.")
         await withGracefulShutdownHandler {
-            for await event in eventStream {
+            for await event in storage.eventStream {
                 // We don't want to propagate the current span's service context into
                 // processing or exporting since it's not part of the span's scope.
                 await ServiceContext.$current.withValue(nil) {
                     switch event {
                     case .spanStarted(let span, let parentContext):
-                        self.processor.onStart(span, parentContext: parentContext)
+                        storage.processor.onStart(span, parentContext: parentContext)
                     case .spanEnded(let span):
-                        self.processor.onEnd(span)
+                        storage.processor.onEnd(span)
                     case .forceFlushed:
-                        try? await self.processor.forceFlush()
+                        try? await storage.processor.forceFlush()
                     }
                 }
             }
         } onGracefulShutdown: {
-            self.logger.debug("Shutting down.")
-            self.eventStreamContinuation.finish()
+            storage.logger.debug("Shutting down.")
+            storage.eventStreamContinuation.finish()
         }
-        logger.debug("Shut down.")
+        storage.logger.debug("Shut down.")
     }
 }
 
@@ -134,7 +171,7 @@ extension OTelTracer: Tracer {
         // This breaks the OTel spec, which says a dropped span should still get a fresh, propagatable
         // context, but we value the performance of this common always-off case more.
         // — source: https://opentelemetry.io/docs/specs/otel/trace/sdk/#sdk-span-creation
-        if case .constant(let sampler) = sampler, sampler.decision == .drop { return noOpSpan }
+        if case .constant(let sampler) = storage.sampler, sampler.decision == .drop { return noOpSpan }
 
         let parentContext = context()
 
@@ -144,11 +181,11 @@ extension OTelTracer: Tracer {
             traceID = parentSpanContext.traceID
             traceState = parentSpanContext.traceState
         } else {
-            traceID = idGenerator.nextTraceID()
+            traceID = idGenerator.withLockedValue { .random(using: &$0) }
             traceState = TraceState()
         }
 
-        let samplingResult = sampler.samplingResult(
+        let samplingResult = storage.sampler.samplingResult(
             operationName: operationName,
             kind: kind,
             traceID: traceID,
@@ -157,7 +194,7 @@ extension OTelTracer: Tracer {
             parentContext: parentContext
         )
 
-        let spanID = idGenerator.nextSpanID()
+        let spanID: SpanID = idGenerator.withLockedValue { .random(using: &$0) }
         var childContext = parentContext
 
         let traceFlags: TraceFlags = samplingResult.decision == .recordAndSample ? .sampled : []
@@ -182,43 +219,30 @@ extension OTelTracer: Tracer {
                 spanContext: spanContext,
                 attributes: samplingResult.attributes,
                 startTimeNanosecondsSinceEpoch: instant().nanosecondsSinceEpoch,
-                onEnd: { [weak self] span, endTimeNanosecondsSinceEpoch in
-                    self?.process(span, endedAt: endTimeNanosecondsSinceEpoch)
-                    self?.recordingSpans.withLockedValue { $0[spanContext] = nil }
+                onEnd: { [weak storage] span, endTimeNanosecondsSinceEpoch in
+                    storage?.process(span, endedAt: endTimeNanosecondsSinceEpoch)
+                    storage?.recordingSpans.withLockedValue { $0[spanContext] = nil }
                 }
             )
-            recordingSpans.withLockedValue { $0[spanContext] = recordingSpan }
+            storage.recordingSpans.withLockedValue { $0[spanContext] = recordingSpan }
             let span = recordingSpan
-            eventStreamContinuation.yield(.spanStarted(span, parentContext: parentContext))
+            storage.eventStreamContinuation.yield(.spanStarted(span, parentContext: parentContext))
             return span
         }
     }
 
     func forceFlush() {
-        eventStreamContinuation.yield(.forceFlushed)
-    }
-
-    private func process(_ span: OTelRecordingSpan, endedAt endTimeNanosecondsSinceEpoch: UInt64) {
-        guard let spanContext = span.context.spanContext else { return }
-        let finishedSpan = OTelFinishedSpan(
-            spanContext: spanContext,
-            operationName: span.operationName,
-            kind: span.kind,
-            status: span.status,
-            startTimeNanosecondsSinceEpoch: span.startTimeNanosecondsSinceEpoch,
-            endTimeNanosecondsSinceEpoch: endTimeNanosecondsSinceEpoch,
-            attributes: span.attributes,
-            resource: resource,
-            events: span.events,
-            links: span.links
-        )
-        eventStreamContinuation.yield(.spanEnded(finishedSpan))
+        storage.eventStreamContinuation.yield(.forceFlushed)
     }
 
     func activeSpan(identifiedBy context: ServiceContext) -> OTelSpan? {
         guard let spanContext = context.spanContext else { return nil }
-        guard let recordingSpan = recordingSpans.withLockedValue({ $0[spanContext] }) else { return nil }
+        guard let recordingSpan = storage.recordingSpans.withLockedValue({ $0[spanContext] }) else { return nil }
         return recordingSpan
+    }
+
+    mutating func setIDGenerator(_ generator: some RandomNumberGenerator & Sendable) {
+        idGenerator = .init(generator)
     }
 }
 
@@ -229,7 +253,7 @@ extension OTelTracer: Instrument {
         using injector: Inject
     ) where Carrier == Inject.Carrier, Inject: Injector {
         guard let spanContext = context.spanContext else { return }
-        propagator.inject(spanContext, into: &carrier, using: injector)
+        storage.propagator.inject(spanContext, into: &carrier, using: injector)
     }
 
     func extract<Carrier, Extract>(
@@ -238,9 +262,9 @@ extension OTelTracer: Instrument {
         using extractor: Extract
     ) where Carrier == Extract.Carrier, Extract: Extractor {
         do {
-            context.spanContext = try propagator.extractSpanContext(from: carrier, using: extractor)
+            context.spanContext = try storage.propagator.extractSpanContext(from: carrier, using: extractor)
         } catch {
-            logger.warning("Failed to extract span context.", error: error, metadata: ["carrier": "\(carrier)"])
+            storage.logger.warning("Failed to extract span context.", error: error, metadata: ["carrier": "\(carrier)"])
         }
     }
 }
