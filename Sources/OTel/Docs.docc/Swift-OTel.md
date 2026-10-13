@@ -27,7 +27,7 @@ An OpenTelemetry Protocol (OTLP) backend for Swift Log, Swift Metrics, and Swift
 Add the dependencies to your package and target:
 
 ```swift
-// swift-tools-version: 6.1
+// swift-tools-version: 6.2
 import PackageDescription
 
 let package = Package(

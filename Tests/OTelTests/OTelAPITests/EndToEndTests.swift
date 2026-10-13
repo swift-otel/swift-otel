@@ -11,7 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) // Swift Testing exit tests only added in 6.2
 #if canImport(FoundationEssentials)
 import struct FoundationEssentials.Data
 #else
@@ -944,4 +943,3 @@ import Tracing
 struct CustomError: Error, CustomStringConvertible {
     var description: String { "custom error" }
 }
-#endif // compiler(>=6.2)

@@ -207,7 +207,7 @@ final class OTelTracerTests: XCTestCase {
         let logger = Logger(label: #function)
         let serviceGroup = ServiceGroup(services: [exporter, processor, tracer], logger: logger)
 
-        Task {
+        _ = Task {
             try await serviceGroup.run()
         }
 
@@ -243,7 +243,7 @@ final class OTelTracerTests: XCTestCase {
         let logger = Logger(label: #function)
         let serviceGroup = ServiceGroup(services: [exporter, processor, tracer], logger: logger)
 
-        Task {
+        _ = Task {
             try await serviceGroup.run()
         }
 
@@ -281,7 +281,7 @@ final class OTelTracerTests: XCTestCase {
         let logger = Logger(label: #function)
         let serviceGroup = ServiceGroup(services: [exporter, processor, tracer], logger: logger)
 
-        Task {
+        _ = Task {
             try await serviceGroup.run()
         }
 
@@ -424,7 +424,7 @@ final class OTelTracerTests: XCTestCase {
 
         let logger = Logger(label: #function)
         let serviceGroup = ServiceGroup(services: [exporter, processor, tracer], logger: logger)
-        Task {
+        _ = Task {
             try await serviceGroup.run()
         }
 
