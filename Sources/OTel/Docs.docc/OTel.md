@@ -19,4 +19,4 @@
 
 ### Trace ID
 
-- ``ServiceContextModule/ServiceContext/otelTraceID``
+- ``Instrumentation/InstrumentationContext/otelTraceID``

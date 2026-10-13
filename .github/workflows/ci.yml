@@ -30,12 +30,12 @@ jobs:
       fail-fast: false
       matrix:
         swift:
-          - version: "6.1"
-            image: swift:6.1-rhel-ubi9
           - version: "6.2"
             image: swift:6.2-rhel-ubi9
           - version: "6.3"
             image: swift:6.3-rhel-ubi9
+          - version: "6.4"
+            image: swift:6.4-rhel-ubi9
 
     container:
       image: ${{ matrix.swift.image }}
@@ -56,12 +56,14 @@ jobs:
 
       - name: Merge code coverage
         run: |
+          CODECOV_DIR=$(dirname "$(swift test --show-codecov-path)")
+          BIN=$(find "$CODECOV_DIR"/.. -name '*.xctest' -o -name 'OTelTests.so' | head -1)
           llvm-cov export -format "lcov" \
-            .build/debug/swift-otelPackageTests.xctest \
+            "$BIN" \
             -ignore-filename-regex="\/Tests\/" \
             -ignore-filename-regex="\/Generated\/" \
             -ignore-filename-regex="\/.build\/" \
-            -instr-profile=./.build/debug/codecov/default.profdata \
+            -instr-profile="$CODECOV_DIR/default.profdata" \
           > info.lcov
 
       - name: Upload code coverage report to Codecov
@@ -76,7 +78,7 @@ jobs:
     name: Documentation Check
     runs-on: ubuntu-latest
     container:
-      image: swift:6.1-noble
+      image: swift:6.4-noble
       options: --dns 1.1.1.1 --dns 8.8.8.8
     steps:
       - uses: actions/checkout@v7.0.1
@@ -133,12 +135,12 @@ jobs:
       matrix:
         example: ${{ fromJSON(needs.construct-examples-matrix.outputs.examples) }}
         swift:
-          - version: "6.1"
-            image: swift:6.1-rhel-ubi9
           - version: "6.2"
             image: swift:6.2-rhel-ubi9
           - version: "6.3"
             image: swift:6.3-rhel-ubi9
+          - version: "6.4"
+            image: swift:6.4-rhel-ubi9
       fail-fast: false
     container:
       image: ${{ matrix.swift.image }}

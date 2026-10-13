@@ -25,7 +25,7 @@ final class OTelNoOpSpanProcessorTests: XCTestCase {
 
         let startExpectation = expectation(description: "Expected task to start executing.")
         let shutDownExpectation = expectation(description: "Expected service group to shut down.")
-        Task {
+        _ = Task {
             startExpectation.fulfill()
             try await serviceGroup.run()
             shutDownExpectation.fulfill()
