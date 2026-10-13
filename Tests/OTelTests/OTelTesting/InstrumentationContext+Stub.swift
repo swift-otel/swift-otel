@@ -11,13 +11,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
+import Instrumentation
 
-private enum StubContextKey: ServiceContextKey {
+private enum StubContextKey: InstrumentationContextKey {
     typealias Value = Int
 }
 
-extension ServiceContext {
+extension InstrumentationContext {
     /// A stub integer value used for testing.
     var stubValue: Int? {
         get {
@@ -28,12 +28,12 @@ extension ServiceContext {
         }
     }
 
-    /// A top-level service context with `stubValue` set to the given value.
+    /// A top-level instrumentation context with `stubValue` set to the given value.
     ///
     /// - Parameter value: The value to use for ``stubValue``.
-    /// - Returns: A top-level service context with `stubValue` set to the given value.
-    static func withStubValue(_ value: Int) -> ServiceContext {
-        var context = ServiceContext.topLevel
+    /// - Returns: A top-level instrumentation context with `stubValue` set to the given value.
+    static func withStubValue(_ value: Int) -> InstrumentationContext {
+        var context = InstrumentationContext.topLevel
         context.stubValue = value
         return context
     }

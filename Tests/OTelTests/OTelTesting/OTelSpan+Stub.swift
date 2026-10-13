@@ -11,17 +11,17 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Instrumentation
 @testable import OTel
-import ServiceContextModule
 import Tracing
 
 extension OTelSpan {
     /// A no-op span stub.
     ///
-    /// - Parameter context: Defaults to `ServiceContext.topLevel`.
+    /// - Parameter context: Defaults to `InstrumentationContext.topLevel`.
     ///
     /// - Returns: A no-op span stub.
-    static func noOpStub(context: ServiceContext = .topLevel) -> OTelSpan {
+    static func noOpStub(context: InstrumentationContext = .topLevel) -> OTelSpan {
         .noOp(.init(context: context))
     }
 
@@ -30,7 +30,7 @@ extension OTelSpan {
     /// - Parameters:
     ///   - operationName: Defaults to "test".
     ///   - kind: Defaults to `SpanKind.internal`.
-    ///   - context: Defaults to `ServiceContext.topLevel`.
+    ///   - context: Defaults to `InstrumentationContext.topLevel`.
     ///   - spanContext: Defaults to ``OTel/OTelSpanContext/localStub(traceID:spanID:parentSpanID:traceFlags:traceState)``
     ///   - attributes: Defaults to no attributes.
     ///   - startTimeNanosecondsSinceEpoch: Defaults to `0`.
@@ -40,7 +40,7 @@ extension OTelSpan {
     static func recordingStub(
         operationName: String = "test",
         kind: SpanKind = .internal,
-        context: ServiceContext = .topLevel,
+        context: InstrumentationContext = .topLevel,
         spanContext: OTelSpanContext = .localStub(),
         attributes: SpanAttributes = [:],
         startTimeNanosecondsSinceEpoch: UInt64 = 0,

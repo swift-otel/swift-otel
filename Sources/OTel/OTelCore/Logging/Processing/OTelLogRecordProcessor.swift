@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
+import Instrumentation
 import ServiceLifecycle
 
 /// Log processors allow for processing logs throughout their lifetime via ``onStart(_:parentContext:)`` and ``onEnd(_:)`` calls.

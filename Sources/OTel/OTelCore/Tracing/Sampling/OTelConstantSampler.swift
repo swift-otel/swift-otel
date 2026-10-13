@@ -43,7 +43,7 @@ struct OTelConstantSampler: OTelSampler {
         traceID: TraceID,
         attributes: SpanAttributes,
         links: [SpanLink],
-        parentContext: ServiceContext
+        parentContext: InstrumentationContext
     ) -> OTelSamplingResult {
         OTelSamplingResult(decision: decision, attributes: [:])
     }

@@ -27,7 +27,7 @@ protocol OTelSampler: Sendable {
     ///   - traceID: The span's trace ID.
     ///   - attributes: The span's attributes at time of creation.
     ///   - links: The span's links at time of creation.
-    ///   - parentContext: The span's parent service context.
+    ///   - parentContext: The span's parent instrumentation context.
     ///
     /// - Returns: A result indicating whether to sample the span.
     func samplingResult(
@@ -36,6 +36,6 @@ protocol OTelSampler: Sendable {
         traceID: TraceID,
         attributes: SpanAttributes,
         links: [SpanLink],
-        parentContext: ServiceContext
+        parentContext: InstrumentationContext
     ) -> OTelSamplingResult
 }

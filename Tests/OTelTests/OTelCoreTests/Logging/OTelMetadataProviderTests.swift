@@ -11,9 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Instrumentation
 @testable import Logging
 @testable import OTel
-import ServiceContextModule
 import XCTest
 
 final class MetadataProviderTests: XCTestCase {
@@ -28,9 +28,9 @@ final class MetadataProviderTests: XCTestCase {
 
         let spanContext = OTelSpanContext.localStub(traceID: .oneToSixteen, spanID: .oneToEight, traceFlags: .sampled)
 
-        var context = ServiceContext.topLevel
+        var context = InstrumentationContext.topLevel
         context.spanContext = spanContext
-        ServiceContext.$current.withValue(context) {
+        InstrumentationContext.$current.withValue(context) {
             logger.info("This is a test message", metadata: ["explicit": "42"])
         }
 
@@ -66,9 +66,9 @@ final class MetadataProviderTests: XCTestCase {
             traceFlags: []
         )
 
-        var context = ServiceContext.topLevel
+        var context = InstrumentationContext.topLevel
         context.spanContext = spanContext
-        ServiceContext.$current.withValue(context) {
+        InstrumentationContext.$current.withValue(context) {
             logger.info("This is a test message", metadata: ["explicit": "42"])
         }
 

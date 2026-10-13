@@ -11,11 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
+import Instrumentation
 
-extension ServiceContext {
+extension InstrumentationContext {
     static func withSpanContext(_ spanContext: OTelSpanContext) -> Self {
-        var context = ServiceContext.topLevel
+        var context = InstrumentationContext.topLevel
         context.spanContext = spanContext
         return context
     }

@@ -43,7 +43,7 @@ struct OTelTraceIDRatioBasedSampler: OTelSampler, Equatable, Hashable, CustomStr
         traceID: TraceID,
         attributes: SpanAttributes,
         links: [SpanLink],
-        parentContext: ServiceContext
+        parentContext: InstrumentationContext
     ) -> OTelSamplingResult {
         if idUpperBound == .min {
             return .init(decision: .drop)

@@ -11,10 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-public import ServiceContextModule
+public import Instrumentation
 
-extension ServiceContext {
-    /// A hex string representation of this service context's trace ID.
+extension InstrumentationContext {
+    /// A hex string representation of this instrumentation context's trace ID.
     public var otelTraceID: String? {
         spanContext?.traceID.description
     }

@@ -11,10 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Instrumentation
 import Logging
 import NIOConcurrencyHelpers
 @testable import OTel
-import ServiceContextModule
 import ServiceLifecycle
 import Tracing
 import W3CTraceContext
@@ -74,7 +74,7 @@ final class OTelTracerTests: XCTestCase {
         let parentSpanID = randomIDGenerator.nextSpanID()
         let traceState = TraceState([(.simple("foo"), "bar")])
 
-        var parentContext = ServiceContext.topLevel
+        var parentContext = InstrumentationContext.topLevel
         let parentSpanContext = OTelSpanContext.remoteStub(
             traceID: traceID,
             spanID: parentSpanID,
@@ -164,7 +164,7 @@ final class OTelTracerTests: XCTestCase {
         let parentSpanID = randomIDGenerator.nextSpanID()
         let traceState = TraceState([(.simple("foo"), "bar")])
 
-        var parentContext = ServiceContext.topLevel
+        var parentContext = InstrumentationContext.topLevel
         parentContext.spanContext = OTelSpanContext.remoteStub(
             traceID: traceID,
             spanID: parentSpanID,
@@ -297,7 +297,7 @@ final class OTelTracerTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(batch).map(\.operationName), ["test"])
     }
 
-    func test_spanIdentifiedByServiceContext_withoutSpanContext_returnsSpan() {
+    func test_spanIdentifiedByInstrumentationContext_withoutSpanContext_returnsSpan() {
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
             sampler: .constant(OTelConstantSampler(isOn: true)),
@@ -309,7 +309,7 @@ final class OTelTracerTests: XCTestCase {
         XCTAssertNil(tracer.activeSpan(identifiedBy: .topLevel))
     }
 
-    func test_spanIdentifiedByServiceContext_withSpanContext_identifyingRecordingSpan_returnsSpan() async {
+    func test_spanIdentifiedByInstrumentationContext_withSpanContext_identifyingRecordingSpan_returnsSpan() async {
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
             sampler: .constant(OTelConstantSampler(isOn: true)),
@@ -322,7 +322,7 @@ final class OTelTracerTests: XCTestCase {
         XCTAssertEqual(tracer.activeSpan(identifiedBy: span.context)?.context.spanContext, span.context.spanContext)
     }
 
-    func test_spanIdentifiedByServiceContext_withSpanContext_identifyingEndedSpan_returnsNil() async {
+    func test_spanIdentifiedByInstrumentationContext_withSpanContext_identifyingEndedSpan_returnsNil() async {
         let tracer = OTelTracer(
             idGenerator: OTelRandomIDGenerator(),
             sampler: .constant(OTelConstantSampler(isOn: true)),
@@ -350,7 +350,7 @@ final class OTelTracerTests: XCTestCase {
             resource: OTelResource()
         )
 
-        var context = ServiceContext.topLevel
+        var context = InstrumentationContext.topLevel
         let spanContext = OTelSpanContext.local(
             traceID: idGenerator.nextTraceID(),
             spanID: idGenerator.nextSpanID(),
@@ -398,7 +398,7 @@ final class OTelTracerTests: XCTestCase {
             resource: OTelResource()
         )
 
-        var context = ServiceContext.topLevel
+        var context = InstrumentationContext.topLevel
         let dictionary = ["foo": "bar"]
 
         tracer.extract(dictionary, into: &context, using: DictionaryExtractor())
@@ -428,7 +428,7 @@ final class OTelTracerTests: XCTestCase {
             try await serviceGroup.run()
         }
 
-        var context = ServiceContext.topLevel
+        var context = InstrumentationContext.topLevel
         tracer.extract([:], into: &context, using: DictionaryExtractor())
 
         let span = tracer.startSpan("test")
@@ -454,7 +454,7 @@ final class OTelTracerTests: XCTestCase {
                 return .allZeroes
             }
 
-            func samplingResult(operationName: String, kind: SpanKind, traceID: TraceID, attributes: Tracing.SpanAttributes, links: [SpanLink], parentContext: ServiceContext) -> OTelSamplingResult {
+            func samplingResult(operationName: String, kind: SpanKind, traceID: TraceID, attributes: Tracing.SpanAttributes, links: [SpanLink], parentContext: InstrumentationContext) -> OTelSamplingResult {
                 XCTFail()
                 return .init(decision: .drop)
             }
@@ -478,7 +478,7 @@ final class OTelTracerTests: XCTestCase {
 
             func run() async throws { XCTFail() }
 
-            var context: ServiceContext {
+            var context: InstrumentationContext {
                 XCTFail()
                 return .topLevel
             }
@@ -554,7 +554,7 @@ final class RecordingProcessorWrapper<Wrapped: OTelSpanProcessor & Sendable>: OT
         set { _state.withLockedValue { $0 = newValue } }
     }
 
-    func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
+    func onStart(_ span: OTelSpan, parentContext: InstrumentationContext) {
         state.numOnStartCalls += 1
         wrapped.onStart(span, parentContext: parentContext)
     }
