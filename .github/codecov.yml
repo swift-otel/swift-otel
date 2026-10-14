@@ -5,5 +5,5 @@ coverage:
         threshold: 5%
 
 ignore:
-- "Sources/OTelTesting"
-- "**/*/OTelTracing+Benchmarking.swift"
+  - "Sources/OTelTesting"
+  - "**/*/OTelTracing+Benchmarking.swift"
