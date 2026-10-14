@@ -82,7 +82,6 @@ jobs:
       api_breakage_check_enabled: ${{ github.event_name == 'pull_request' }}
       api_breakage_check_container_image: "swift:6.4-noble"
       docs_check_container_image: "swift:6.4-noble"
-      shell_check_enabled: false
       # Formatting is covered by the swift-format job above.
       format_check_enabled: false
       # There are no Python files in this repository.
