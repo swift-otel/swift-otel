@@ -1,0 +1,11 @@
+.gitmodules
+.swiftformat
+Mintfile
+Makefile
+opentelemetry-proto
+Package.swift
+**/Package.swift
+**/*.crt
+**/*.key
+**/*.png
+Sources/OTel/OTLPCore/Generated/**
