@@ -34,7 +34,14 @@ func withTimeout<T: Sendable, Clock: _Concurrency.Clock>(
         let operation = operation()
         group.addTask {
             do {
+                #if compiler(<6.4)
+                // Work around a Swift 6.2/6.3 release-build crash, fixed in 6.4:
+                // https://github.com/swiftlang/swift/issues/86204
+                // TODO: Remove this workaround when https://github.com/swift-otel/swift-otel/issues/437 is closed.
                 try await clock.sleep(until: clock.now.advanced(by: timeout), tolerance: .zero)
+                #else
+                try await clock.sleep(for: timeout, tolerance: .zero)
+                #endif
                 return .timedOut
             } catch {
                 return .cancelled
