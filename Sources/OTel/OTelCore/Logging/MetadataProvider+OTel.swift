@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
-private import ServiceContextModule
+private import Instrumentation
 
 extension Logger.MetadataProvider {
     /// A metadata provider exposing the current trace and span ID.
@@ -32,7 +32,7 @@ extension Logger.MetadataProvider {
         parentSpanIDKey: String? = nil
     ) -> Logger.MetadataProvider {
         .init {
-            guard let spanContext = ServiceContext.current?.spanContext else { return [:] }
+            guard let spanContext = InstrumentationContext.current?.spanContext else { return [:] }
             var metadata: Logger.Metadata = [
                 traceIDKey: "\(spanContext.traceID)",
                 spanIDKey: "\(spanContext.spanID)",

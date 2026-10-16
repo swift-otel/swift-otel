@@ -322,7 +322,7 @@ internal enum WrappedSampler: OTelSampler {
     case parentBased(OTelParentBasedSampler)
     case other(any OTelSampler)
 
-    func samplingResult(operationName: String, kind: SpanKind, traceID: TraceID, attributes: SpanAttributes, links: [SpanLink], parentContext: ServiceContext) -> OTelSamplingResult {
+    func samplingResult(operationName: String, kind: SpanKind, traceID: TraceID, attributes: SpanAttributes, links: [SpanLink], parentContext: InstrumentationContext) -> OTelSamplingResult {
         switch self {
         case .constant(let wrapped):
             wrapped.samplingResult(operationName: operationName, kind: kind, traceID: traceID, attributes: attributes, links: links, parentContext: parentContext)

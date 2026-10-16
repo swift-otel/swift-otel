@@ -83,7 +83,7 @@ struct OTelLogHandler: Sendable, LogHandler {
             error: event.error,
             timeNanosecondsSinceEpoch: nanosecondsSinceEpoch(),
             resource: resource,
-            spanContext: ServiceContext.current?.spanContext
+            spanContext: InstrumentationContext.current?.spanContext
         )
 
         processor.onEmit(&record)

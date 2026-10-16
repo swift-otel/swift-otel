@@ -19,7 +19,7 @@ final class OTelSpanTests: XCTestCase {
     // MARK: - context
 
     func test_context_whenNoOp_returnsContext() {
-        let context = ServiceContext.withStubValue(42)
+        let context = InstrumentationContext.withStubValue(42)
 
         let span = OTelSpan.noOpStub(context: context)
 
@@ -27,7 +27,7 @@ final class OTelSpanTests: XCTestCase {
     }
 
     func test_context_whenSampled_returnsContext() {
-        let context = ServiceContext.withStubValue(42)
+        let context = InstrumentationContext.withStubValue(42)
 
         let span = OTelSpan.recordingStub(context: context)
 
@@ -250,7 +250,7 @@ final class OTelSpanTests: XCTestCase {
     func test_addLink_whenSampled_whenNotEnded_addsLink() throws {
         let span = OTelSpan.recordingStub()
 
-        let linkedContext = ServiceContext.withStubValue(42)
+        let linkedContext = InstrumentationContext.withStubValue(42)
         span.addLink(SpanLink(context: linkedContext, attributes: ["test": 42]))
 
         XCTAssertEqual(span.links.count, 1)

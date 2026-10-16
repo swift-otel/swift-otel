@@ -11,23 +11,23 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Instrumentation
 @testable import OTel
-import ServiceContextModule
 import Testing
 
 @Suite
-struct OTelSpanContextServiceContextTests {
+struct OTelSpanContextInstrumentationContextTests {
     @Test
-    func spanContext_storedInsideServiceContext() {
+    func spanContext_storedInsideInstrumentationContext() {
         let spanContext = OTelSpanContext.localStub()
 
-        var serviceContext = ServiceContext.topLevel
-        #expect(serviceContext.isEmpty)
-        #expect(serviceContext.spanContext == nil)
+        var instrumentationContext = InstrumentationContext.topLevel
+        #expect(instrumentationContext.isEmpty)
+        #expect(instrumentationContext.spanContext == nil)
 
-        serviceContext.spanContext = spanContext
-        #expect(serviceContext.count == 1)
+        instrumentationContext.spanContext = spanContext
+        #expect(instrumentationContext.count == 1)
 
-        #expect(serviceContext.spanContext == spanContext)
+        #expect(instrumentationContext.spanContext == spanContext)
     }
 }

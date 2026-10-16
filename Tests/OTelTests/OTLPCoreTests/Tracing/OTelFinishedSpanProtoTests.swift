@@ -171,7 +171,7 @@ final class OTelFinishedSpanProtoTests: XCTestCase {
     }
 
     func test_initProtoSpan_withFinishedSpan_withLinks_castsLinks() throws {
-        var context = ServiceContext.topLevel
+        var context = InstrumentationContext.topLevel
         context.spanContext = .localStub(
             traceID: .oneToSixteen,
             spanID: .oneToEight,

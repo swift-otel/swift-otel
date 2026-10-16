@@ -11,11 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-public import ServiceContextModule
+public import Instrumentation
 import W3CTraceContext
 
-extension ServiceContext {
-    /// A Boolean value indicating whether the span associated with this service context is sampled.
+extension InstrumentationContext {
+    /// A Boolean value indicating whether the span associated with this instrumentation context is sampled.
     ///
     /// Returns `false` if there is no span context.
     public var otelIsSampled: Bool {

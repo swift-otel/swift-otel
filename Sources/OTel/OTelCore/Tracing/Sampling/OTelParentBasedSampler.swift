@@ -73,7 +73,7 @@ struct OTelParentBasedSampler: OTelSampler {
         traceID: TraceID,
         attributes: SpanAttributes,
         links: [SpanLink],
-        parentContext: ServiceContext
+        parentContext: InstrumentationContext
     ) -> OTelSamplingResult {
         func samplingResult(from sampler: any OTelSampler) -> OTelSamplingResult {
             sampler.samplingResult(

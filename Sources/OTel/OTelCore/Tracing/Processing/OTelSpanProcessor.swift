@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
+import Instrumentation
 import ServiceLifecycle
 
 /// Span processor allow for processing spans throught their lifetime via ``onStart(_:parentContext:)`` and ``onEnd(_:)`` calls.
@@ -27,8 +27,8 @@ protocol OTelSpanProcessor: Service & Sendable {
     ///
     /// - Parameters:
     ///   - span: The mutable span that was started.
-    ///   - parentContext: The span's parent service context.
-    func onStart(_ span: OTelSpan, parentContext: ServiceContext)
+    ///   - parentContext: The span's parent instrumentation context.
+    func onStart(_ span: OTelSpan, parentContext: InstrumentationContext)
 
     /// Called whenever a recording span was ended.
     ///
@@ -40,5 +40,5 @@ protocol OTelSpanProcessor: Service & Sendable {
 }
 
 extension OTelSpanProcessor {
-    func onStart(_ span: OTelSpan, parentContext: ServiceContext) {}
+    func onStart(_ span: OTelSpan, parentContext: InstrumentationContext) {}
 }

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
+import Instrumentation
 import ServiceLifecycle
 
 /// A pseudo-``OTelSpanProcessor`` that may be used to process using multiple other ``OTelSpanProcessor``s.
@@ -50,7 +50,7 @@ actor OTelMultiplexSpanProcessor: OTelSpanProcessor {
         }
     }
 
-    nonisolated func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
+    nonisolated func onStart(_ span: OTelSpan, parentContext: InstrumentationContext) {
         for processor in processors {
             processor.onStart(span, parentContext: parentContext)
         }

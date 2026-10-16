@@ -18,7 +18,7 @@ import Tracing
 final class OTelSpan: Span {
     private let underlying: Underlying
 
-    var context: ServiceContext {
+    var context: InstrumentationContext {
         switch underlying {
         case .noOp(let span):
             return span.context
@@ -177,7 +177,7 @@ final class OTelSpan: Span {
     static func recording(
         operationName: String,
         kind: SpanKind,
-        context: ServiceContext,
+        context: InstrumentationContext,
         spanContext: OTelSpanContext,
         attributes: SpanAttributes,
         startTimeNanosecondsSinceEpoch: UInt64,
@@ -204,7 +204,7 @@ final class OTelSpan: Span {
 
 final class OTelRecordingSpan: Span, Sendable {
     let kind: SpanKind
-    let context: ServiceContext
+    let context: InstrumentationContext
 
     private struct State {
         var operationName: String
@@ -244,7 +244,7 @@ final class OTelRecordingSpan: Span, Sendable {
     init(
         operationName: String,
         kind: SpanKind,
-        context: ServiceContext,
+        context: InstrumentationContext,
         attributes: SpanAttributes,
         startTimeNanosecondsSinceEpoch: UInt64,
         onEnd: @escaping @Sendable (OTelRecordingSpan, _ endTimeNanosecondsSinceEpoch: UInt64) -> Void

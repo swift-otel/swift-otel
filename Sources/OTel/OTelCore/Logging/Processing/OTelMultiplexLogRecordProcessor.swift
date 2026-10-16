@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
+import Instrumentation
 import ServiceLifecycle
 
 /// A pseudo-``OTelLogRecordProcessor`` that may be used to process using multiple other ``OTelLogRecordProcessor``s.

@@ -22,7 +22,7 @@ struct OTelInlineSampler: OTelSampler {
         _ traceID: TraceID,
         _ attributes: SpanAttributes,
         _ links: [SpanLink],
-        _ parentContext: ServiceContext
+        _ parentContext: InstrumentationContext
     ) -> OTelSamplingResult
 
     init(
@@ -32,7 +32,7 @@ struct OTelInlineSampler: OTelSampler {
             _ traceID: TraceID,
             _ attributes: SpanAttributes,
             _ links: [SpanLink],
-            _ parentContext: ServiceContext
+            _ parentContext: InstrumentationContext
         ) -> OTelSamplingResult
     ) {
         self.onSamplingResult = onSamplingResult
@@ -44,7 +44,7 @@ struct OTelInlineSampler: OTelSampler {
         traceID: TraceID,
         attributes: SpanAttributes,
         links: [SpanLink],
-        parentContext: ServiceContext
+        parentContext: InstrumentationContext
     ) -> OTelSamplingResult {
         onSamplingResult(operationName, kind, traceID, attributes, links, parentContext)
     }

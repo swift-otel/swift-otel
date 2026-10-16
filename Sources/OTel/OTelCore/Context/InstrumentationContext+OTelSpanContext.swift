@@ -11,10 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
+import Instrumentation
 import W3CTraceContext
 
-extension ServiceContext {
+extension InstrumentationContext {
     /// The span context.
     var spanContext: OTelSpanContext? {
         get {
@@ -26,7 +26,7 @@ extension ServiceContext {
     }
 }
 
-private enum SpanContextKey: ServiceContextKey {
+private enum SpanContextKey: InstrumentationContextKey {
     typealias Value = OTelSpanContext
 
     static let nameOverride: String? = "otel-span-context"

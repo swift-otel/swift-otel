@@ -53,7 +53,7 @@ final class OTelParentBasedSamplerTests: XCTestCase {
         remoteParentSampledSampler = RecordingSampler(sampler: OTelConstantSampler(isOn: true))
         let sampler = sampler()
 
-        var parentContext = ServiceContext.topLevel
+        var parentContext = InstrumentationContext.topLevel
         parentContext.spanContext = .remoteStub(traceFlags: .sampled)
 
         let result = sampler.samplingResult(
@@ -73,7 +73,7 @@ final class OTelParentBasedSamplerTests: XCTestCase {
         remoteParentNotSampledSampler = RecordingSampler(sampler: OTelConstantSampler(isOn: true))
         let sampler = sampler()
 
-        var parentContext = ServiceContext.topLevel
+        var parentContext = InstrumentationContext.topLevel
         parentContext.spanContext = .remoteStub(traceFlags: [])
 
         let result = sampler.samplingResult(
@@ -93,7 +93,7 @@ final class OTelParentBasedSamplerTests: XCTestCase {
         localParentSampledSampler = RecordingSampler(sampler: OTelConstantSampler(isOn: true))
         let sampler = sampler()
 
-        var parentContext = ServiceContext.topLevel
+        var parentContext = InstrumentationContext.topLevel
         parentContext.spanContext = .localStub(traceFlags: .sampled)
 
         let result = sampler.samplingResult(
@@ -113,7 +113,7 @@ final class OTelParentBasedSamplerTests: XCTestCase {
         localParentNotSampledSampler = RecordingSampler(sampler: OTelConstantSampler(isOn: true))
         let sampler = sampler()
 
-        var parentContext = ServiceContext.topLevel
+        var parentContext = InstrumentationContext.topLevel
         parentContext.spanContext = .localStub(traceFlags: [])
 
         let result = sampler.samplingResult(
@@ -157,7 +157,7 @@ private final class RecordingSampler: OTelSampler {
         traceID: TraceID,
         attributes: SpanAttributes,
         links: [SpanLink],
-        parentContext: ServiceContext
+        parentContext: InstrumentationContext
     ) -> OTelSamplingResult {
         let result = sampler.samplingResult(
             operationName: operationName,

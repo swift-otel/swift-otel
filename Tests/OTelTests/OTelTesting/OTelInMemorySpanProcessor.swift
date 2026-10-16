@@ -11,16 +11,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Instrumentation
 import NIOConcurrencyHelpers
 @testable import OTel
-import ServiceContextModule
 import ServiceLifecycle
 
 /// An in-memory span processor, collecting started spans into ``OTelInMemorySpanProcessor/startedSpans``
 /// and finished spans into ``OTelInMemorySpanProcessor/finishedSpans``.
 final class OTelInMemorySpanProcessor: OTelSpanProcessor {
-    var startedSpans: [(span: OTelSpan, parentContext: ServiceContext)] { _startedSpans.withLockedValue { $0 } }
-    private let _startedSpans = NIOLockedValueBox<[(span: OTelSpan, parentContext: ServiceContext)]>([])
+    var startedSpans: [(span: OTelSpan, parentContext: InstrumentationContext)] { _startedSpans.withLockedValue { $0 } }
+    private let _startedSpans = NIOLockedValueBox<[(span: OTelSpan, parentContext: InstrumentationContext)]>([])
 
     var finishedSpans: [OTelFinishedSpan] { _finishedSpans.withLockedValue { $0 } }
     private let _finishedSpans = NIOLockedValueBox<[OTelFinishedSpan]>([])
@@ -41,7 +41,7 @@ final class OTelInMemorySpanProcessor: OTelSpanProcessor {
         }
     }
 
-    nonisolated func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
+    nonisolated func onStart(_ span: OTelSpan, parentContext: InstrumentationContext) {
         _startedSpans.withLockedValue { $0.append((span, parentContext)) }
     }
 

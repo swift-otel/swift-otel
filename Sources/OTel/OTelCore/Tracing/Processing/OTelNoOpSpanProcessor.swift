@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import ServiceContextModule
+import Instrumentation
 import ServiceLifecycle
 
 /// A span processor that ignores all operations, used when no spans should be processed.
@@ -26,7 +26,7 @@ struct OTelNoOpSpanProcessor: OTelSpanProcessor, CustomStringConvertible {
         try await gracefulShutdown()
     }
 
-    func onStart(_ span: OTelSpan, parentContext: ServiceContext) {
+    func onStart(_ span: OTelSpan, parentContext: InstrumentationContext) {
         // no-op
     }
 

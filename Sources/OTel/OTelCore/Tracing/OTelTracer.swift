@@ -56,7 +56,7 @@ final class OTelTracer<
     }
 
     private enum Event {
-        case spanStarted(_ span: OTelSpan, parentContext: ServiceContext)
+        case spanStarted(_ span: OTelSpan, parentContext: InstrumentationContext)
         case spanEnded(_ span: OTelFinishedSpan)
         case forceFlushed
     }
@@ -97,9 +97,9 @@ extension OTelTracer: Service {
         logger.debug("Starting.")
         await withGracefulShutdownHandler {
             for await event in eventStream {
-                // We don't want to propagate the current span's service context into
+                // We don't want to propagate the current span's instrumentation context into
                 // processing or exporting since it's not part of the span's scope.
-                await ServiceContext.$current.withValue(nil) {
+                await InstrumentationContext.$current.withValue(nil) {
                     switch event {
                     case .spanStarted(let span, let parentContext):
                         self.processor.onStart(span, parentContext: parentContext)
@@ -123,7 +123,7 @@ private let noOpSpan = OTelSpan.noOp(NoOpTracer.NoOpSpan(context: .topLevel))
 extension OTelTracer: Tracer {
     func startSpan(
         _ operationName: String,
-        context: @autoclosure () -> ServiceContext,
+        context: @autoclosure () -> InstrumentationContext,
         ofKind kind: SpanKind,
         at instant: @autoclosure () -> some TracerInstant,
         function: String,
@@ -215,7 +215,7 @@ extension OTelTracer: Tracer {
         eventStreamContinuation.yield(.spanEnded(finishedSpan))
     }
 
-    func activeSpan(identifiedBy context: ServiceContext) -> OTelSpan? {
+    func activeSpan(identifiedBy context: InstrumentationContext) -> OTelSpan? {
         guard let spanContext = context.spanContext else { return nil }
         guard let recordingSpan = recordingSpans.withLockedValue({ $0[spanContext] }) else { return nil }
         return recordingSpan
@@ -224,7 +224,7 @@ extension OTelTracer: Tracer {
 
 extension OTelTracer: Instrument {
     func inject<Carrier, Inject>(
-        _ context: ServiceContext,
+        _ context: InstrumentationContext,
         into carrier: inout Carrier,
         using injector: Inject
     ) where Carrier == Inject.Carrier, Inject: Injector {
@@ -234,7 +234,7 @@ extension OTelTracer: Instrument {
 
     func extract<Carrier, Extract>(
         _ carrier: Carrier,
-        into context: inout ServiceContext,
+        into context: inout InstrumentationContext,
         using extractor: Extract
     ) where Carrier == Extract.Carrier, Extract: Extractor {
         do {
