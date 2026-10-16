@@ -22,7 +22,6 @@ import W3CTraceContext
 ///
 /// ```swift
 /// OTelTracer<
-///   OTelRandomIDGenerator<SystemRandomNumberGenerator>,
 ///   OTelTraceIDRatioBasedSampler,
 ///   OTelW3CPropagator,
 ///   OTelBatchSpanProcessor<OTLPHTTPSpanExporter, ContinuousClock>,
