@@ -21,7 +21,7 @@ final class OTelRandomIDGeneratorTests: XCTestCase {
 
         XCTAssertEqual(
             generator.nextTraceID(),
-            TraceID(bytes: .init((255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255)))
+            TraceID(bytes: (255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255))
         )
     }
 
@@ -52,7 +52,7 @@ final class OTelRandomIDGeneratorTests: XCTestCase {
     func test_spanID_witConstantNumberGenerator_returnsConstantSpanID() {
         let generator = OTelRandomIDGenerator(randomNumberGenerator: ConstantNumberGenerator(value: .max))
 
-        XCTAssertEqual(generator.nextSpanID(), SpanID(bytes: .init((255, 255, 255, 255, 255, 255, 255, 255))))
+        XCTAssertEqual(generator.nextSpanID(), SpanID(bytes: (255, 255, 255, 255, 255, 255, 255, 255)))
     }
 
     func test_spanID_withConstantNumberGenerator_withRandomNumber_returnsRandomSpanID() {

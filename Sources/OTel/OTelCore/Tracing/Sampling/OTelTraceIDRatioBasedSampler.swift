@@ -51,9 +51,9 @@ struct OTelTraceIDRatioBasedSampler: OTelSampler, Equatable, Hashable, CustomStr
             return .init(decision: .recordAndSample)
         }
 
-        let value = traceID.bytes.withUnsafeBytes {
-            assert($0.count == 16, "TraceID must be 16 bytes")
-            return $0[8...].load(as: UInt64.self)
+        let value = traceID.withSpan { span in
+            assert(span.count == 16, "TraceID must be 16 bytes")
+            return span.bytes.unsafeLoadUnaligned(fromByteOffset: 8, as: UInt64.self)
         }
 
         if value < idUpperBound {

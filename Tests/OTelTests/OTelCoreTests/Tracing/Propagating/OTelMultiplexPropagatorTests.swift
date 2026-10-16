@@ -137,8 +137,8 @@ private struct SystemAPropagator: OTelPropagator {
 }
 
 private struct SystemBPropagator: OTelPropagator {
-    static let validTraceID = TraceID(bytes: .init((16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)))
-    static let validSpanID = SpanID(bytes: .init((8, 7, 6, 5, 4, 3, 2, 1)))
+    static let validTraceID = TraceID(bytes: (16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1))
+    static let validSpanID = SpanID(bytes: (8, 7, 6, 5, 4, 3, 2, 1))
 
     public func extractSpanContext<Carrier, Extract>(
         from carrier: Carrier,

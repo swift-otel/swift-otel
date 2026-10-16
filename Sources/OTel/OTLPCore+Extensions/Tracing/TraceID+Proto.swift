@@ -23,7 +23,7 @@ import W3CTraceContext
 
 extension TraceID {
     var data: Data {
-        Data(bytes)
+        withUnsafeBytes(of: bytes) { Data($0) }
     }
 }
 #endif
