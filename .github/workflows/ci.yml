@@ -76,7 +76,7 @@ jobs:
 
   soundness:
     name: Soundness
-    uses: swiftlang/github-workflows/.github/workflows/soundness.yml@0.0.15
+    uses: swiftlang/github-workflows/.github/workflows/soundness.yml@0.0.16
     with:
       # The API breakage check compares against the pull request's base branch.
       api_breakage_check_enabled: ${{ github.event_name == 'pull_request' }}
