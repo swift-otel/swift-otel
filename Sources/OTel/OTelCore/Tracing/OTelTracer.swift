@@ -13,6 +13,7 @@
 
 import Logging
 import NIOConcurrencyHelpers
+import OTelSemanticConventions
 import ServiceLifecycle
 import Tracing
 import W3CTraceContext
@@ -148,11 +149,26 @@ extension OTelTracer: Tracer {
             traceState = TraceState()
         }
 
+        // A #fileID is "Module/File.swift", and future Swift versions may add more slashes in between.
+        // Source: https://developer.apple.com/documentation/swift/fileID()
+        let fileName: Substring
+        if let lastSlash = fileID.lastIndex(of: "/") {
+            fileName = fileID[fileID.index(after: lastSlash)...]
+        } else {
+            fileName = fileID[...]
+        }
+
+        var attributes: SpanAttributes = [
+            OTelSemanticConventions.OTelAttribute.code.file.path: .string(String(fileName)),
+            OTelSemanticConventions.OTelAttribute.code.function.name: .string(function),
+            OTelSemanticConventions.OTelAttribute.code.line.number: .int64(Int64(line)),
+        ]
+
         let samplingResult = sampler.samplingResult(
             operationName: operationName,
             kind: kind,
             traceID: traceID,
-            attributes: [:],
+            attributes: attributes,
             links: [],
             parentContext: parentContext
         )
@@ -175,12 +191,13 @@ extension OTelTracer: Tracer {
             return OTelSpan.noOp(NoOpTracer.NoOpSpan(context: childContext))
 
         case .record, .recordAndSample:
+            attributes.merge(samplingResult.attributes)
             let recordingSpan = OTelSpan.recording(
                 operationName: operationName,
                 kind: kind,
                 context: childContext,
                 spanContext: spanContext,
-                attributes: samplingResult.attributes,
+                attributes: attributes,
                 startTimeNanosecondsSinceEpoch: instant().nanosecondsSinceEpoch,
                 onEnd: { [weak self] span, endTimeNanosecondsSinceEpoch in
                     self?.process(span, endedAt: endTimeNanosecondsSinceEpoch)
