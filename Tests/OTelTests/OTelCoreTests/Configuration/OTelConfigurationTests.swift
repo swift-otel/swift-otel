@@ -960,6 +960,19 @@ import Testing
         }
     }
 
+    @Test func testTelemetrySDKResourceAttributes() {
+        OTel.Configuration.default.with { config in
+            let attributes = OTelResource(configuration: config).attributes
+            #expect(attributes["telemetry.sdk.name"]?.toSpanAttribute() == .string("swift-otel"))
+            #expect(attributes["telemetry.sdk.language"]?.toSpanAttribute() == .string("swift"))
+            #expect(attributes["telemetry.sdk.version"]?.toSpanAttribute() == .string(OTelLibrary.version))
+        }
+        OTel.Configuration.default.with { config in
+            config.resourceAttributes["telemetry.sdk.name"] = "resource_attribute_value"
+            #expect(OTelResource(configuration: config).attributes["telemetry.sdk.name"]?.toSpanAttribute() == .string("resource_attribute_value"))
+        }
+    }
+
     @Test func testMetricHistogramBuckets() {
         OTel.Configuration.default.with { config in
             #expect(config.metrics.defaultDurationHistogramBuckets == [0, 5, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000].map(Duration.milliseconds))

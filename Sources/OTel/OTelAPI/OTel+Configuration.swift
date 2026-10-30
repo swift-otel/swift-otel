@@ -74,7 +74,9 @@ extension OTel {
         ///
         /// - Environment variable(s): `OTEL_RESOURCE_ATTRIBUTES` (example: `key1=value1,key2=value2`).
         /// - Default value: Empty dictionary.
-        /// - Notes: The `serviceName` property takes precedence over `service.name` in this dictionary.
+        /// - Notes: The `serviceName` property takes precedence over `service.name` in this dictionary. Entries for
+        ///   `telemetry.sdk.name`, `telemetry.sdk.language`, and `telemetry.sdk.version` replace the values the SDK
+        ///   sets by default.
         public var resourceAttributes: [String: String]
 
         /// The logger used for internal diagnostic messages.

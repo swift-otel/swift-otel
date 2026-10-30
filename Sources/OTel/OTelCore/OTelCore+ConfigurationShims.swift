@@ -12,11 +12,19 @@
 //===----------------------------------------------------------------------===//
 
 import Logging
+import OTelSemanticConventions
 import Tracing
 
 extension OTelResource {
     init(configuration: OTel.Configuration) {
-        var attributes = configuration.resourceAttributes.mapValues { $0.toSpanAttribute() }
+        // The SDK identifies itself by default, but configured resource attributes take precedence.
+        // https://opentelemetry.io/docs/specs/otel/resource/sdk/#sdk-provided-resource-attributes
+        var attributes: [String: SpanAttribute] = [
+            OTelSemanticConventions.OTelAttribute.telemetry.sdk.name: "swift-otel",
+            OTelSemanticConventions.OTelAttribute.telemetry.sdk.language: "swift",
+            OTelSemanticConventions.OTelAttribute.telemetry.sdk.version: .string(OTelLibrary.version),
+        ]
+        attributes.merge(configuration.resourceAttributes.mapValues { $0.toSpanAttribute() }) { $1 }
 
         // If service.name is also provided in OTEL_RESOURCE_ATTRIBUTES, then OTEL_SERVICE_NAME takes precedence.
         // https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_service_name

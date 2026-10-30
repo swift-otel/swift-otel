@@ -14,5 +14,5 @@
 /// Information describing the `swift-otel` library itself.
 enum OTelLibrary {
     /// The current project version of `swift-otel`.
-    static let version = "1.0.0"
+    static let version = "1.6.0"
 }
