@@ -29,6 +29,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-atomics.git", from: "1.0.2"),
         .package(url: "https://github.com/apple/swift-metrics.git", from: "2.4.1"),
         .package(url: "https://github.com/swift-otel/swift-w3c-trace-context.git", from: "1.0.0"),
+        .package(url: "https://github.com/swift-otel/swift-otel-semantic-conventions.git", from: "1.44.0", traits: []),
 
         // MARK: - OTLPCore
 
@@ -63,6 +64,7 @@ let package = Package(
                 .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
                 .product(name: "Atomics", package: "swift-atomics"),
                 .product(name: "W3CTraceContext", package: "swift-w3c-trace-context"),
+                .product(name: "OTelSemanticConventions", package: "swift-otel-semantic-conventions"),
                 // OTLP exporter -- only when OTLPHTTP and/or OTLPGRPC traits are enabled.
                 .product(name: "SwiftProtobuf", package: "swift-protobuf", condition: .when(traits: ["OTLPHTTP", "OTLPGRPC"], alwaysIncludeOnKnownBrokenToolchains: true)),
                 // OTLP/HTTP exporter -- only when OTLPHTTP trait is enabled.

@@ -188,6 +188,63 @@ final class OTelTracerTests: XCTestCase {
         )
     }
 
+    func test_startSpan_codeAttributes() {
+        let tracer = OTelTracer(
+            idGenerator: OTelRandomIDGenerator(),
+            sampler: .constant(OTelConstantSampler(isOn: true)),
+            propagator: OTelW3CPropagator(),
+            processor: OTelNoOpSpanProcessor(),
+            resource: OTelResource()
+        )
+
+        do {
+            let span = tracer.startSpan("test", function: "function(label:)", file: "Module/File.swift", line: 42)
+            XCTAssertEqual(span.attributes, [
+                "code.file.path": "File.swift",
+                "code.function.name": "function(label:)",
+                "code.line.number": 42,
+            ])
+        }
+        do {
+            let span = tracer.startSpan(
+                "test",
+                function: "function(label:)",
+                file: "Module/some/disambiguation/File.swift",
+                line: 42
+            )
+            XCTAssertEqual(span.attributes["code.file.path"]?.toSpanAttribute(), "File.swift")
+        }
+    }
+
+    func test_startSpan_passesCodeAttributesToSampler_andMergesSamplingResultAttributes() {
+        let samplerAttributes = NIOLockedValueBox<SpanAttributes?>(nil)
+        let sampler = OTelInlineSampler { _, _, _, attributes, _, _ in
+            samplerAttributes.withLockedValue { $0 = attributes }
+            return .init(decision: .recordAndSample, attributes: ["code.line.number": 84, "sampler": "test"])
+        }
+
+        let tracer = OTelTracer(
+            idGenerator: OTelRandomIDGenerator(),
+            sampler: .other(sampler),
+            propagator: OTelW3CPropagator(),
+            processor: OTelNoOpSpanProcessor(),
+            resource: OTelResource()
+        )
+
+        let span = tracer.startSpan("test", function: "function(label:)", file: "Module/File.swift", line: 42)
+        XCTAssertEqual(samplerAttributes.withLockedValue { $0 }, [
+            "code.file.path": "File.swift",
+            "code.function.name": "function(label:)",
+            "code.line.number": 42,
+        ])
+        XCTAssertEqual(span.attributes, [
+            "code.file.path": "File.swift",
+            "code.function.name": "function(label:)",
+            "code.line.number": 84,
+            "sampler": "test",
+        ])
+    }
+
     func test_startSpan_onSpanEnd_whenSpanIsSampled_forwardsSpanToProcessor() async throws {
         let idGenerator = OTelRandomIDGenerator()
         let sampler = OTelConstantSampler(isOn: true)
