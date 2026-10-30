@@ -114,7 +114,7 @@ final class Histogram<Value: Bucketable>: Sendable {
 extension Duration: Bucketable {
     var bucketRepresentation: Double {
         let attos = String(unsafeUninitializedCapacity: 18) { buffer in
-            var num = self.components.attoseconds
+            var num = self.components.attoseconds.magnitude
 
             var positions = 17
             var length: Int?
@@ -144,7 +144,9 @@ extension Duration: Bucketable {
 
             return length!
         }
-        return Double("\(components.seconds).\(attos)")!
+        let magnitude = Double("\(components.seconds.magnitude).\(attos)")!
+        let isNegative = components.seconds < 0 || components.attoseconds < 0
+        return isNegative ? -magnitude : magnitude
     }
 }
 

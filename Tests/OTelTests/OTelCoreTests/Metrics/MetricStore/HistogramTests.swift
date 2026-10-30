@@ -95,6 +95,12 @@ final class HistogramTests: XCTestCase {
             .nanoseconds(1): 1e-9,
             Duration(secondsComponent: 0, attosecondsComponent: 1): 1e-18,
             .seconds(2) + Duration(secondsComponent: 0, attosecondsComponent: 1): 2 + 1e-18,
+            .seconds(-1): -1.0,
+            .milliseconds(-500): -0.5,
+            .milliseconds(-1): -0.001,
+            .nanoseconds(-1): -1e-9,
+            Duration(secondsComponent: 0, attosecondsComponent: -1): -1e-18,
+            .seconds(-2) - Duration(secondsComponent: 0, attosecondsComponent: 1): -2 - 1e-18,
         ] {
             XCTAssertEqual(duration.bucketRepresentation, expectedBucketRepresentation)
         }
