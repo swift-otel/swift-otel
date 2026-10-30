@@ -106,6 +106,20 @@ final class HistogramTests: XCTestCase {
         }
     }
 
+    func test_record_ignoresNonFiniteValues() {
+        let histogram = ValueHistogram(name: "my_histogram", attributes: [], buckets: [1.0, 2.0])
+
+        histogram.record(1.5)
+        for value in [Double.nan, .signalingNaN, .infinity, -.infinity] {
+            histogram.record(value)
+        }
+
+        histogram.assertStateEquals(count: 1, sum: 1.5, buckets: [
+            (bound: 1.0, count: 0),
+            (bound: 2.0, count: 1),
+        ], countAboveUpperBound: 0)
+    }
+
     func test_bucketRepresentation_double() {
         for value in [
             .zero,
