@@ -79,7 +79,7 @@ import Tracing
                     #expect(message.resourceSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.first?.spans.count == 5)
-                    #expect(message.resourceSpans.first?.resource.attributes.count == 2)
+                    #expect(message.resourceSpans.first?.resource.attributes.count == 5)
                     #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                     #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                 }
@@ -148,7 +148,7 @@ import Tracing
                     #expect(message.resourceSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.count == 1)
                     #expect(message.resourceSpans.first?.scopeSpans.first?.spans.count == 5)
-                    #expect(message.resourceSpans.first?.resource.attributes.count == 2)
+                    #expect(message.resourceSpans.first?.resource.attributes.count == 5)
                     #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                     #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                 }
@@ -206,7 +206,7 @@ import Tracing
                 #expect(message.resourceSpans.count == 1)
                 #expect(message.resourceSpans.first?.scopeSpans.count == 1)
                 #expect(message.resourceSpans.first?.scopeSpans.first?.spans.count == 5)
-                #expect(message.resourceSpans.first?.resource.attributes.count == 2)
+                #expect(message.resourceSpans.first?.resource.attributes.count == 5)
                 #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                 #expect(message.resourceSpans.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
             }
@@ -496,7 +496,7 @@ import Tracing
                 #expect(message.resourceMetrics.count == 1)
                 #expect(message.resourceMetrics.first?.scopeMetrics.count == 1)
                 #expect(message.resourceMetrics.first?.scopeMetrics.first?.metrics.count == 3)
-                #expect(message.resourceMetrics.first?.resource.attributes.count == 2)
+                #expect(message.resourceMetrics.first?.resource.attributes.count == 5)
                 #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                 #expect(message.resourceMetrics.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
             }
@@ -556,7 +556,7 @@ import Tracing
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.message" }?.value.stringValue == "custom error")
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.type" }?.value.stringValue == "OTelTests.CustomError")
-                    #expect(message.resourceLogs.first?.resource.attributes.count == 2)
+                    #expect(message.resourceLogs.first?.resource.attributes.count == 5)
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                 }
@@ -628,7 +628,7 @@ import Tracing
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.message" }?.value.stringValue == "custom error")
                     #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.type" }?.value.stringValue == "OTelTests.CustomError")
-                    #expect(message.resourceLogs.first?.resource.attributes.count == 2)
+                    #expect(message.resourceLogs.first?.resource.attributes.count == 5)
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                     #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
                 }
@@ -691,7 +691,7 @@ import Tracing
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "person" }?.value.stringValue == "milchick")
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.message" }?.value.stringValue == "custom error")
                 #expect(message.resourceLogs.first?.scopeLogs.first?.logRecords.first?.attributes.first { $0.key == "exception.type" }?.value.stringValue == "OTelTests.CustomError")
-                #expect(message.resourceLogs.first?.resource.attributes.count == 2)
+                #expect(message.resourceLogs.first?.resource.attributes.count == 5)
                 #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "service.name" }?.value.stringValue == "innie")
                 #expect(message.resourceLogs.first?.resource.attributes.first { $0.key == "deployment.environment" }?.value.stringValue == "prod")
             }
