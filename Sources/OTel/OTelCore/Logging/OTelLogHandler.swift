@@ -83,6 +83,9 @@ struct OTelLogHandler: Sendable, LogHandler {
             error: event.error,
             timeNanosecondsSinceEpoch: nanosecondsSinceEpoch(),
             resource: resource,
+            // The source defaults to the module name, which OTel spec says is an appropriate instrumentation scope.
+            // https://opentelemetry.io/docs/specs/otel/common/instrumentation-scope/
+            instrumentationScopeName: event.source,
             spanContext: InstrumentationContext.current?.spanContext
         )
 

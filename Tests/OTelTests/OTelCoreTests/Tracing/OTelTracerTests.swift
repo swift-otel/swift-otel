@@ -245,6 +245,41 @@ final class OTelTracerTests: XCTestCase {
         ])
     }
 
+    func test_startSpan_onSpanEnd_setsModuleAsInstrumentationScopeName() async throws {
+        let exporter = OTelStreamingSpanExporter()
+        var batches = exporter.batches.makeAsyncIterator()
+        let processor = SimpleSpanProcessor(exporter: exporter)
+
+        let tracer = OTelTracer(
+            idGenerator: OTelRandomIDGenerator(),
+            sampler: .constant(OTelConstantSampler(isOn: true)),
+            propagator: OTelW3CPropagator(),
+            processor: processor,
+            resource: OTelResource()
+        )
+
+        let logger = Logger(label: #function)
+        let serviceGroup = ServiceGroup(services: [exporter, processor, tracer], logger: logger)
+
+        try await withThrowingTaskGroup { group in
+            group.addTask {
+                try await serviceGroup.run()
+            }
+
+            var scopeNames: [String] = []
+            for fileID in ["Module/File.swift", "Module/some/disambiguation/File.swift", "File.swift"] {
+                tracer.startSpan("test", function: "function(label:)", file: fileID, line: 42).end()
+                let batch = await batches.next()
+                let finishedSpan = try XCTUnwrap(batch?.first)
+                scopeNames.append(finishedSpan.instrumentationScopeName)
+            }
+            XCTAssertEqual(scopeNames, ["Module", "Module", "swift-otel"])
+
+            await serviceGroup.triggerGracefulShutdown()
+            try await group.waitForAll()
+        }
+    }
+
     func test_startSpan_onSpanEnd_whenSpanIsSampled_forwardsSpanToProcessor() async throws {
         let idGenerator = OTelRandomIDGenerator()
         let sampler = OTelConstantSampler(isOn: true)

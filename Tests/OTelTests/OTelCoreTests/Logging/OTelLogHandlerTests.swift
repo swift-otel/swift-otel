@@ -246,6 +246,24 @@ final class OTelLogHandlerTests: XCTestCase {
             ),
         ])
     }
+
+    func test_log_setsSourceAsInstrumentationScopeName() {
+        let processor = OTelInMemoryLogRecordProcessor()
+        let logger = Logger(label: #function) { _ in
+            OTelLogHandler(
+                processor: processor,
+                logLevel: .info,
+                resource: resource,
+                metadata: [:],
+                nanosecondsSinceEpoch: { 42 }
+            )
+        }
+
+        logger.info(.stub, file: "Module/File.swift", function: "function", line: 42)
+        logger.info(.stub, source: "Source", file: "Module/File.swift", function: "function", line: 42)
+
+        XCTAssertEqual(processor.records.map(\.instrumentationScopeName), ["Module", "Source"])
+    }
 }
 
 extension OTelLogRecord: Equatable {
@@ -256,6 +274,7 @@ extension OTelLogRecord: Equatable {
             && errorsEqual(lhs.error, rhs.error)
             && lhs.timeNanosecondsSinceEpoch == rhs.timeNanosecondsSinceEpoch
             && lhs.resource == rhs.resource
+            && lhs.instrumentationScopeName == rhs.instrumentationScopeName
             && lhs.spanContext == rhs.spanContext
     }
 }
@@ -279,7 +298,8 @@ extension OTelLogRecord {
     fileprivate static func stub(
         metadata: Logger.Metadata = [:],
         error: (any Error)? = nil,
-        resource: OTelResource = OTelResource()
+        resource: OTelResource = OTelResource(),
+        instrumentationScopeName: String = "n/a"
     ) -> OTelLogRecord {
         OTelLogRecord(
             body: .stub,
@@ -288,6 +308,7 @@ extension OTelLogRecord {
             error: error,
             timeNanosecondsSinceEpoch: 42,
             resource: resource,
+            instrumentationScopeName: instrumentationScopeName,
             spanContext: nil
         )
     }

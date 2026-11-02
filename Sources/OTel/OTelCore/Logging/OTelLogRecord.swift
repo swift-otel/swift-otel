@@ -21,6 +21,7 @@ struct OTelLogRecord: Sendable {
     var timeNanosecondsSinceEpoch: UInt64
 
     let resource: OTelResource
+    let instrumentationScopeName: String
     let spanContext: OTelSpanContext?
 
     init(
@@ -30,6 +31,7 @@ struct OTelLogRecord: Sendable {
         error: (any Error)?,
         timeNanosecondsSinceEpoch: UInt64,
         resource: OTelResource,
+        instrumentationScopeName: String,
         spanContext: OTelSpanContext?
     ) {
         self.body = body
@@ -38,6 +40,7 @@ struct OTelLogRecord: Sendable {
         self.error = error
         self.timeNanosecondsSinceEpoch = timeNanosecondsSinceEpoch
         self.resource = resource
+        self.instrumentationScopeName = instrumentationScopeName
         self.spanContext = spanContext
     }
 }

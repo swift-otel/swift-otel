@@ -109,17 +109,21 @@ extension Opentelemetry_Proto_Logs_V1_ResourceLogs {
             self.resource = .init(resource)
         }
 
-        scopeLogs = [Opentelemetry_Proto_Logs_V1_ScopeLogs.with {
-            $0.scope = .swiftOTelScope
-            $0.logRecords = logRecords.map(Opentelemetry_Proto_Logs_V1_LogRecord.init)
-        }]
-    }
-}
-
-extension Opentelemetry_Proto_Common_V1_InstrumentationScope {
-    fileprivate static let swiftOTelScope = Opentelemetry_Proto_Common_V1_InstrumentationScope.with {
-        $0.name = "swift-otel"
-        $0.version = OTelLibrary.version
+        var scopeLogs: [Opentelemetry_Proto_Logs_V1_ScopeLogs] = []
+        var scopeLogsIndices: [String: Int] = [:]
+        for logRecord in logRecords {
+            let scopeName = logRecord.instrumentationScopeName
+            if let index = scopeLogsIndices[scopeName] {
+                scopeLogs[index].logRecords.append(.init(logRecord))
+            } else {
+                scopeLogsIndices[scopeName] = scopeLogs.count
+                scopeLogs.append(.with {
+                    $0.scope = .with { $0.name = scopeName }
+                    $0.logRecords = [.init(logRecord)]
+                })
+            }
+        }
+        self.scopeLogs = scopeLogs
     }
 }
 #endif

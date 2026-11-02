@@ -65,16 +65,28 @@ extension Opentelemetry_Proto_Trace_V1_ResourceSpans {
             self.resource = .init(resource)
         }
 
-        self.scopeSpans = [Opentelemetry_Proto_Trace_V1_ScopeSpans.with {
-            $0.scope = .swiftOTelScope
-            $0.spans = finishedSpans.map(Opentelemetry_Proto_Trace_V1_Span.init)
-        }]
+        var scopeSpans: [Opentelemetry_Proto_Trace_V1_ScopeSpans] = []
+        var scopeSpansIndices: [String: Int] = [:]
+        for finishedSpan in finishedSpans {
+            let scopeName = finishedSpan.instrumentationScopeName
+            if let index = scopeSpansIndices[scopeName] {
+                scopeSpans[index].spans.append(.init(finishedSpan))
+            } else {
+                scopeSpansIndices[scopeName] = scopeSpans.count
+                scopeSpans.append(.with {
+                    // Only Swift OTel's own scope has a known version.
+                    $0.scope = scopeName == OTelLibrary.name ? .swiftOTelScope : .with { $0.name = scopeName }
+                    $0.spans = [.init(finishedSpan)]
+                })
+            }
+        }
+        self.scopeSpans = scopeSpans
     }
 }
 
 extension Opentelemetry_Proto_Common_V1_InstrumentationScope {
     fileprivate static let swiftOTelScope = Opentelemetry_Proto_Common_V1_InstrumentationScope.with {
-        $0.name = "swift-otel"
+        $0.name = OTelLibrary.name
         $0.version = OTelLibrary.version
     }
 }

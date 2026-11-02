@@ -149,13 +149,19 @@ extension OTelTracer: Tracer {
             traceState = TraceState()
         }
 
-        // A #fileID is "Module/File.swift", and future Swift versions may add more slashes in between.
-        // Source: https://developer.apple.com/documentation/swift/fileID()
+        // A `#fileID` is "Module/File.swift", and future Swift versions may add more slashes in between.
+        // The module is the text before the first slash, the file name the text after the last one.
+        // https://developer.apple.com/documentation/swift/fileID()
+        // The module becomes the instrumentation scope.
+        // https://opentelemetry.io/docs/specs/otel/common/instrumentation-scope/
         let fileName: Substring
-        if let lastSlash = fileID.lastIndex(of: "/") {
+        let instrumentationScopeName: String
+        if let firstSlash = fileID.firstIndex(of: "/"), let lastSlash = fileID.lastIndex(of: "/") {
             fileName = fileID[fileID.index(after: lastSlash)...]
+            instrumentationScopeName = String(fileID[..<firstSlash])
         } else {
             fileName = fileID[...]
+            instrumentationScopeName = OTelLibrary.name
         }
 
         var attributes: SpanAttributes = [
@@ -198,6 +204,7 @@ extension OTelTracer: Tracer {
                 context: childContext,
                 spanContext: spanContext,
                 attributes: attributes,
+                instrumentationScopeName: instrumentationScopeName,
                 startTimeNanosecondsSinceEpoch: instant().nanosecondsSinceEpoch,
                 onEnd: { [weak self] span, endTimeNanosecondsSinceEpoch in
                     self?.process(span, endedAt: endTimeNanosecondsSinceEpoch)
@@ -226,6 +233,7 @@ extension OTelTracer: Tracer {
             endTimeNanosecondsSinceEpoch: endTimeNanosecondsSinceEpoch,
             attributes: span.attributes,
             resource: resource,
+            instrumentationScopeName: span.instrumentationScopeName,
             events: span.events,
             links: span.links
         )

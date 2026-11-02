@@ -180,6 +180,7 @@ final class OTelSpan: Span {
         context: InstrumentationContext,
         spanContext: OTelSpanContext,
         attributes: SpanAttributes,
+        instrumentationScopeName: String,
         startTimeNanosecondsSinceEpoch: UInt64,
         onEnd: @escaping @Sendable (OTelRecordingSpan, _ endTimeNanosecondsSinceEpoch: UInt64) -> Void
     ) -> OTelSpan {
@@ -189,6 +190,7 @@ final class OTelSpan: Span {
                 kind: kind,
                 context: context,
                 attributes: attributes,
+                instrumentationScopeName: instrumentationScopeName,
                 startTimeNanosecondsSinceEpoch: startTimeNanosecondsSinceEpoch,
                 onEnd: onEnd
             ),
@@ -205,6 +207,7 @@ final class OTelSpan: Span {
 final class OTelRecordingSpan: Span, Sendable {
     let kind: SpanKind
     let context: InstrumentationContext
+    let instrumentationScopeName: String
 
     private struct State {
         var operationName: String
@@ -246,11 +249,13 @@ final class OTelRecordingSpan: Span, Sendable {
         kind: SpanKind,
         context: InstrumentationContext,
         attributes: SpanAttributes,
+        instrumentationScopeName: String,
         startTimeNanosecondsSinceEpoch: UInt64,
         onEnd: @escaping @Sendable (OTelRecordingSpan, _ endTimeNanosecondsSinceEpoch: UInt64) -> Void
     ) {
         self.kind = kind
         self.context = context
+        self.instrumentationScopeName = instrumentationScopeName
         self.startTimeNanosecondsSinceEpoch = startTimeNanosecondsSinceEpoch
         self.onEnd = onEnd
         _state = NIOLockedValueBox(
