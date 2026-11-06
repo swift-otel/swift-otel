@@ -201,4 +201,25 @@ final class OTelFinishedSpanProtoTests: XCTestCase {
 
         XCTAssertTrue(protoSpan.links.isEmpty)
     }
+
+    func test_initProtoResourceSpans_groupsSpansByInstrumentationScope() {
+        let spans: [OTelFinishedSpan] = [
+            .stub(operationName: "1", instrumentationScopeName: "A"),
+            .stub(operationName: "2", instrumentationScopeName: "B"),
+            .stub(operationName: "3", instrumentationScopeName: "A"),
+            .stub(operationName: "4", instrumentationScopeName: "swift-otel"),
+        ]
+
+        let resourceSpans = Opentelemetry_Proto_Trace_V1_ResourceSpans(spans)
+
+        XCTAssertEqual(resourceSpans.scopeSpans.map(\.scope), [
+            .with { $0.name = "A" },
+            .with { $0.name = "B" },
+            .with {
+                $0.name = "swift-otel"
+                $0.version = OTelLibrary.version
+            },
+        ])
+        XCTAssertEqual(resourceSpans.scopeSpans.map { $0.spans.map(\.name) }, [["1", "3"], ["2"], ["4"]])
+    }
 }

@@ -33,6 +33,7 @@ extension OTelSpan {
     ///   - context: Defaults to `InstrumentationContext.topLevel`.
     ///   - spanContext: Defaults to ``OTel/OTelSpanContext/localStub(traceID:spanID:parentSpanID:traceFlags:traceState)``
     ///   - attributes: Defaults to no attributes.
+    ///   - instrumentationScopeName: Defaults to `OTelLibrary.name`.
     ///   - startTimeNanosecondsSinceEpoch: Defaults to `0`.
     ///   - onEnd: Defaults to a no-op closure.
     ///
@@ -43,6 +44,7 @@ extension OTelSpan {
         context: InstrumentationContext = .topLevel,
         spanContext: OTelSpanContext = .localStub(),
         attributes: SpanAttributes = [:],
+        instrumentationScopeName: String = OTelLibrary.name,
         startTimeNanosecondsSinceEpoch: UInt64 = 0,
         onEnd: @escaping @Sendable (OTelRecordingSpan, _ endTimeNanosecondsSinceEpoch: UInt64) -> Void = { _, _ in }
     ) -> OTelSpan {
@@ -52,6 +54,7 @@ extension OTelSpan {
             context: context,
             spanContext: spanContext,
             attributes: attributes,
+            instrumentationScopeName: instrumentationScopeName,
             startTimeNanosecondsSinceEpoch: startTimeNanosecondsSinceEpoch,
             onEnd: onEnd
         )

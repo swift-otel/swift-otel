@@ -27,6 +27,7 @@ extension OTelLogRecord {
         error: (any Error)? = nil,
         timeNanosecondsSinceEpoch: UInt64 = 0,
         resource: OTelResource = OTelResource(),
+        instrumentationScopeName: String = "OTelTests",
         spanContext: OTelSpanContext? = nil
     ) -> OTelLogRecord {
         OTelLogRecord(
@@ -36,6 +37,7 @@ extension OTelLogRecord {
             error: error,
             timeNanosecondsSinceEpoch: timeNanosecondsSinceEpoch,
             resource: resource,
+            instrumentationScopeName: instrumentationScopeName,
             spanContext: spanContext
         )
     }

@@ -39,6 +39,9 @@ struct OTelFinishedSpan: Sendable {
     /// The resource this span instrumented.
     let resource: OTelResource
 
+    /// The name of the instrumentation scope this span was started in.
+    let instrumentationScopeName: String
+
     /// The events added to the span.
     let events: [SpanEvent]
 
@@ -54,6 +57,7 @@ struct OTelFinishedSpan: Sendable {
         endTimeNanosecondsSinceEpoch: UInt64,
         attributes: SpanAttributes,
         resource: OTelResource,
+        instrumentationScopeName: String,
         events: [SpanEvent],
         links: [SpanLink]
     ) {
@@ -65,6 +69,7 @@ struct OTelFinishedSpan: Sendable {
         self.endTimeNanosecondsSinceEpoch = endTimeNanosecondsSinceEpoch
         self.attributes = attributes
         self.resource = resource
+        self.instrumentationScopeName = instrumentationScopeName
         self.events = events
         self.links = links
     }

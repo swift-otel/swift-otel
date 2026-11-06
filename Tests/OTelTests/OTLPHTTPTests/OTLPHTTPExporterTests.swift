@@ -190,7 +190,7 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpProtobuf
                 let exporter = try OTLPHTTPLogRecordExporter(configuration: config)
-                try await exporter.export([OTelLogRecord(body: "Hello", level: .trace, metadata: ["foo": "bar"], error: TestError(), timeNanosecondsSinceEpoch: 1234, resource: OTelResource(), spanContext: nil)])
+                try await exporter.export([OTelLogRecord(body: "Hello", level: .trace, metadata: ["foo": "bar"], error: TestError(), timeNanosecondsSinceEpoch: 1234, resource: OTelResource(), instrumentationScopeName: "OTelTests", spanContext: nil)])
                 await exporter.shutdown()
             }
 
@@ -234,7 +234,7 @@ import Tracing
                 config.endpoint = "http://127.0.0.1:\(testServer.serverPort)/some/path"
                 config.protocol = .httpJSON
                 let exporter = try OTLPHTTPLogRecordExporter(configuration: config)
-                try await exporter.export([OTelLogRecord(body: "Hello", level: .trace, metadata: ["foo": "bar"], error: TestError(), timeNanosecondsSinceEpoch: 1234, resource: OTelResource(), spanContext: nil)])
+                try await exporter.export([OTelLogRecord(body: "Hello", level: .trace, metadata: ["foo": "bar"], error: TestError(), timeNanosecondsSinceEpoch: 1234, resource: OTelResource(), instrumentationScopeName: "OTelTests", spanContext: nil)])
                 await exporter.shutdown()
             }
 
