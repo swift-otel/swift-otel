@@ -116,7 +116,7 @@ extension Opentelemetry_Proto_Logs_V1_ResourceLogs {
             if let index = scopeLogsIndices[scopeName] {
                 scopeLogs[index].logRecords.append(.init(logRecord))
             } else {
-                scopeLogsIndices[scopeName] = scopeLogs.count
+                scopeLogsIndices[scopeName] = scopeLogs.endIndex
                 scopeLogs.append(.with {
                     $0.scope = .with { $0.name = scopeName }
                     $0.logRecords = [.init(logRecord)]

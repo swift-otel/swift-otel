@@ -72,7 +72,7 @@ extension Opentelemetry_Proto_Trace_V1_ResourceSpans {
             if let index = scopeSpansIndices[scopeName] {
                 scopeSpans[index].spans.append(.init(finishedSpan))
             } else {
-                scopeSpansIndices[scopeName] = scopeSpans.count
+                scopeSpansIndices[scopeName] = scopeSpans.endIndex
                 scopeSpans.append(.with {
                     // Only Swift OTel's own scope has a known version.
                     $0.scope = scopeName == OTelLibrary.name ? .swiftOTelScope : .with { $0.name = scopeName }
