@@ -31,6 +31,9 @@ import Tracing
 protocol Bucketable: AdditiveArithmetic, Comparable, Sendable {
     /// A bucket bound representation that is used in the OTLP export.
     var bucketRepresentation: Double { get }
+
+    /// Whether the value can be aggregated, which rules out NaN and infinity.
+    var isFinite: Bool { get }
 }
 
 /// A Histogram to record timings.
@@ -87,6 +90,7 @@ final class Histogram<Value: Bucketable>: Sendable {
     }
 
     func record(_ value: Value) {
+        guard value.isFinite else { return }
         box.withLockedValue { state in
             state.min = state.min.map { min($0, value) } ?? value
             state.max = state.max.map { max($0, value) } ?? value
@@ -112,9 +116,11 @@ final class Histogram<Value: Bucketable>: Sendable {
 }
 
 extension Duration: Bucketable {
+    var isFinite: Bool { true }
+
     var bucketRepresentation: Double {
         let attos = String(unsafeUninitializedCapacity: 18) { buffer in
-            var num = self.components.attoseconds
+            var num = self.components.attoseconds.magnitude
 
             var positions = 17
             var length: Int?
@@ -144,7 +150,9 @@ extension Duration: Bucketable {
 
             return length!
         }
-        return Double("\(components.seconds).\(attos)")!
+        let magnitude = Double("\(components.seconds.magnitude).\(attos)")!
+        let isNegative = components.seconds < 0 || components.attoseconds < 0
+        return isNegative ? -magnitude : magnitude
     }
 }
 

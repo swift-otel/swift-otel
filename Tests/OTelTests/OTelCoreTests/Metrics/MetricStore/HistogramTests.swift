@@ -95,9 +95,29 @@ final class HistogramTests: XCTestCase {
             .nanoseconds(1): 1e-9,
             Duration(secondsComponent: 0, attosecondsComponent: 1): 1e-18,
             .seconds(2) + Duration(secondsComponent: 0, attosecondsComponent: 1): 2 + 1e-18,
+            .seconds(-1): -1.0,
+            .milliseconds(-500): -0.5,
+            .milliseconds(-1): -0.001,
+            .nanoseconds(-1): -1e-9,
+            Duration(secondsComponent: 0, attosecondsComponent: -1): -1e-18,
+            .seconds(-2) - Duration(secondsComponent: 0, attosecondsComponent: 1): -2 - 1e-18,
         ] {
             XCTAssertEqual(duration.bucketRepresentation, expectedBucketRepresentation)
         }
+    }
+
+    func test_record_ignoresNonFiniteValues() {
+        let histogram = ValueHistogram(name: "my_histogram", attributes: [], buckets: [1.0, 2.0])
+
+        histogram.record(1.5)
+        for value in [Double.nan, .signalingNaN, .infinity, -.infinity] {
+            histogram.record(value)
+        }
+
+        histogram.assertStateEquals(count: 1, sum: 1.5, buckets: [
+            (bound: 1.0, count: 0),
+            (bound: 2.0, count: 1),
+        ], countAboveUpperBound: 0)
     }
 
     func test_bucketRepresentation_double() {
